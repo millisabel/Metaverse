@@ -1,0 +1,15 @@
+{
+  "name": "landing",
+  "version": "1.0.0",
+  "description": "Metaverse Landing Page",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server -p 3000"
+  },
+  "dependencies": {
+    "three": "^0.162.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
