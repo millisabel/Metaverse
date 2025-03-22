@@ -324,8 +324,13 @@
   overflow: hidden;
   background: url(../assets/images/bg/BG-hero.png);
   background-repeat: no-repeat;
-  background-position: center 90%;
-  background-size: 80%;
+  background-position: center bottom;
+  background-size: 100%;
+}
+@media (min-width: 767.98px) {
+  .hero {
+    background-size: 80%;
+  }
 }
 .hero .container {
   position: relative;
