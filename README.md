@@ -8,14 +8,20 @@ A landing page for a metaverse project with starry sky background using Three.js
 - HTML5, CSS3
 - Bootstrap 5
 - Three.js for 3D graphics
-- JavaScript
+- GSAP for animations
+- JavaScript (ES6+)
 - Webpack for bundling
+- Sharp for image processing
 
 ## Features
 
 - Interactive starry sky background created with Three.js
 - Responsive layout with Bootstrap
 - Modern design elements
+- Animated navbar with GSAP
+- SVG favicon with dark/light mode support
+- Mobile-friendly navigation
+- Neon design elements and highlight effects
 
 ## Setup and Installation
 
@@ -43,11 +49,35 @@ A landing page for a metaverse project with starry sky background using Three.js
 
 - `src/` - Source files
   - `js/` - JavaScript files
-    - `galaxy/` - Contains the Three.js star field implementation
+    - `animations/` - GSAP animations
+    - `galaxy/` - Three.js star field implementation
+    - `navbar/` - Navbar functionality
   - `scss/` - Styling files
+    - `components/` - Component styles
+    - `abstracts/` - Variables, mixins, and utilities
+  - `assets/` - Images and other assets
 - `dist/` - Compiled files
 - `index.html` - Main HTML file
+
+## Animations
+
+The project uses GSAP for smooth animations:
+- Navbar elements appear with sequential animation
+- Menu items have custom entrance animations
+- Interactive highlight elements with glow effect
+
+## Responsive Design
+
+- Desktop: Full navigation bar with animated menu items
+- Mobile: Collapsible navigation with hamburger menu
+- Custom behaviors at different breakpoints
 
 ## Deployment
 
 The project is deployed on GitHub Pages. Any changes pushed to the `gh-pages` branch will be automatically deployed.
+
+## Browser Support
+
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- SVG favicon with fallback for older browsers
+- Support for both light and dark modes
