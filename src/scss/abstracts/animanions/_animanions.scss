@@ -1,4 +1,4 @@
-// pulse
+// animation: pulse 4s  ease infinite;  
 
 @keyframes pulse {
     0% {
@@ -29,7 +29,7 @@
     animation: pulse 4s  ease infinite; 
 }
 
-// moveGradient
+// animation: moveGradient 10s linear infinite;
 
 @keyframes moveGradient {
     0% {
@@ -37,5 +37,26 @@
     }
     100% {
         background-position: 300% 50%;
+    }
+}
+
+// animation: neonPulse 1s ease-in-out infinite;
+
+@keyframes neonPulse {
+    0% {
+        box-shadow: 
+            0 0 5px var(--bs-primary),
+            0 0 10px var(--bs-primary);
+    }
+    50% {
+        box-shadow: 
+            0 0 10px var(--bs-primary),
+            0 0 20px var(--bs-primary),
+            0 0 30px var(--bs-secondary);
+    }
+    100% {
+        box-shadow: 
+            0 0 5px var(--bs-primary),
+            0 0 10px var(--bs-primary);
     }
 }

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.3",
+    "gsap": "^3.12.7",
     "three": "^0.162.0"
   },
   "devDependencies": {

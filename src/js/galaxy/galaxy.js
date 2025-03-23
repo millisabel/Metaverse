@@ -58,7 +58,7 @@ export function animateStars(positions, sizes, starCount, starsGeometry, rendere
 
             // Затухание и появление
             const scale = Math.abs(Math.sin(Date.now() * 0.001 + i)); // Затухание
-            sizes[i] = scale * 5; // Изменяем размер звезды (до 5)
+            sizes[i] = scale * 3; // Изменяем размер звезды (до 5)
         }
 
         starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
