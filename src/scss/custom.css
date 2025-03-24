@@ -438,7 +438,7 @@
   --line-color: var(--accent-color);
 }
 
-.section {
+.layout {
   --section-bg-color: var(--bs-black);
   --section-bg-image: none;
   --section-content-border-color: var(--bs-primary);
@@ -447,10 +447,10 @@
   background: var(--section-bg-color) var(--section-bg-image) no-repeat center center;
   background-size: cover;
 }
-.section--about {
+.layout--about {
   --section-bg-image: url("../assets/images/bg/BG-about_uns.png");
 }
-.section-content {
+.layout-content {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -458,31 +458,91 @@
   padding-left: 12px;
   text-align: center;
 }
-.section-title {
+.layout-title {
   min-width: 0;
   font-size: clamp(1.5rem, 5vw, 3rem);
   font-weight: 700;
 }
-.section-subtitle {
+.layout-subtitle {
   order: -1;
   min-width: 0;
   text-transform: uppercase;
   font-size: 1.5rem;
 }
-.section-text {
+.layout-text {
   margin-bottom: 2rem;
 }
 
 @media (min-width: 991.98px) {
-  .section-content {
+  .layout-content {
     margin-bottom: 3rem;
     padding-left: 50px;
     text-align: left;
   }
-  .section-title {
+  .layout-title {
     font-size: 2.5rem;
   }
-  .section-subtitle {
+  .layout-subtitle {
     font-size: 1.2rem;
   }
+}
+.hero {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: url(../assets/images/bg/BG-hero.png);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100%;
+}
+@media (min-width: 767.98px) {
+  .hero {
+    background-size: 80%;
+  }
+}
+.hero .container {
+  position: relative;
+  z-index: 2;
+}
+.hero-content {
+  border-left: 5px solid var(--bs-primary);
+}
+@media (min-width: 767.98px) {
+  .hero-content {
+    padding-left: 60px;
+  }
+}
+.hero-title {
+  margin-bottom: 65px;
+  font-size: 1.4rem;
+  line-height: 2;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-transform: uppercase;
+}
+@media (min-width: 767.98px) {
+  .hero-title {
+    font-size: 2rem;
+    line-height: 1.4;
+  }
+}
+@media (min-width: 991.98px) {
+  .hero-title {
+    font-size: 3rem;
+    line-height: 1.4;
+  }
+}
+.hero-title svg {
+  display: inline-block;
+  margin: 0 10px;
+}
+.hero canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
 }
