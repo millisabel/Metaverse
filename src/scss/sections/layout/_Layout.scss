@@ -49,12 +49,19 @@
 }
 
     // Responsive styles für section
+@media (min-width: 767.98px) {
+    .layout {
+        &-content { 
+            padding-left: 50px;
+        }
+    }
+}
+
 @media (min-width: 991.98px) {
     .layout {
         
         &-content {
-            margin-bottom: 3rem;  
-            padding-left: 50px;
+            margin-bottom: 3rem; 
 
             text-align: left;
         }
@@ -66,5 +73,5 @@
         &-subtitle {
             font-size: 1.2rem;
         }
-}
+    }
 }
