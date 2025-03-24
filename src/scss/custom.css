@@ -438,6 +438,58 @@
   --line-color: var(--accent-color);
 }
 
+.carousel-inner {
+  min-height: 400px;
+}
+.carousel-controls {
+  position: static;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.carousel-controls-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.carousel-controls-buttons [data-bs-slide] {
+  position: static;
+  width: 50px;
+  height: 50px;
+}
+.carousel-controls-buttons [data-bs-slide] .carousel-control-prev-icon {
+  filter: none;
+}
+.carousel-controls-buttons [data-bs-slide] .carousel-control-next-icon {
+  filter: none;
+}
+.carousel-indicators {
+  margin-right: 0;
+  margin-left: 0;
+  margin-bottom: 2rem;
+}
+.carousel-indicators [data-bs-target] {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  background-color: var(--bs-white) !important;
+}
+.carousel-indicators [data-bs-target].active {
+  background-color: var(--bs-primary) !important;
+}
+.carousel .chapter-indicator div {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--bs-white);
+  gap: 10px;
+}
+
 .layout {
   --section-bg-color: var(--bs-black);
   --section-bg-image: none;

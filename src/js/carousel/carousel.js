@@ -1,22 +1,32 @@
+// Import Bootstrap components
+import { Carousel } from 'bootstrap';
+
 // About carousel initialization
 document.addEventListener('DOMContentLoaded', function() {
     const aboutCarousel = document.getElementById('aboutCarousel');
     if (aboutCarousel) {
-        // Bootstrap carousel will be automatically initialized
-        // You can add custom event handlers here if needed
+        // Bootstrap requires manual initialization in v5
+        const carousel = new Carousel(aboutCarousel, {
+            interval: 5000,
+            wrap: true,
+            touch: true
+        });
         
-        // Example: add chapter indicator
+        // Create and add chapter indicator
         const chapterElement = document.createElement('div');
-        chapterElement.className = 'chapter-indicator mt-3';
-        chapterElement.innerHTML = '<span>CHAPTER <span class="chapter-number">1</span>/<span class="total-chapters">3</span></span>';
+        chapterElement.className = 'chapter-indicator mt-3 d-flex align-items-center';
+        chapterElement.innerHTML = '<span class="me-2">CHAPTER</span><span class="chapter-number fs-4 fw-bold text-primary me-1">1</span><span class="me-2">/</span><span class="total-chapters">3</span>';
         aboutCarousel.appendChild(chapterElement);
         
         // Update chapter number on slide change
         aboutCarousel.addEventListener('slide.bs.carousel', function(event) {
-            const chapterNumber = chapterElement.querySelector('.chapter-number');
+            console.log('Slide event detected', event);
+            const chapterNumber = aboutCarousel.querySelector('.chapter-number');
             if (chapterNumber) {
                 chapterNumber.textContent = event.to + 1;
             }
         });
+    } else {
+        console.error('Carousel element not found!');
     }
 });

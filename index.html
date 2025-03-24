@@ -85,7 +85,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="layout-content line line--accent">
-                        <div id="aboutCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true" data-bs-interval="false">
+                        <div id="aboutCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-touch="true" data-bs-interval="5000">
                             <div class="carousel-inner">
                                 <!-- Slide 1 -->
                                 <div class="carousel-item active">
@@ -114,22 +114,25 @@
                                     </p>
                                 </div>
                             </div>
-                            
-                            <!-- Bootstrap Controls -->
-                            <button class="carousel-control-prev" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                            
+
                             <!-- Bootstrap Indicators -->
-                            <div class="carousel-indicators">
+                            <div class="carousel-indicators position-static">
                                 <button type="button" data-bs-target="#aboutCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
                                 <button type="button" data-bs-target="#aboutCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
                                 <button type="button" data-bs-target="#aboutCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                            </div>
+                            <div class="carousel-controls">
+                                <!-- Bootstrap Controls -->
+                                 <div class="carousel-controls-buttons">
+                                    <button class="carousel-control-prev position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                 </div>
                             </div>
                         </div>
                     </div>
