@@ -25,6 +25,13 @@ Thumbs.db
 .project
 .settings/
 .editorconfig
+.cursorrules
+.cursorignore
+.cursor/rules
+.cursor/ignore
+.cursor/settings
+.cursor/settings.json
+.cursor
 
 # Системные файлы
 desktop.ini

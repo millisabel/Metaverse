@@ -1,0 +1,187 @@
+[1mdiff --git a/README.md b/README.md[m
+[1mindex 1ad8387..85554f8 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -1,83 +1,105 @@[m
+[31m-# Metaverse Landing Page[m
+[32m+[m[32m# Crafty Metaverse Landing Page[m
+ [m
+[31m-A landing page for a metaverse project with starry sky background using Three.js.  [m
+[31m-[View Demo](https://millisabel.github.io/Metaverse/)[m
+[32m+[m[32mA modern landing page for the Crafty Metaverse project, built with cutting-edge web technologies.[m
+ [m
+[31m-## Technologies Used[m
+[32m+[m[32m## 🚀 Technologies[m
+ [m
+[31m-- HTML5, CSS3[m
+[31m-- Bootstrap 5[m
+[31m-- Three.js for 3D graphics[m
+[31m-- GSAP for animations[m
+[31m-- JavaScript (ES6+)[m
+[31m-- Webpack for bundling[m
+[31m-- Sharp for image processing[m
+[32m+[m[32mHTML5, CSS3[m
+[32m+[m[32mBootstrap 5[m
+[32m+[m[32mThree.js for 3D graphics[m
+[32m+[m[32mGSAP for animations[m
+[32m+[m[32mJavaScript (ES6+)[m
+[32m+[m[32mWebpack for bundling[m
+[32m+[m[32mSharp for image processing[m
+ [m
+[31m-## Features[m
+[31m-[m
+[31m-- Interactive starry sky background created with Three.js[m
+[31m-- Responsive layout with Bootstrap[m
+[31m-- Modern design elements[m
+[31m-- Animated navbar with GSAP[m
+[31m-- SVG favicon with dark/light mode support[m
+[31m-- Mobile-friendly navigation[m
+[31m-- Neon design elements and highlight effects[m
+[31m-[m
+[31m-## Setup and Installation[m
+[32m+[m[32m## 🛠 Installation and Setup[m
+ [m
+ 1. Clone the repository:[m
+[31m-   ```bash[m
+[31m-   git clone https://github.com/millisabel/Metaverse.git[m
+[31m-   ```[m
+[32m+[m[32m```bash[m
+[32m+[m[32mgit clone https://github.com/your-username/crafty-metaverse.git[m
+[32m+[m[32mcd crafty-metaverse[m
+[32m+[m[32m```[m
+ [m
+ 2. Install dependencies:[m
+[31m-   ```bash[m
+[31m-   npm install[m
+[31m-   ```[m
+[31m-[m
+[31m-3. Build the project:[m
+[31m-   ```bash[m
+[31m-   npm run build[m
+[31m-   ```[m
+[31m-[m
+[31m-4. Run locally:[m
+[31m-   ```bash[m
+[31m-   npm start[m
+[31m-   ```[m
+[31m-[m
+[31m-## Project Structure[m
+[31m-[m
+[31m-- `src/` - Source files[m
+[31m-  - `js/` - JavaScript files[m
+[31m-    - `animations/` - GSAP animations[m
+[31m-    - `galaxy/` - Three.js star field implementation[m
+[31m-    - `navbar/` - Navbar functionality[m
+[31m-  - `scss/` - Styling files[m
+[31m-    - `components/` - Component styles[m
+[31m-    - `abstracts/` - Variables, mixins, and utilities[m
+[31m-  - `assets/` - Images and other assets[m
+[31m-- `dist/` - Compiled files[m
+[31m-- `index.html` - Main HTML file[m
+[31m-[m
+[31m-## Animations[m
+[31m-[m
+[31m-The project uses GSAP for smooth animations:[m
+[31m-- Navbar elements appear with sequential animation[m
+[31m-- Menu items have custom entrance animations[m
+[31m-- Interactive highlight elements with glow effect[m
+[31m-[m
+[31m-## Responsive Design[m
+[31m-[m
+[31m-- Desktop: Full navigation bar with animated menu items[m
+[31m-- Mobile: Collapsible navigation with hamburger menu[m
+[31m-- Custom behaviors at different breakpoints[m
+[31m-[m
+[31m-## Deployment[m
+[31m-[m
+[31m-The project is deployed on GitHub Pages. Any changes pushed to the `gh-pages` branch will be automatically deployed.[m
+[31m-[m
+[31m-## Browser Support[m
+[31m-[m
+[31m-- Modern browsers (Chrome, Firefox, Safari, Edge)[m
+[31m-- SVG favicon with fallback for older browsers[m
+[31m-- Support for both light and dark modes[m
+\ No newline at end of file[m
+[32m+[m[32m```bash[m
+[32m+[m[32mnpm install[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m3. Run the development server:[m
+[32m+[m[32m```bash[m
+[32m+[m[32mnpm run dev[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m4. Build for production:[m
+[32m+[m[32m```bash[m
+[32m+[m[32mnpm run build[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## 📁 Project Structure[m
+[32m+[m
+[32m+[m[32m```[m
+[32m+[m[32mcrafty-metaverse/[m
+[32m+[m[32m├── src/[m
+[32m+[m[32m│   ├── assets/[m
+[32m+[m[32m│   │   ├── images/[m
+[32m+[m[32m│   │   └── fonts/[m
+[32m+[m[32m│   ├── js/[m
+[32m+[m[32m│   │   ├── animations/[m
+[32m+[m[32m│   │   ├── carousel/[m
+[32m+[m[32m│   │   ├── hero/[m
+[32m+[m[32m│   │   └── navbar/[m
+[32m+[m[32m│   └── scss/[m
+[32m+[m[32m│       ├── abstracts/[m
+[32m+[m[32m│       ├── base/[m
+[32m+[m[32m│       ├── components/[m
+[32m+[m[32m│       └── sections/[m
+[32m+[m[32m├── dist/[m
+[32m+[m[32m├── index.html[m
+[32m+[m[32m└── package.json[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## ✨ Implementation Features[m
+[32m+[m
+[32m+[m[32m### Hero Section[m
+[32m+[m[32m- Interactive 3D background using Three.js[m
+[32m+[m[32m- Responsive design[m
+[32m+[m[32m- Optimized performance[m
+[32m+[m[32m- Smooth animations[m
+[32m+[m
+[32m+[m[32m### Carousel[m
+[32m+[m[32m- Responsive design[m
+[32m+[m[32m- Smooth transition animations[m
+[32m+[m[32m- Current slide indicator[m
+[32m+[m[32m- Touch event support[m
+[32m+[m[32m- Accessibility (ARIA attributes, focus styles)[m
+[32m+[m
+[32m+[m[32m### Animations[m
+[32m+[m[32m- Smooth section transitions[m
+[32m+[m[32m- Element appearance animations[m
+[32m+[m[32m- Optimized performance[m
+[32m+[m
+[32m+[m[32m## 🎨 Styling[m
+[32m+[m
+[32m+[m[32m- SCSS with BEM methodology[m
+[32m+[m[32m- Design consistency variables[m
+[32m+[m[32m- Responsive design (mobile-first approach)[m
+[32m+[m[32m- Dark theme support[m
+[32m+[m[32m- Optimized media queries[m
+[32m+[m
+[32m+[m[32m## 🔍 Optimization[m
+[32m+[m
+[32m+[m[32m- CSS and JavaScript minification[m
+[32m+[m[32m- Image optimization[m
+[32m+[m[32m- Lazy component loading[m
+[32m+[m[32m- Font optimization[m
+[32m+[m
+[32m+[m[32m## 📱 Browser Support[m
+[32m+[m
+[32m+[m[32m- Chrome (last 2 versions)[m
+[32m+[m[32m- Firefox (last 2 versions)[m
+[32m+[m[32m- Safari (last 2 versions)[m
+[32m+[m[32m- Edge (last 2 versions)[m
+[32m+[m
+[32m+[m[32m## 📄 License[m
+[32m+[m
+[32m+[m[32mMIT License - free to use and modify[m
+\ No newline at end of file[m

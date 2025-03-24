@@ -9,7 +9,7 @@
 // @media (min-width: 767.98px) {
 // } 
 
-$primary: #8A2BE2; 
+$primary: #6100FF; 
 $primary-rgb: 138, 43, 226;
 $secondary: #A109FE;
 $tertiary: #7A59FF;
@@ -45,8 +45,14 @@ $theme-colors: (
 
     //custom
     --accent-color: #{$accent};
-    --gradient-neon: linear-gradient(90deg, var(--bs-primary), var(--bs-secondary));
-    --button-gradient: linear-gradient(135deg, #7a42f4 0%, #4642f4 100%);
+    --gradient-neon: 
+      linear-gradient(90deg, 
+      var(--bs-primary), 
+      var(--bs-secondary));
+    --button-gradient: 
+    linear-gradient(135deg, 
+      #7a42f4 0%, 
+      #4642f4 100%);
     
 }
 

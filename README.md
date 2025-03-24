@@ -1,105 +1,87 @@
-# Crafty Metaverse Landing Page
+# Metaverse Landing Page
 
-A modern landing page for the Crafty Metaverse project, built with cutting-edge web technologies.
+A landing page for a metaverse project with starry sky background using Three.js.  
+[View Demo](https://millisabel.github.io/Metaverse/)
 
-## 🚀 Technologies
+## Technologies Used
 
-HTML5, CSS3
-Bootstrap 5
-Three.js for 3D graphics
-GSAP for animations
-JavaScript (ES6+)
-Webpack for bundling
-Sharp for image processing
+- HTML5, CSS3
+- Bootstrap 5
+- Three.js for 3D graphics
+- GSAP for animations
+- JavaScript (ES6+)
+- Webpack for bundling
+- Sharp for image processing
 
-## 🛠 Installation and Setup
+## Features
+
+- Interactive starry sky background created with Three.js
+- Responsive layout with Bootstrap
+- Modern design elements
+- Animated navbar with GSAP
+- SVG favicon with dark/light mode support
+- Mobile-friendly navigation
+- Neon design elements and highlight effects
+
+## Setup and Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/your-username/crafty-metaverse.git
-cd crafty-metaverse
-```
+   ```bash
+   git clone https://github.com/millisabel/Metaverse.git
+   ```
 
 2. Install dependencies:
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Run the development server:
-```bash
-npm run dev
-```
+3. Build the project:
+   ```bash
+   npm run build
+   ```
 
-4. Build for production:
-```bash
-npm run build
-```
+4. Run locally:
+   ```bash
+   npm start
+   ```
 
-## 📁 Project Structure
+## Project Structure
 
-```
-crafty-metaverse/
-├── src/
-│   ├── assets/
-│   │   ├── images/
-│   │   └── fonts/
-│   ├── js/
-│   │   ├── animations/
-│   │   ├── carousel/
-│   │   ├── hero/
-│   │   └── navbar/
-│   └── scss/
-│       ├── abstracts/
-│       ├── base/
-│       ├── components/
-│       └── sections/
-├── dist/
-├── index.html
-└── package.json
-```
+- `src/` - Source files
+  - `js/` - JavaScript files
+    - `animations/` - GSAP animations
+    - `hero/` - Three.js hero section implementation
+    - `navbar/` - Navbar functionality
+  - `scss/` - Styling files
+    - `components/` - Component styles
+    - `abstracts/` - Variables, mixins, and utilities
+    - `base/` - Base styles
+    - `sections/` - Section-specific styles
+  - `assets/` - Images and other assets
+    - `images/` - Image files
+    - `fonts/` - Font files
+- `dist/` - Compiled files
+- `index.html` - Main HTML file
 
-## ✨ Implementation Features
+## Animations
 
-### Hero Section
-- Interactive 3D background using Three.js
-- Responsive design
-- Optimized performance
-- Smooth animations
+The project uses GSAP for smooth animations:
+- Navbar elements appear with sequential animation
+- Menu items have custom entrance animations
+- Interactive highlight elements with glow effect
 
-### Carousel
-- Responsive design
-- Smooth transition animations
-- Current slide indicator
-- Touch event support
-- Accessibility (ARIA attributes, focus styles)
+## Responsive Design
 
-### Animations
-- Smooth section transitions
-- Element appearance animations
-- Optimized performance
+- Desktop: Full navigation bar with animated menu items
+- Mobile: Collapsible navigation with hamburger menu
+- Custom behaviors at different breakpoints
 
-## 🎨 Styling
+## Deployment
 
-- SCSS with BEM methodology
-- Design consistency variables
-- Responsive design (mobile-first approach)
-- Dark theme support
-- Optimized media queries
+The project is deployed on GitHub Pages. Any changes pushed to the `gh-pages` branch will be automatically deployed.
 
-## 🔍 Optimization
+## Browser Support
 
-- CSS and JavaScript minification
-- Image optimization
-- Lazy component loading
-- Font optimization
-
-## 📱 Browser Support
-
-- Chrome (last 2 versions)
-- Firefox (last 2 versions)
-- Safari (last 2 versions)
-- Edge (last 2 versions)
-
-## 📄 License
-
-MIT License - free to use and modify
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- SVG favicon with fallback for older browsers
+- Support for both light and dark modes
