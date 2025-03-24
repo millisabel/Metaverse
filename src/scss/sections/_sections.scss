@@ -1,2 +1,71 @@
-@import 'hero/hero';
+// section
 
+
+.section{
+    --section-bg-color: var(--bs-black);
+    --section-bg-image: none;
+
+    --section-content-border-color: var(--bs-primary);
+    --section-content-border-width: 5px;
+    --section-content-border-style: solid;
+
+    background: 
+        var(--section-bg-color) 
+        var(--section-bg-image) 
+        no-repeat center center;
+    background-size: cover;
+
+    &--about {
+        --section-bg-image: url('../assets/images/bg/BG-about_uns.png');
+    }
+
+    &-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        padding-top: 75px;
+        padding-left: 12px;
+
+        text-align: center;
+    }
+
+    &-title {
+        min-width: 0;
+        font-size: clamp(1.5rem, 5vw, 3rem);
+        font-weight: 700;
+    }
+
+    &-subtitle {
+        order: -1;
+
+        min-width: 0;
+        text-transform: uppercase;
+        font-size: clamp(1.2rem, 1.5rem, 3rem);
+    }
+
+    &-text {
+        margin-bottom: 2rem;
+    }
+}
+
+    // Responsive styles für section
+@media (min-width: 991.98px) {
+    .section {
+        
+        &-content {
+            margin-bottom: 3rem;  
+            padding-left: 50px;
+
+            text-align: left;
+        }
+
+        &-title {
+            font-size: 2.5rem;
+        }
+
+        &-subtitle {
+            font-size: 1.2rem;
+        }
+}
+}
