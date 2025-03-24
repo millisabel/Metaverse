@@ -18,13 +18,6 @@
     <link href="src/scss/custom.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<!-- TODO: remove this -->
-    <style>
-        body {
-            min-height: 300vh;
-        }
-    </style>
 </head>
 <body data-bs-theme="dark">
     <!-- Navigation -->
@@ -92,11 +85,53 @@
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="layout-content line line--accent">
-                        <h2 class="layout-title">ABOUT US</h2>
-                        <h3 class="section-subtitle">Profile</h3>	
-                        <p class="layout-text">
-                            Crafty Metaverse is a multi-blockchain based virtual reality metaverse platform to develop the most immersive, imaginative, and addictive gaming experiences. We are providing our gaming community with the near-real-world experience while using their digital avatars. Our ecosystem will be a futuristic, decentralized, and persistent 3D virtual metaverse gaming platform especially for crypto enthusiasts, gamers, artists, and metaverse fans.
-                        </p>
+                        <div id="aboutCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true" data-bs-interval="false">
+                            <div class="carousel-inner">
+                                <!-- Slide 1 -->
+                                <div class="carousel-item active">
+                                    <h2 class="layout-title">ABOUT US</h2>
+                                    <h3 class="section-subtitle">Profile</h3>	
+                                    <p class="layout-text">
+                                        Crafty Metaverse is a multi-blockchain based virtual reality metaverse platform to develop the most immersive, imaginative, and addictive gaming experiences. We are providing our gaming community with the near-real-world experience while using their digital avatars. Our ecosystem will be a futuristic, decentralized, and persistent 3D virtual metaverse gaming platform especially for crypto enthusiasts, gamers, artists, and metaverse fans.
+                                    </p>
+                                </div>
+                                
+                                <!-- Slide 2 -->
+                                <div class="carousel-item">
+                                    <h2 class="layout-title">OUR MISSION</h2>
+                                    <h3 class="section-subtitle">Vision</h3>	
+                                    <p class="layout-text">
+                                        Our mission is to create an innovative and engaging metaverse platform that bridges the gap between traditional gaming and blockchain technology. We aim to provide a seamless, immersive experience where players can truly own their digital assets and participate in a thriving virtual economy.
+                                    </p>
+                                </div>
+                                
+                                <!-- Slide 3 -->
+                                <div class="carousel-item">
+                                    <h2 class="layout-title">OUR VISION</h2>
+                                    <h3 class="section-subtitle">Future</h3>	
+                                    <p class="layout-text">
+                                        We envision a future where the boundaries between virtual and physical worlds blur, creating unprecedented opportunities for creativity, commerce, and community. Our platform will be at the forefront of this revolution, offering cutting-edge technology and innovative features that set new standards in the metaverse space.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Bootstrap Controls -->
+                            <button class="carousel-control-prev" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                            
+                            <!-- Bootstrap Indicators -->
+                            <div class="carousel-indicators">
+                                <button type="button" data-bs-target="#aboutCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                                <button type="button" data-bs-target="#aboutCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                                <button type="button" data-bs-target="#aboutCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { initializeScene, createStars, animateStars } from './galaxy/galaxy.js';
 import { initAllAnimations } from './animations/animations.js';
 import './navbar/navbar.js';
+import './carousel/carousel.js';
 
 console.log('THREE.js version:', THREE.REVISION);
 
@@ -15,3 +16,5 @@ camera.position.z = 5;
 animateStars(positions, sizes, starCount, starsGeometry, renderer, scene, camera);
 
 initAllAnimations();
+
+
