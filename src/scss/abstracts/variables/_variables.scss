@@ -9,15 +9,19 @@
 // @media (max-width: 767.98px) {
 // } 
 
-$primary: #6100FF;
+$primary: #8A2BE2; 
+$primary-rgb: 138, 43, 226;
 $secondary: #A109FE;
 $tertiary: #7A59FF;
+$accent: #56FFEB;
 $dark:#090812;
 $white:#ffffff;
 
 $theme-colors: (
   "primary": $primary,
-  "secondary": $secondary
+  "secondary": $secondary,
+  "tertiary": $tertiary,
+  "accent": $accent
 );
 
 :root {
@@ -40,6 +44,7 @@ $theme-colors: (
     --bs-body-color: #{$dark};
 
     //custom
+    --accent-color: #{$accent};
     --gradient-neon: linear-gradient(90deg, var(--bs-primary), var(--bs-secondary));
     --button-gradient: linear-gradient(135deg, #7a42f4 0%, #4642f4 100%);
     
