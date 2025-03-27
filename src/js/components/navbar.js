@@ -5,6 +5,7 @@ export const initNavbar = () => {
     const sections = document.querySelectorAll('section');
     const scrollThreshold = 50;
     const navbarCollapse = document.querySelector('.navbar-collapse');
+    const navItems = document.querySelectorAll('.navbar-nav .nav-item');
 
     // Handle navigation links click
     const handleNavLinks = () => {
@@ -25,11 +26,25 @@ export const initNavbar = () => {
 
     // Handle mobile menu toggle
     const handleMobileMenu = () => {
-        navbarCollapse.addEventListener('show.bs.collapse', () => {
-            // Refresh AOS animations when menu opens
+        // Reset AOS attributes when menu is hidden
+        navbarCollapse.addEventListener('hidden.bs.collapse', () => {
+            navItems.forEach(item => {
+                item.setAttribute('data-aos-delay', item.getAttribute('data-aos-delay'));
+                item.classList.remove('aos-animate');
+            });
+        });
+
+        // Refresh AOS when menu is shown
+        navbarCollapse.addEventListener('shown.bs.collapse', () => {
+            navItems.forEach(item => {
+                item.classList.remove('aos-animate');
+            });
             setTimeout(() => {
                 AOS.refresh();
-            }, 150); // Небольшая задержка для уверенности, что меню полностью открылось
+                navItems.forEach(item => {
+                    item.classList.add('aos-animate');
+                });
+            }, 50);
         });
     };
 
