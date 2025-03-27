@@ -22,23 +22,33 @@ module.exports = {
       directory: path.join(__dirname, 'dist'),
       watch: true
     },
-    hot: true,
-    liveReload: true,
-    watchFiles: ['src/**/*'],
+    host: 'localhost',
     port: 3001,
     open: true,
+    hot: 'only',
+    liveReload: false,
+    watchFiles: ['src/**/*'],
     client: {
       overlay: true,
       progress: true,
-      reconnect: true
+      reconnect: 5,
+      webSocketTransport: 'ws'
     },
+    webSocketServer: 'ws',
     devMiddleware: {
-      writeToDisk: true
+      writeToDisk: true,
+      stats: 'minimal'
     },
     historyApiFallback: true,
     compress: true,
     headers: {
       'Access-Control-Allow-Origin': '*'
+    },
+    setupMiddlewares: (middlewares, devServer) => {
+      if (!devServer) {
+        throw new Error('webpack-dev-server is not defined');
+      }
+      return middlewares;
     }
   },
   watchOptions: {
@@ -59,7 +69,8 @@ module.exports = {
     source: false,
     errors: true,
     errorDetails: true,
-    warnings: true
+    warnings: true,
+    publicPath: false
   },
   module: {
     rules: [
