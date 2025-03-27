@@ -6,10 +6,11 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
-  entry: [
-    './src/js/index.js',
-    './src/scss/main.scss'
-  ],
+  target: 'web',
+  entry: {
+    main: './src/js/index.js',
+    styles: './src/scss/main.scss'
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].[contenthash].js',
@@ -17,60 +18,26 @@ module.exports = {
     assetModuleFilename: 'assets/[hash][ext][query]',
     publicPath: '/'
   },
+  devtool: isDevelopment ? 'eval-source-map' : 'source-map',
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
-      watch: true
     },
-    host: 'localhost',
-    port: 3001,
-    open: true,
-    hot: 'only',
-    liveReload: false,
-    watchFiles: ['src/**/*'],
-    client: {
-      overlay: true,
-      progress: true,
-      reconnect: 5,
-      webSocketTransport: 'ws'
-    },
-    webSocketServer: 'ws',
-    devMiddleware: {
-      writeToDisk: true,
-      stats: 'minimal'
-    },
-    historyApiFallback: true,
     compress: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    setupMiddlewares: (middlewares, devServer) => {
-      if (!devServer) {
-        throw new Error('webpack-dev-server is not defined');
+    port: 3001,
+    hot: false,
+    liveReload: true,
+    open: true,
+    watchFiles: {
+      paths: ['src/**/*.*'],
+      options: {
+        usePolling: true
       }
-      return middlewares;
     }
   },
-  watchOptions: {
-    aggregateTimeout: 500,
-    poll: 1000,
-    ignored: /node_modules/,
-  },
-  stats: {
-    colors: true,
-    hash: false,
-    version: false,
-    timings: true,
-    assets: true,
-    chunks: false,
-    modules: false,
-    reasons: false,
-    children: false,
-    source: false,
-    errors: true,
-    errorDetails: true,
-    warnings: true,
-    publicPath: false
+  stats: 'minimal',
+  infrastructureLogging: {
+    level: 'warn',
   },
   module: {
     rules: [
@@ -87,25 +54,17 @@ module.exports = {
       {
         test: /\.scss$/,
         use: [
-          isDevelopment ? {
-            loader: 'style-loader',
-            options: {
-              injectType: 'singletonStyleTag',
-              attributes: {
-                'data-injected': true
-              }
-            }
-          } : MiniCssExtractPlugin.loader,
+          isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
+              sourceMap: isDevelopment
             }
           },
           {
             loader: 'sass-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevelopment,
               implementation: require('sass'),
             },
           },
@@ -137,6 +96,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './src/index.html',
+      inject: true
     }),
     new MiniCssExtractPlugin({
       filename: isDevelopment ? '[name].css' : '[name].[contenthash].css',
