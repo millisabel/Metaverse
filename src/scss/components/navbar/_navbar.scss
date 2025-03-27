@@ -6,12 +6,21 @@
     --bs-navbar-active-color: #{$primary-text};
     
     --bs-navbar-nav-link-padding-x: 1rem;
+    --bs-navbar-padding-y: 1rem;
 
     background-color: var(--bs-body-bg);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transition: background-color 0.3s ease;
+
+    @include desktop {
+        &.navbar-transparent {
+            background-color: rgba(var(--bs-body-bg-rgb), 0.8);
+        }
+    }
 
     &-brand{
-        --navbar-brand-size:50px;
-
+        --navbar-brand-size: 50px;
         width: var(--navbar-brand-size);
         height: var(--navbar-brand-size);
 
@@ -24,6 +33,7 @@
     .nav-link {
         position: relative;
         padding-bottom: 0.5rem;
+        transition: opacity 0.3s ease;
         
         &::after {
             content: '';
@@ -31,22 +41,21 @@
             bottom: 0;
             left: 0;
             width: 0;
-
             height: 2px;
-            
             background-color: $accent-cyan;
             transition: width 0.3s ease-in-out;
         }
 
-        &:hover:not(.active) {
+        &:not(.active):hover {
+            opacity: 1;
+            
             &::after {
                 width: 100%;
             }
         }
 
         &.active {
-            pointer-events: none;
-            cursor: default;
+            opacity: 1;
             
             &::after {
                 width: 50%;
@@ -65,10 +74,10 @@
 
         @include desktop {
             --bs-navbar-padding-y: 3rem;
-
             height: auto;
             transform: none;
-          }
+            padding: 0;
+        }
     }
 
     &-collapse{
@@ -76,7 +85,7 @@
 
         @include desktop {
             height: auto;
-          }
+        }
 
         &.show{
             & .navbar-nav{
