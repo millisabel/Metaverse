@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -101,6 +102,26 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: isDevelopment ? '[name].css' : '[name].[contenthash].css',
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { 
+          from: 'src/manifest.json',
+          to: 'manifest.json'
+        },
+        {
+          from: 'src/assets/icons/favicon*.png',
+          to: 'assets/icons/[name][ext]'
+        },
+        {
+          from: 'src/assets/icons/apple-touch-icon.png',
+          to: 'assets/icons/apple-touch-icon.png'
+        },
+        {
+          from: 'src/assets/images/svg/Logo.svg',
+          to: 'assets/icons/Logo.svg'
+        }
+      ]
+    })
   ],
   optimization: {
     moduleIds: 'deterministic',

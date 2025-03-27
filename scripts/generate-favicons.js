@@ -4,7 +4,7 @@ const path = require('path');
 
 const sizes = [16, 32, 192, 512];
 const inputFile = path.join(__dirname, '../src/assets/images/svg/Logo.svg');
-const outputDir = path.join(__dirname, '../src/assets/images');
+const outputDir = path.join(__dirname, '../src/assets/icons');
 
 // Ensure output directory exists
 if (!fs.existsSync(outputDir)) {
@@ -18,8 +18,14 @@ sizes.forEach(size => {
         : path.join(outputDir, `favicon-${size}.png`);
 
     sharp(inputFile)
-        .resize(size, size)
-        .png()
+        .resize(size, size, {
+            fit: 'contain',
+            background: { r: 255, g: 255, b: 255, alpha: 0 }
+        })
+        .png({
+            compressionLevel: 9,
+            quality: 90
+        })
         .toFile(outputFile)
         .then(() => {
             console.log(`Generated ${size}x${size} favicon`);
@@ -31,8 +37,14 @@ sizes.forEach(size => {
 
 // Generate Apple Touch Icon (180x180)
 sharp(inputFile)
-    .resize(180, 180)
-    .png()
+    .resize(180, 180, {
+        fit: 'contain',
+        background: { r: 255, g: 255, b: 255, alpha: 0 }
+    })
+    .png({
+        compressionLevel: 9,
+        quality: 90
+    })
     .toFile(path.join(outputDir, 'apple-touch-icon.png'))
     .then(() => {
         console.log('Generated Apple Touch Icon');
