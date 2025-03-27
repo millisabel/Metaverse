@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack serve",
-    "dev": "cross-env NODE_ENV=development WATCHPACK_POLLING=true webpack serve --mode development",
+    "dev": "cross-env NODE_ENV=development webpack serve --mode development",
     "build": "cross-env NODE_ENV=production webpack --mode production",
     "generate-favicons": "node scripts/generate-favicons.js",
     "test": "echo \"Error: no test specified\" && exit 1"

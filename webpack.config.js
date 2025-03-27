@@ -23,36 +23,29 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
-      watch: {
-        ignored: /node_modules/,
-        usePolling: true
-      }
+      watch: true
     },
     historyApiFallback: true,
     open: true,
     compress: true,
-    hot: 'only',
-    liveReload: false,
+    hot: true,
     port: 3001,
     host: 'localhost',
     client: {
-      overlay: {
-        errors: true,
-        warnings: false
-      },
+      logging: 'info',
+      overlay: true,
       progress: true,
-      reconnect: 5
-    },
-    watchFiles: {
-      paths: ['src/**/*'],
-      options: {
-        usePolling: true,
-        ignored: /node_modules/
+      webSocketURL: {
+        hostname: 'localhost',
+        pathname: '/ws',
+        port: 3001,
+        protocol: 'ws'
       }
     },
+    webSocketServer: 'ws',
+    watchFiles: ['src/**/*'],
     devMiddleware: {
-      writeToDisk: true,
-      stats: 'minimal'
+      writeToDisk: true
     }
   },
   stats: 'minimal',
