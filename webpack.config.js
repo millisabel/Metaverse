@@ -23,20 +23,27 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
+      watch: true
     },
     historyApiFallback: true,
     open: true,
     compress: true,
-    hot: false,
+    hot: true,
+    liveReload: false,
     port: 3001,
     host: 'localhost',
     client: {
       overlay: {
         errors: true,
-        warnings: false,
+        warnings: false
       },
       progress: true,
+      reconnect: true
     },
+    watchFiles: ['src/**/*'],
+    devMiddleware: {
+      writeToDisk: true
+    }
   },
   stats: 'minimal',
   infrastructureLogging: {
@@ -119,7 +126,7 @@ module.exports = {
           to: 'assets/icons/apple-touch-icon.png'
         },
         {
-          from: 'src/assets/images/svg/Logo.svg',
+          from: 'src/assets/icons/Logo.svg',
           to: 'assets/icons/Logo.svg'
         }
       ]
