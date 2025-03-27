@@ -1,9 +1,51 @@
-// Navbar scroll behavior
-const handleNavbarTransparency = () => {
+// Navbar functionality
+export const initNavbar = () => {
     const navbar = document.querySelector('.navbar');
-    const scrollThreshold = 50; // Порог скролла в пикселях
+    const navLinks = document.querySelectorAll('.navbar .nav-link');
+    const sections = document.querySelectorAll('section');
+    const scrollThreshold = 50;
 
-    const toggleTransparency = () => {
+    // Handle navigation links click
+    const handleNavLinks = () => {
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                e.target.classList.add('active');
+
+                // If using mobile menu, close it after click
+                const navbarCollapse = document.querySelector('.navbar-collapse');
+                if (navbarCollapse.classList.contains('show')) {
+                    bootstrap.Collapse.getInstance(navbarCollapse).hide();
+                }
+            });
+        });
+    };
+
+    // Handle scroll-based active section
+    const handleActiveSection = () => {
+        let current = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            if (window.scrollY >= (sectionTop - sectionHeight / 3)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    };
+
+    // Handle navbar transparency
+    const handleNavbarTransparency = () => {
         if (window.scrollY > scrollThreshold) {
             navbar.classList.add('navbar-transparent');
         } else {
@@ -11,21 +53,24 @@ const handleNavbarTransparency = () => {
         }
     };
 
-    // Инициализация
-    toggleTransparency();
+    // Initialize all navbar functionality
+    const init = () => {
+        handleNavLinks();
+        handleNavbarTransparency();
 
-    // Добавляем обработчик события scroll с throttle
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                toggleTransparency();
-                ticking = false;
-            });
-            ticking = true;
-        }
-    });
-};
+        // Add scroll event listener with throttle
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleActiveSection();
+                    handleNavbarTransparency();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+    };
 
-// Инициализация после загрузки DOM
-document.addEventListener('DOMContentLoaded', handleNavbarTransparency); 
+    init();
+}; 
