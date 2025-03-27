@@ -7,7 +7,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
-  target: 'web',
+  target: isDevelopment ? 'web' : 'browserslist',
   entry: {
     main: './src/js/index.js',
     styles: './src/scss/main.scss'
@@ -24,17 +24,19 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'),
     },
-    compress: true,
-    port: 3001,
-    hot: false,
-    liveReload: true,
+    historyApiFallback: true,
     open: true,
-    watchFiles: {
-      paths: ['src/**/*.*'],
-      options: {
-        usePolling: true
-      }
-    }
+    compress: true,
+    hot: false,
+    port: 3001,
+    host: 'localhost',
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+      progress: true,
+    },
   },
   stats: 'minimal',
   infrastructureLogging: {
