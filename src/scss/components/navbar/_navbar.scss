@@ -15,7 +15,9 @@
 
     @include desktop {
         &.navbar-transparent {
-            background-color: rgba(var(--bs-body-bg-rgb), 0.8);
+            background-color: rgba(var(--bs-body-bg-rgb), 0.2);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
         }
     }
 
