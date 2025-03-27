@@ -7,102 +7,59 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
-  target: isDevelopment ? 'web' : 'browserslist',
-  entry: {
-    main: './src/js/index.js',
-    styles: './src/scss/main.scss'
-  },
+  entry: ['./src/js/index.js', './src/scss/main.scss'],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'js/[name].[contenthash].js',
+    filename: 'js/[name].js',
     clean: true,
-    assetModuleFilename: 'assets/[hash][ext][query]',
     publicPath: '/'
   },
-  devtool: isDevelopment ? 'eval-source-map' : 'source-map',
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
-      watch: true
-    },
-    historyApiFallback: true,
-    open: true,
-    compress: true,
-    hot: true,
-    port: 3001,
-    host: 'localhost',
-    client: {
-      logging: 'info',
-      overlay: true,
-      progress: true,
-      webSocketURL: {
-        hostname: 'localhost',
-        pathname: '/ws',
-        port: 3001,
-        protocol: 'ws'
+      watch: {
+        ignored: /node_modules/,
+        usePolling: true,
+        interval: 1000
       }
     },
-    webSocketServer: 'ws',
-    watchFiles: ['src/**/*'],
-    devMiddleware: {
-      writeToDisk: true
+    watchFiles: {
+      paths: ['src/**/*'],
+      options: {
+        usePolling: true,
+        interval: 1000
+      }
+    },
+    compress: true,
+    port: 3001,
+    host: 'localhost',
+    hot: false,
+    liveReload: true,
+    open: true,
+    client: {
+      logging: 'warn',
+      overlay: true
     }
-  },
-  stats: 'minimal',
-  infrastructureLogging: {
-    level: 'warn',
   },
   module: {
     rules: [
       {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env'],
-          },
-        },
-      },
-      {
         test: /\.scss$/,
         use: [
-          isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
+          'style-loader',
           'css-loader',
           'postcss-loader',
           'sass-loader'
         ]
-      },
-      {
-        test: /\.(png|jpg|jpeg|gif|svg)$/i,
-        type: 'asset/resource',
-        generator: {
-          filename: 'assets/images/[hash][ext][query]'
-        }
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf|otf)$/i,
-        type: 'asset/resource',
-        generator: {
-          filename: 'assets/fonts/[hash][ext][query]'
-        }
-      },
-      {
-        test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)$/i,
-        type: 'asset/resource',
-        generator: {
-          filename: 'assets/media/[hash][ext][query]'
-        }
-      },
-    ],
+      }
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/index.html',
-      inject: true
+      template: './src/index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: isDevelopment ? '[name].css' : '[name].[contenthash].css',
+      filename: 'css/[name].css'
     }),
     new CopyWebpackPlugin({
       patterns: [
@@ -124,18 +81,5 @@ module.exports = {
         }
       ]
     })
-  ],
-  optimization: {
-    moduleIds: 'deterministic',
-    runtimeChunk: 'single',
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-        },
-      },
-    },
-  },
+  ]
 }; 
