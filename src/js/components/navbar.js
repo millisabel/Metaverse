@@ -4,6 +4,7 @@ export const initNavbar = () => {
     const navLinks = document.querySelectorAll('.navbar .nav-link');
     const sections = document.querySelectorAll('section');
     const scrollThreshold = 50;
+    const navbarCollapse = document.querySelector('.navbar-collapse');
 
     // Handle navigation links click
     const handleNavLinks = () => {
@@ -15,11 +16,20 @@ export const initNavbar = () => {
                 e.target.classList.add('active');
 
                 // If using mobile menu, close it after click
-                const navbarCollapse = document.querySelector('.navbar-collapse');
                 if (navbarCollapse.classList.contains('show')) {
                     bootstrap.Collapse.getInstance(navbarCollapse).hide();
                 }
             });
+        });
+    };
+
+    // Handle mobile menu toggle
+    const handleMobileMenu = () => {
+        navbarCollapse.addEventListener('show.bs.collapse', () => {
+            // Refresh AOS animations when menu opens
+            setTimeout(() => {
+                AOS.refresh();
+            }, 150); // Небольшая задержка для уверенности, что меню полностью открылось
         });
     };
 
@@ -56,6 +66,7 @@ export const initNavbar = () => {
     // Initialize all navbar functionality
     const init = () => {
         handleNavLinks();
+        handleMobileMenu();
         handleNavbarTransparency();
 
         // Add scroll event listener with throttle
