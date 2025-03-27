@@ -12,33 +12,20 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].js',
     clean: true,
-    publicPath: '/'
+    publicPath: isDevelopment ? '/' : './'
   },
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist'),
-      watch: {
-        ignored: /node_modules/,
-        usePolling: true,
-        interval: 1000
-      }
+      directory: path.join(__dirname, 'dist')
     },
-    watchFiles: {
-      paths: ['src/**/*'],
-      options: {
-        usePolling: true,
-        interval: 1000
-      }
-    },
-    compress: true,
     port: 3001,
     host: 'localhost',
     hot: false,
     liveReload: true,
     open: true,
+    watchFiles: ['src/**/*'],
     client: {
-      logging: 'warn',
-      overlay: true
+      webSocketURL: 'auto://0.0.0.0:0/ws'
     }
   },
   module: {
