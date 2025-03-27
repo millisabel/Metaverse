@@ -18,7 +18,7 @@
             background-color: rgba(var(--bs-body-bg-rgb), 0.2);
             -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
-            box-shadow: 0 0 15px rgba(255, 0, 150, 0.8), 0 0 30px rgba(255, 0, 150, 0.5);
+            box-shadow: 0 0 15px #{$accent-purple}, 0 0 30px #{$accent-blue};
         }
     }
 

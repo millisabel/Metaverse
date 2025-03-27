@@ -32,13 +32,6 @@ $link-hover-color: $accent-pink;
   --bs-link-color: #{$accent-cyan};
   --bs-link-hover-color: #{$accent-pink};
   
-  // Navbar
-  --bs-navbar-color: #{rgba($primary-text, 0.7)};
-  --bs-navbar-hover-color: #{$primary-text};
-  --bs-navbar-active-color: #{$primary-text};
-  --bs-navbar-padding-y: 2.5rem;
-  --bs-navbar-nav-link-padding-x: 1rem;
-
   // Typography Base
   --bs-body-font-family: #{$font-family-base};
   --bs-body-font-size: 1.125rem; // 18px
@@ -51,8 +44,8 @@ $link-hover-color: $accent-pink;
   --bs-headings-color: #{$primary-text};
 
   // Custom Typography Variables
-  --heading-1-size-mobile: 3rem; // 48px
-  --heading-1-size-desktop: 1.625rem; // 26px
+  --heading-1-size-mobile: 1.625rem; // 26px
+  --heading-1-size-desktop: 3rem; // 48px
   --heading-1-line-height: 1.4;
 
   --heading-2-size-mobile: 1.75rem; // 28px
@@ -67,8 +60,14 @@ $link-hover-color: $accent-pink;
 }
 
 // Media Queries Mixins
-@mixin desktop {
+@mixin tablet {
   @media (min-width: 768px) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: 992px) {
     @content;
   }
 }
