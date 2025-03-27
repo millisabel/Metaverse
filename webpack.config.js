@@ -6,23 +6,60 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
-  entry: {
-    main: './src/js/index.js',
-    styles: './src/scss/main.scss'
-  },
+  entry: [
+    './src/js/index.js',
+    './src/scss/main.scss'
+  ],
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].[contenthash].js',
     clean: true,
-    assetModuleFilename: 'assets/[hash][ext][query]'
+    assetModuleFilename: 'assets/[hash][ext][query]',
+    publicPath: '/'
   },
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
+      watch: true
     },
     hot: true,
+    liveReload: true,
+    watchFiles: ['src/**/*'],
     port: 3001,
     open: true,
+    client: {
+      overlay: true,
+      progress: true,
+      reconnect: true
+    },
+    devMiddleware: {
+      writeToDisk: true
+    },
+    historyApiFallback: true,
+    compress: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
+  },
+  watchOptions: {
+    aggregateTimeout: 500,
+    poll: 1000,
+    ignored: /node_modules/,
+  },
+  stats: {
+    colors: true,
+    hash: false,
+    version: false,
+    timings: true,
+    assets: true,
+    chunks: false,
+    modules: false,
+    reasons: false,
+    children: false,
+    source: false,
+    errors: true,
+    errorDetails: true,
+    warnings: true
   },
   module: {
     rules: [
@@ -39,8 +76,21 @@ module.exports = {
       {
         test: /\.scss$/,
         use: [
-          isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
-          'css-loader',
+          isDevelopment ? {
+            loader: 'style-loader',
+            options: {
+              injectType: 'singletonStyleTag',
+              attributes: {
+                'data-injected': true
+              }
+            }
+          } : MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true
+            }
+          },
           {
             loader: 'sass-loader',
             options: {
