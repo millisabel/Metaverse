@@ -23,12 +23,15 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
-      watch: true
+      watch: {
+        ignored: /node_modules/,
+        usePolling: true
+      }
     },
     historyApiFallback: true,
     open: true,
     compress: true,
-    hot: true,
+    hot: 'only',
     liveReload: false,
     port: 3001,
     host: 'localhost',
@@ -38,11 +41,18 @@ module.exports = {
         warnings: false
       },
       progress: true,
-      reconnect: true
+      reconnect: 5
     },
-    watchFiles: ['src/**/*'],
+    watchFiles: {
+      paths: ['src/**/*'],
+      options: {
+        usePolling: true,
+        ignored: /node_modules/
+      }
+    },
     devMiddleware: {
-      writeToDisk: true
+      writeToDisk: true,
+      stats: 'minimal'
     }
   },
   stats: 'minimal',
@@ -65,20 +75,10 @@ module.exports = {
         test: /\.scss$/,
         use: [
           isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: isDevelopment
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: isDevelopment,
-              implementation: require('sass'),
-            },
-          },
-        ],
+          'css-loader',
+          'postcss-loader',
+          'sass-loader'
+        ]
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg)$/i,
