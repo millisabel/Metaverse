@@ -1,0 +1,30 @@
+// line
+
+.line{
+    --line-top: 0;
+    --line-bottom: 0;
+    --line-left: 0;
+
+    --line-width: 5px;
+    --line-height: 100%;
+
+    --line-color: var(--bs-white);
+
+    position: relative;
+
+    &::before{
+        content: '';
+        position: absolute;
+        top: var(--line-top);
+        left: var(--line-left);
+        bottom: var(--line-bottom);
+
+        width: var(--line-width);
+        height: var(--line-height);
+        background-color: var(--line-color);
+    }
+
+    &-purple{
+        --line-color: #{$accent-purple};
+    }
+}

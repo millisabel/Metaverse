@@ -1,0 +1,23 @@
+// bg
+
+.bg {
+    background-color: var(--bs-body-bg);
+
+    &-img{
+        --bg-img: url("../assets/images/bg/BG-hero.png");
+        --bg-img-size: cover;
+        --bg-img-position: center;
+        --bg-img-repeat: no-repeat;
+
+        background-image: var(--bg-img);
+        background-size: var(--bg-img-size);
+        background-position: var(--bg-img-position);
+        background-repeat: var(--bg-img-repeat);
+
+        &-hero {
+            --bg-img: url("../assets/images/bg/BG-hero.png");
+            --bg-img-size: contain;
+            --bg-img-position: center bottom;
+        }
+    }
+}
