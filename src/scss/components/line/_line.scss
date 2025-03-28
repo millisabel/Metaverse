@@ -12,6 +12,14 @@
 
     position: relative;
 
+    @include tablet{
+        padding-left: 2rem;
+    }
+
+    @include desktop{
+        padding-left: 5rem;
+    }
+
     &::before{
         content: '';
         position: absolute;
@@ -26,5 +34,17 @@
 
     &-purple{
         --line-color: #{$accent-purple};
+    }
+
+    &-blue{
+        --line-color: #{$accent-blue};
+    }
+
+    &-pink{
+        --line-color: #{$accent-pink};
+    }
+
+    &-cyan{
+        --line-color: #{$accent-cyan};
     }
 }
