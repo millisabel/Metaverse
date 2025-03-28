@@ -16,8 +16,16 @@
 
         &-hero {
             --bg-img: url("../assets/images/bg/BG-hero.png");
-            --bg-img-size: contain;
+            --bg-img-size: 100%;
             --bg-img-position: center bottom;
+
+            @include tablet {
+                --bg-img-size: 90%;
+            }
+
+            @include desktop {
+                --bg-img-size: 75%;
+            }
         }
 
         &-about {
