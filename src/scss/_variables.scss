@@ -43,6 +43,14 @@ $link-hover-color: $accent-pink;
   --bs-headings-font-weight: 700;
   --bs-headings-color: #{$primary-text};
 
+  // Custom Colors Variables
+  --cs-purple: #{$accent-purple};
+  --cs-blue: #{$accent-blue};
+  --cs-pink: #{$accent-pink};
+  --cs-cyan: #{$accent-cyan};
+
+  --cs-btn-bg: linear-gradient(130deg, var(--cs-purple) 0%, var(--cs-blue)   100%);
+
   // Custom Typography Variables
   --heading-1-size-mobile: 1.625rem; // 26px
   --heading-1-size-desktop: 3rem; // 48px
