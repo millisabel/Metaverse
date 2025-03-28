@@ -253,6 +253,22 @@
                 nextWhenVisible: false,
             });
 
+            // Отслеживаем видимость секции
+            const aboutSection = document.getElementById('about');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        carousel.cycle();
+                    } else {
+                        carousel.pause();
+                    }
+                });
+            }, {
+                threshold: 0.5 // Секция считается видимой, когда 50% её высоты находится в viewport
+            });
+
+            observer.observe(aboutSection);
+
             function updateNumbers(currentIndex) {
                 // Обновляем текущий номер
                 currentNumber.textContent = currentIndex + 1;
