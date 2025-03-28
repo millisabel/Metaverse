@@ -19,5 +19,9 @@
             --bg-img-size: contain;
             --bg-img-position: center bottom;
         }
+
+        &-about {
+            --bg-img: url("../assets/images/bg/BG-about.png");
+        }
     }
 }

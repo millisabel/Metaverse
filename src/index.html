@@ -57,7 +57,7 @@
     </section>
 
     <!-- About Us Section -->
-    <section id="about" class="min-vh-100 d-flex align-items-center justify-content-center">
+    <section id="about" class="min-vh-100 d-flex align-items-center justify-content-center bg-img bg-img-about">
         <div class="container">
             <div class="row">
                 <div class="col-12 col-lg-6 line line-cyan" data-aos="fade-up" data-aos-delay="200">
@@ -67,40 +67,57 @@
                             <div class="carousel-inner">
                                 <!-- Slide 1 -->
                                 <div class="carousel-item active">
-                                    <h2 class="">ABOUT US</h2>
-                                    <h3 class="">Profile</h3>	
-                                    <p class="">
-                                        Crafty Metaverse is a multi-blockchain based virtual reality metaverse platform to develop the most immersive, imaginative, and addictive gaming experiences. We are providing our gaming community with the near-real-world experience while using their digital avatars. Our ecosystem will be a futuristic, decentralized, and persistent 3D virtual metaverse gaming platform especially for crypto enthusiasts, gamers, artists, and metaverse fans.
-                                    </p>
+                                    <div class="carousel-item-inner">
+                                        <h2 class="carousel-item-title">ABOUT US</h2>
+                                        <h3 class="carousel-item-subtitle">Profile</h3>	
+                                        <p class="carousel-item-text">
+                                            Crafty Metaverse is a multi-blockchain based virtual reality metaverse platform to develop the most immersive, imaginative, and addictive gaming experiences. We are providing our gaming community with the near-real-world experience while using their digital avatars. Our ecosystem will be a futuristic, decentralized, and persistent 3D virtual metaverse gaming platform especially for crypto enthusiasts, gamers, artists, and metaverse fans.
+                                        </p>
+                                    </div>
                                 </div>
                                 
                                 <!-- Slide 2 -->
                                 <div class="carousel-item">
-                                    <h2 class="">OUR MISSION</h2>
-                                    <h3 class="">Vision</h3>	
-                                    <p class="">
-                                        Our mission is to create an innovative and engaging metaverse platform that bridges the gap between traditional gaming and blockchain technology. We aim to provide a seamless, immersive experience where players can truly own their digital assets and participate in a thriving virtual economy.
-                                    </p>
+                                    <div class="carousel-item-inner">
+                                        <h2 class="carousel-item-title">OUR MISSION</h2>
+                                        <h3 class="carousel-item-subtitle">Vision</h3>	
+                                        <p class="carousel-item-text">
+                                            Our mission is to create an innovative and engaging metaverse platform that bridges the gap between traditional gaming and blockchain technology. We aim to provide a seamless, immersive experience where players can truly own their digital assets and participate in a thriving virtual economy.
+                                        </p>
+                                    </div>
                                 </div>
                                 
                                 <!-- Slide 3 -->
                                 <div class="carousel-item">
-                                    <h2 class="">OUR VISION</h2>
-                                    <h3 class="">Future</h3>	
-                                    <p class="">
-                                        We envision a future where the boundaries between virtual and physical worlds blur, creating unprecedented opportunities for creativity, commerce, and community. Our platform will be at the forefront of this revolution, offering cutting-edge technology and innovative features that set new standards in the metaverse space.
-                                    </p>
+                                    <div class="carousel-item-inner">
+                                        <h2 class="carousel-item-title">OUR VISION</h2>
+                                        <h3 class="carousel-item-subtitle">Future</h3>	
+                                        <p class="carousel-item-text">
+                                            We envision a future where the boundaries between virtual and physical worlds blur, creating unprecedented opportunities for creativity, commerce, and community. Our platform will be at the forefront of this revolution, offering cutting-edge technology and innovative features that set new standards in the metaverse space.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>  
+                        <!-- Custom Slider Indicator -->
+                        <div class="carousel-indicators-custom">
+                            <div class="carousel-indicators-track">
+                                <div class="carousel-indicators-fill"></div>
+                                <div class="carousel-indicators-handle"></div>
+                            </div>
+                        </div>
                         <!-- Sliders Controls -->
                         <div class="carousel-controls">
-                             <div class="carousel-controls-buttons">
-                                <button class="carousel-control-prev position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
+                             <div class="carousel-controls-buttons d-flex align-items-center justify-content-between">
+                                <!-- <button class="carousel-control-prev position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                     <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
+                                </button> -->
+                                <p class="d-flex gap-2 mb-0">
+                                    <span>1</span>
+                                    <span class="text-uppercase">Chapter</span>
+                                </p>
+                                <button class="carousel-control-next position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
                                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                     <span class="visually-hidden">Next</span>
                                 </button>
@@ -215,10 +232,43 @@
     <script>
         // Initialize AOS
         AOS.init({
-            duration: 800, // values from 0 to 3000, with step 50ms
-            once: false, // allow animations to occur every time element becomes visible
-            mirror: true, // whether elements should animate out while scrolling past them
-            offset: 100 // offset (in px) from the original trigger point
+            duration: 800,
+            once: false,
+            mirror: true,
+            offset: 100
+        });
+
+        // Initialize Carousel Numbers
+        document.addEventListener('DOMContentLoaded', function() {
+            const carouselElement = document.getElementById('aboutCarousel');
+            const totalSlides = document.querySelectorAll('#aboutCarousel .carousel-item').length;
+            const currentNumber = document.querySelector('.carousel-controls-buttons p span:first-child');
+            const nextButton = document.querySelector('.carousel-control-next');
+
+            // Инициализируем карусель
+            const carousel = new bootstrap.Carousel(carouselElement, {
+                interval: 5000,
+                touch: true,
+                wrap: true,
+                nextWhenVisible: false,
+            });
+
+            function updateNumbers(currentIndex) {
+                // Обновляем текущий номер
+                currentNumber.textContent = currentIndex + 1;
+                
+                // Обновляем номер следующего слайда
+                const nextIndex = (currentIndex + 1) % totalSlides;
+                nextButton.innerHTML = `<span class="carousel-control-next-number">${nextIndex + 1}</span>`;
+            }
+
+            // Слушаем событие переключения слайда
+            carouselElement.addEventListener('slide.bs.carousel', function(e) {
+                updateNumbers(e.to);
+            });
+
+            // Инициализируем начальные номера
+            updateNumbers(0);
         });
     </script>
     <!-- Custom JS -->
