@@ -227,7 +227,6 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- AOS JS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         // Initialize AOS
@@ -237,57 +236,6 @@
             mirror: true,
             offset: 100
         });
-
-        // Initialize Carousel Numbers
-        document.addEventListener('DOMContentLoaded', function() {
-            const carouselElement = document.getElementById('aboutCarousel');
-            const totalSlides = document.querySelectorAll('#aboutCarousel .carousel-item').length;
-            const currentNumber = document.querySelector('.carousel-controls-buttons p span:first-child');
-            const nextButton = document.querySelector('.carousel-control-next');
-
-            // Инициализируем карусель
-            const carousel = new bootstrap.Carousel(carouselElement, {
-                interval: 5000,
-                touch: true,
-                wrap: true,
-                nextWhenVisible: false,
-            });
-
-            // Отслеживаем видимость секции
-            const aboutSection = document.getElementById('about');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        carousel.cycle();
-                    } else {
-                        carousel.pause();
-                    }
-                });
-            }, {
-                threshold: 0.5 // Секция считается видимой, когда 50% её высоты находится в viewport
-            });
-
-            observer.observe(aboutSection);
-
-            function updateNumbers(currentIndex) {
-                // Обновляем текущий номер
-                currentNumber.textContent = currentIndex + 1;
-                
-                // Обновляем номер следующего слайда
-                const nextIndex = (currentIndex + 1) % totalSlides;
-                nextButton.innerHTML = `<span class="carousel-control-next-number">${nextIndex + 1}</span>`;
-            }
-
-            // Слушаем событие переключения слайда
-            carouselElement.addEventListener('slide.bs.carousel', function(e) {
-                updateNumbers(e.to);
-            });
-
-            // Инициализируем начальные номера
-            updateNumbers(0);
-        });
     </script>
-    <!-- Custom JS -->
-    <!-- <script src="js/index.js" type="module"></script> -->
 </body>
 </html> 
