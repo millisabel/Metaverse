@@ -1,0 +1,428 @@
+// Roadmap Section Styles
+.roadmap {
+    background-color: #0B0B0F;
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+
+    &-header {
+        text-align: center;
+        margin-bottom: 60px;
+
+        h2 {
+            color: #fff;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    }
+
+    &-timeline {
+        position: relative;
+        padding: 40px 0;
+        
+        .connection-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+
+            path {
+                stroke: transparent;
+            }
+
+            circle {
+                filter: drop-shadow(0 0 8px 10px currentColor);
+            }
+        }
+    }
+
+    &-quarters {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        position: relative;
+        z-index: 2;
+    }
+
+    &-quarter {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        position: relative;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+        
+        &:nth-child(odd) {
+            .roadmap-circle {
+                right: 0;
+                transform: translateY(-50%);
+            }
+
+            &::before {
+                left: 45%;
+            }
+        }
+        
+        &:nth-child(even) {
+            .roadmap-circle {
+                left: 0;
+                transform: translateY(-50%);
+            }
+
+            &::before {
+                right: 45%;
+            }
+        }
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+
+            width: 70%;
+            height: 70%;
+            border-radius: 20px;
+            z-index: -1;
+            animation: glowBlur 6s ease-in-out infinite;
+            opacity: 0.15;
+        }
+
+        &:nth-child(1)::before {
+            background: radial-gradient(circle at 50% 50%, #c344ff, transparent 50%);
+            animation: glowBlur1 4s ease-in-out infinite;
+        }
+
+        &:nth-child(2)::before {
+            background: radial-gradient(circle at 50% 50%, rgba(255, 68, 124, 1), transparent 50%);
+            animation: glowBlur2 5s ease-in-out infinite;
+        }
+
+        &:nth-child(3)::before {
+            background: radial-gradient(circle at 50% 50%, rgba(68, 255, 199, 1), transparent 50%);
+            animation: glowBlur3 6s ease-in-out infinite;
+        }
+
+        &:nth-child(4)::before {
+            background: radial-gradient(circle at 50% 50%, rgba(68, 255, 244, 1), transparent 50%);
+            animation: glowBlur4 5.5s ease-in-out infinite;
+        }
+
+        h3 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-left: 40px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+
+            li {
+                color: rgba(255, 255, 255, 0.7);
+                margin-bottom: 15px;
+                padding-left: 25px;
+                position: relative;
+
+                &:before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 8px;
+                    width: 8px;
+                    height: 8px;
+                    background: #c344ff;
+                    border-radius: 50%;
+                }
+            }
+        }
+
+        .hidden-items {
+            display: none;
+            
+            &.show {
+                display: block;
+            }
+        }
+
+        &:nth-child(1) {
+            li::before {
+                background: #c344ff;
+                box-shadow: 0 0 10px #c344ff, 0 0 20px #c344ff, 0 0 30px #c344ff;
+            }
+            .more-btn {
+                color: #c344ff;
+                &:hover {
+                    text-shadow: 0 0 10px #c344ff;
+                }
+            }
+        }
+
+        &:nth-child(2) {
+            li::before {
+                background: rgba(255, 68, 124, 1);
+                box-shadow: 0 0 10px rgba(255, 68, 124, 1), 0 0 20px rgba(255, 68, 124, 1), 0 0 30px rgba(255, 68, 124, 1);
+            }
+            .more-btn {
+                color: rgba(255, 68, 124, 1);
+                &:hover {
+                    text-shadow: 0 0 10px rgba(255, 68, 124, 1);
+                }
+            }
+        }
+
+        &:nth-child(3) {
+            li::before {
+                background: rgba(68, 255, 199, 1);
+                box-shadow: 0 0 10px rgba(68, 255, 199, 1), 0 0 20px rgba(68, 255, 199, 1), 0 0 30px rgba(68, 255, 199, 1);
+            }
+            .more-btn {
+                color: rgba(68, 255, 199, 1);
+                &:hover {
+                    text-shadow: 0 0 10px rgba(68, 255, 199, 1);
+                }
+            }
+        }
+
+        &:nth-child(4) {
+            li::before {
+                background: rgba(68, 255, 244, 1);
+                box-shadow: 0 0 10px rgba(68, 255, 244, 1), 0 0 20px rgba(68, 255, 244, 1), 0 0 30px rgba(68, 255, 244, 1);
+            }
+            .more-btn {
+                color: rgba(68, 255, 244, 1);
+                &:hover {
+                    text-shadow: 0 0 10px rgba(68, 255, 244, 1);
+                }
+            }
+        }
+    }
+
+    // Анимации пульсации для кругов
+    @keyframes pulse1 {
+        0% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+        50% {
+            transform: translateY(-50%) scale(1.08);
+            filter: brightness(1.3);
+        }
+        100% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+    }
+
+    @keyframes pulse2 {
+        0% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+        65% {
+            transform: translateY(-50%) scale(1.05);
+            filter: brightness(1.2);
+        }
+        100% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+    }
+
+    @keyframes pulse3 {
+        0% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+        40% {
+            transform: translateY(-50%) scale(1.1);
+            filter: brightness(1.4);
+        }
+        100% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+    }
+
+    @keyframes pulse4 {
+        0% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+        55% {
+            transform: translateY(-50%) scale(1.07);
+            filter: brightness(1.25);
+        }
+        100% {
+            transform: translateY(-50%) scale(1);
+            filter: brightness(1);
+        }
+    }
+
+    // Анимации для свечения под кругами
+    @keyframes glowBlur1 {
+        0% {
+            opacity: 0.2;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.4;
+            transform: scale(1.15);
+        }
+        100% {
+            opacity: 0.2;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes glowBlur2 {
+        0% {
+            opacity: 0.15;
+            transform: scale(1);
+        }
+        65% {
+            opacity: 0.35;
+            transform: scale(1.12);
+        }
+        100% {
+            opacity: 0.15;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes glowBlur3 {
+        0% {
+            opacity: 0.25;
+            transform: scale(1);
+        }
+        40% {
+            opacity: 0.45;
+            transform: scale(1.18);
+        }
+        100% {
+            opacity: 0.25;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes glowBlur4 {
+        0% {
+            opacity: 0.2;
+            transform: scale(1);
+        }
+        55% {
+            opacity: 0.4;
+            transform: scale(1.1);
+        }
+        100% {
+            opacity: 0.2;
+            transform: scale(1);
+        }
+    }
+
+    &-circle {
+        width: 200px;
+        height: 200px;
+        position: absolute;
+        top: 0;
+        transform: translateY(-50%);
+        z-index: 2;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+
+        &-1 {
+            background-image: url('/src/assets/svg/circle/q-1.svg');
+            filter: hue-rotate(0deg) brightness(1.2);
+            animation: pulse1 4s ease-in-out infinite;
+        }
+
+        &-2 {
+            background-image: url('/src/assets/svg/circle/q-1.svg');
+            filter: hue-rotate(320deg) brightness(1.2);
+            animation: pulse2 5s ease-in-out infinite;
+        }
+
+        &-3 {
+            background-image: url('/src/assets/svg/circle/q-1.svg');
+            filter: hue-rotate(140deg) brightness(1.2);
+            animation: pulse3 6s ease-in-out infinite;
+        }
+
+        &-4 {
+            background-image: url('/src/assets/svg/circle/q-1.svg');
+            filter: hue-rotate(160deg) brightness(1.2);
+            animation: pulse4 5.5s ease-in-out infinite;
+        }
+    }
+
+    .more-btn {
+        background: none;
+        border: none;
+        padding: 10px 0;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+        padding: 60px 0;
+
+        &-header {
+            h2 {
+                font-size: 36px;
+            }
+
+            p {
+                font-size: 16px;
+            }
+        }
+
+        &-quarters {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        &-quarter {
+            padding: 20px;
+
+            h3 {
+                font-size: 20px;
+                padding-left: 30px;
+            }
+        }
+
+        &-circle {
+            width: 60px;
+            height: 60px;
+
+            &-1, &-2, &-3, &-4 {
+                background-size: contain;
+            }
+        }
+
+        &-quarter {
+            &:nth-child(odd) {
+                .roadmap-circle {
+                    right: -30px;
+                }
+            }
+            
+            &:nth-child(even) {
+                .roadmap-circle {
+                    left: -30px;
+                }
+            }
+        }
+    }
+} 
