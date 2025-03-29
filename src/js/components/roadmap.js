@@ -20,7 +20,7 @@ export function initRoadmap() {
         svg.classList.add('connection-lines');
         svg.setAttribute('width', '100%');
         svg.setAttribute('height', '100%');
-        
+
         // Цвета для точек
         const colors = [
             '#c344ff',
@@ -33,7 +33,7 @@ export function initRoadmap() {
             const dots = [];
             for (let i = 0; i < 8; i++) {
                 const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                const size = 3 + Math.random() * 3;
+                const size = 2 + Math.random() * 3;
                 dot.setAttribute('r', size / 2);
                 dot.setAttribute('fill', color);
                 dot.style.filter = `blur(${size / 3}px)`;
@@ -120,7 +120,7 @@ export function initRoadmap() {
                 x: conn.reverse ? points[conn.to].x + 20 : points[conn.to].x - 20,
                 y: points[conn.to].y
             };
-
+            
             const path = createCurvedPath(startPoint, endPoint, conn.reverse);
             svg.appendChild(path);
 

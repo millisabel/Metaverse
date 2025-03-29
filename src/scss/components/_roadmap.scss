@@ -1,21 +1,31 @@
 // Roadmap Section Styles
 .roadmap {
-    background-color: #0B0B0F;
-    padding: 80px 0;
+    --roadmap-circle-size: 300px;
+
     position: relative;
     overflow: hidden;
 
+    padding: 80px 0;
+
+    background-color: var(--bs-body-bg);
+
     &-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
         text-align: center;
         margin-bottom: 60px;
 
         h2 {
             color: #fff;
             font-size: 48px;
-            margin-bottom: 20px;
         }
 
         p {
+            order: -1;
+            margin-bottom: 20px;
             color: rgba(255, 255, 255, 0.7);
             font-size: 18px;
             max-width: 600px;
@@ -25,15 +35,22 @@
 
     &-timeline {
         position: relative;
+
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+
         padding: 40px 0;
         
         .connection-lines {
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1;
+
             width: 100%;
             height: 100%;
-            z-index: 1;
+            
             pointer-events: none;
 
             path {
@@ -46,73 +63,68 @@
         }
     }
 
-    &-quarters {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
-        position: relative;
-        z-index: 2;
-    }
-
     &-quarter {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        padding: 30px;
         position: relative;
+        
+        padding: 30px;
+        border-radius: 20px;
+
+        background: rgba(255, 255, 255, 0.05);
         filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
         
         &:nth-child(odd) {
             .roadmap-circle {
-                right: 0;
+                right: calc(var(--roadmap-circle-size) / 2 * -1);
                 transform: translateY(-50%);
             }
 
             &::before {
-                left: 45%;
+                left: 50%;
             }
         }
         
         &:nth-child(even) {
             .roadmap-circle {
-                left: 0;
+                left: calc(var(--roadmap-circle-size) / 2 * -1);
                 transform: translateY(-50%);
             }
 
             &::before {
-                right: 45%;
+                right: 50%;
             }
         }
 
         &::before {
             content: '';
             position: absolute;
-            top: -40%;
-
-            width: 70%;
-            height: 70%;
-            border-radius: 20px;
+            top: -50%;
             z-index: -1;
-            animation: glowBlur 6s ease-in-out infinite;
-            opacity: 0.15;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 1;
         }
 
         &:nth-child(1)::before {
-            background: radial-gradient(circle at 50% 50%, #c344ff, transparent 50%);
+            background-image: url('/src/assets/svg/circle/blur-q1.svg');
             animation: glowBlur1 4s ease-in-out infinite;
         }
 
         &:nth-child(2)::before {
-            background: radial-gradient(circle at 50% 50%, rgba(255, 68, 124, 1), transparent 50%);
+            background-image: url('/src/assets/svg/circle/blur-q2.svg');
             animation: glowBlur2 5s ease-in-out infinite;
         }
 
         &:nth-child(3)::before {
-            background: radial-gradient(circle at 50% 50%, rgba(68, 255, 199, 1), transparent 50%);
+            background-image: url('/src/assets/svg/circle/blur-q3.svg');
             animation: glowBlur3 6s ease-in-out infinite;
         }
 
         &:nth-child(4)::before {
-            background: radial-gradient(circle at 50% 50%, rgba(68, 255, 244, 1), transparent 50%);
+            background-image: url('/src/assets/svg/circle/blur-q4.svg');
             animation: glowBlur4 5.5s ease-in-out infinite;
         }
 
@@ -206,176 +218,55 @@
                 }
             }
         }
-    }
 
-    // Анимации пульсации для кругов
-    @keyframes pulse1 {
-        0% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-        50% {
-            transform: translateY(-50%) scale(1.08);
-            filter: brightness(1.3);
-        }
-        100% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-    }
-
-    @keyframes pulse2 {
-        0% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-        65% {
-            transform: translateY(-50%) scale(1.05);
-            filter: brightness(1.2);
-        }
-        100% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-    }
-
-    @keyframes pulse3 {
-        0% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-        40% {
-            transform: translateY(-50%) scale(1.1);
-            filter: brightness(1.4);
-        }
-        100% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-    }
-
-    @keyframes pulse4 {
-        0% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-        55% {
-            transform: translateY(-50%) scale(1.07);
-            filter: brightness(1.25);
-        }
-        100% {
-            transform: translateY(-50%) scale(1);
-            filter: brightness(1);
-        }
-    }
-
-    // Анимации для свечения под кругами
-    @keyframes glowBlur1 {
-        0% {
-            opacity: 0.2;
-            transform: scale(1);
-        }
-        50% {
-            opacity: 0.4;
-            transform: scale(1.15);
-        }
-        100% {
-            opacity: 0.2;
-            transform: scale(1);
-        }
-    }
-
-    @keyframes glowBlur2 {
-        0% {
-            opacity: 0.15;
-            transform: scale(1);
-        }
-        65% {
-            opacity: 0.35;
-            transform: scale(1.12);
-        }
-        100% {
-            opacity: 0.15;
-            transform: scale(1);
-        }
-    }
-
-    @keyframes glowBlur3 {
-        0% {
-            opacity: 0.25;
-            transform: scale(1);
-        }
-        40% {
-            opacity: 0.45;
-            transform: scale(1.18);
-        }
-        100% {
-            opacity: 0.25;
-            transform: scale(1);
-        }
-    }
-
-    @keyframes glowBlur4 {
-        0% {
-            opacity: 0.2;
-            transform: scale(1);
-        }
-        55% {
-            opacity: 0.4;
-            transform: scale(1.1);
-        }
-        100% {
-            opacity: 0.2;
-            transform: scale(1);
+        .more-btn {
+            background: none;
+            border: none;
+            padding: 10px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 3;
         }
     }
 
     &-circle {
-        width: 200px;
-        height: 200px;
         position: absolute;
         top: 0;
-        transform: translateY(-50%);
         z-index: 2;
+
+        width: var(--roadmap-circle-size);
+        height: var(--roadmap-circle-size);
+        transform: translateY(-50%);
+        
         background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
 
         &-1 {
             background-image: url('/src/assets/svg/circle/q-1.svg');
-            filter: hue-rotate(0deg) brightness(1.2);
-            animation: pulse1 4s ease-in-out infinite;
+            animation: pulse1 5s ease-in-out infinite;
         }
 
         &-2 {
-            background-image: url('/src/assets/svg/circle/q-1.svg');
-            filter: hue-rotate(320deg) brightness(1.2);
-            animation: pulse2 5s ease-in-out infinite;
+            background-image: url('/src/assets/svg/circle/q-2.svg');
+            animation: pulse2 8s ease-in-out infinite;
         }
 
         &-3 {
-            background-image: url('/src/assets/svg/circle/q-1.svg');
-            filter: hue-rotate(140deg) brightness(1.2);
-            animation: pulse3 6s ease-in-out infinite;
+            background-image: url('/src/assets/svg/circle/q-3.svg');
+            animation: pulse3 7s ease-in-out infinite;
         }
 
         &-4 {
-            background-image: url('/src/assets/svg/circle/q-1.svg');
-            filter: hue-rotate(160deg) brightness(1.2);
-            animation: pulse4 5.5s ease-in-out infinite;
+            background-image: url('/src/assets/svg/circle/q-4.svg');
+            animation: pulse4 6s ease-in-out infinite;
         }
     }
 
-    .more-btn {
-        background: none;
-        border: none;
-        padding: 10px 0;
-        cursor: pointer;
-        font-size: 16px;
-        transition: all 0.3s ease;
-    }
-
     @media (max-width: 768px) {
+        --roadmap-circle-size: 200px;
         padding: 60px 0;
 
         &-header {
@@ -395,34 +286,193 @@
 
         &-quarter {
             padding: 20px;
+            margin-bottom: 60px;
 
             h3 {
                 font-size: 20px;
                 padding-left: 30px;
             }
-        }
 
-        &-circle {
-            width: 60px;
-            height: 60px;
-
-            &-1, &-2, &-3, &-4 {
-                background-size: contain;
-            }
-        }
-
-        &-quarter {
             &:nth-child(odd) {
                 .roadmap-circle {
-                    right: -30px;
+                    right: -100px;
                 }
             }
             
             &:nth-child(even) {
                 .roadmap-circle {
-                    left: -30px;
+                    left: -100px;
                 }
+            }
+
+            .more-btn {
+                position: relative;
+                z-index: 3;
+            }
+
+            &::before {
+                pointer-events: none;
+            }
+        }
+
+        &-circle {
+            width: var(--roadmap-circle-size);
+            height: var(--roadmap-circle-size);
+
+            &-1, &-2, &-3, &-4 {
+                background-size: contain;
             }
         }
     }
 } 
+
+// Анимации пульсации для кругов
+@keyframes pulse1 {
+    0% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+    50% {
+        transform: translateY(-50%) scale(1.08);
+        // filter: brightness(1.5);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+}
+
+@keyframes pulse2 {
+    0% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+    65% {
+        transform: translateY(-50%) scale(1.05);
+        // filter: brightness(1.5);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+}
+
+@keyframes pulse3 {
+    0% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+    40% {
+        transform: translateY(-50%) scale(1.1);
+        // filter: brightness(2);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+}
+
+@keyframes pulse4 {
+    0% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(1);
+    }
+    55% {
+        transform: translateY(-50%) scale(1.07);
+        // filter: brightness(3);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+        // filter: brightness(2);
+    }
+}
+
+// Анимации для свечения под кругами
+@keyframes glowBlur1 {
+    0% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}
+
+@keyframes glowBlur2 {
+    0% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    65% {
+        opacity: 0.9;
+        transform: scale(1.12);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}
+
+@keyframes glowBlur3 {
+    0% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    40% {
+        opacity: 0.9;
+        transform: scale(1.18);
+    }
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+}
+
+@keyframes glowBlur4 {
+    0% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    55% {
+        opacity: 9;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+}
+
+.connection-lines {
+    circle {
+        transition: opacity 0.3s ease;
+        
+        &.animate {
+            animation: dotMove 3s linear infinite;
+        }
+    }
+}
+
+@keyframes dotMove {
+    0% {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    20% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    80% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
