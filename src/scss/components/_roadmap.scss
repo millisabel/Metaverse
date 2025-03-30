@@ -4,10 +4,9 @@
 
     position: relative;
     overflow: hidden;
-
-    padding: 20px 0;
-
-    background-color: var(--bs-body-bg);
+    min-height: 100vh;
+    padding: 100px 0;
+    background: #000;
 
     &-header {
         display: flex;
@@ -317,6 +316,57 @@
         }
     }
 
+    &-shadows {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    &-shadow {
+        position: absolute;
+
+        width: 60vw;
+        height: 30vw;
+
+        background: url('/src/assets/svg/circle/shadow.svg') no-repeat center;
+        background-size: contain;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+
+        &--left {
+            top: 0;
+            left: 0;
+            transform: rotate(-45deg);
+        }
+
+        &--right {
+            bottom: 0;
+            right: 0;
+            transform: rotate(135deg);
+        }
+    }
+
+    &.roadmap-animate {
+        .roadmap-shadow {
+            opacity: 0.9;
+            animation: shadowFloat 50s infinite ease-in-out alternate;
+
+            &--left {
+                animation-name: shadowFloatLeft;
+            }
+
+            &--right {
+                animation-name: shadowFloatRight;
+            }
+        }
+    }
+
     @media (min-width: 768px) {
 
         padding: 80px 0;
@@ -411,6 +461,7 @@
     }
 }
 
+// Animates dot move
 @keyframes dotMove {
     0% {
         opacity: 0;
@@ -427,5 +478,48 @@
     100% {
         opacity: 0;
         transform: translateX(100%);
+    }
+}
+
+// Animates shadow float
+@keyframes shadowFloatLeft {
+    0% {
+        transform: translate(0, 0) rotate(-45deg) scale(1);
+    }
+    20% {
+        transform: translate(30vw, 20vh) rotate(-40deg) scale(2.3);
+    }
+    40% {
+        transform: translate(10vw, 40vh) rotate(-50deg) scale(3.9);
+    }
+    60% {
+        transform: translate(50vw, 60vh) rotate(-35deg) scale(2.5);
+    }
+    80% {
+        transform: translate(20vw, 80vh) rotate(-55deg) scale(1.8);
+    }
+    100% {
+        transform: translate(70vw, 100vh) rotate(-45deg) scale(1);
+    }
+}
+
+@keyframes shadowFloatRight {
+    0% {
+        transform: translate(0, 0) rotate(135deg) scale(1);
+    }
+    20% {
+        transform: translate(-60vw, -10vh) rotate(135deg) scale(1.9);
+    }
+    40% {
+        transform: translate(-25vw, -25vh) rotate(135deg) scale(2.8);
+    }
+    60% {
+        transform: translate(-70vw, -50vh) rotate(135deg) scale(3.9);
+    }
+    80% {
+        transform: translate(-15vw, -70vh) rotate(135deg) scale(2.2);
+    }
+    100% {
+        transform: translate(-60vw, -90vh) rotate(135deg) scale(1);
     }
 }
