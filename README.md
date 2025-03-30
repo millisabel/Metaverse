@@ -1,8 +1,8 @@
 # Metaverse Landing Page
 
-Современный лендинг для мета-вселенной с интерактивными элементами и анимациями.
+Modern landing page for the metaverse with interactive elements and animations.
 
-## 🚀 Технологии
+## 🚀 Technologies
 
 - HTML5
 - SCSS/CSS3
@@ -10,115 +10,106 @@
 - Webpack 5
 - Bootstrap 5
 - AOS (Animate On Scroll)
-- GitHub Actions (для автоматического деплоя)
+- Three.js (for starry background)
+- GitHub Actions (for automatic deployment)
 
-## 🛠 Структура проекта
+## 🛠 Project Structure
 
 ```
 src/
 ├── assets/
-│   ├── icons/          # Иконки и логотипы
-│   ├── images/         # Изображения
-│   └── svg/            # SVG файлы
-│       └── circle/     # SVG для анимированных кругов
+│   ├── icons/          # Icons and logos
+│   ├── images/         # Images
+│   └── svg/            # SVG files
+│       └── circle/     # SVG for animated circles
 ├── js/
-│   ├── components/     # JavaScript компоненты
-│   │   ├── roadmap.js # Логика для секции Roadmap
-│   │   └── galaxy.js  # Анимация галактики
-│   ├── utils/         # Утилиты
-│   │   └── animationObserver.js # Универсальный наблюдатель анимаций
-│   └── index.js       # Главный JavaScript файл
+│   ├── components/     # JavaScript components
+│   │   ├── roadmap.js # Roadmap section logic
+│   │   └── galaxy.js  # Galaxy animation
+│   ├── utils/         # Utilities
+│   │   └── animationObserver.js # Universal animation observer
+│   └── index.js       # Main JavaScript file
 ├── scss/
-│   ├── components/    # Стили компонентов
+│   ├── components/    # Component styles
 │   │   ├── _roadmap.scss
 │   │   └── _navbar.scss
-│   ├── base/         # Базовые стили
+│   ├── base/         # Base styles
 │   │   ├── _reset.scss
 │   │   └── _typography.scss
-│   └── style.scss    # Главный SCSS файл
-└── index.html        # Главная HTML страница
+│   └── style.scss    # Main SCSS file
+└── index.html        # Main HTML page
 ```
 
-## ✨ Основные функции
+## ✨ Key Features
 
-### 1. Адаптивный дизайн
-- Полностью адаптивный интерфейс для всех устройств
-- Мобильная навигация с выпадающим меню
-- Оптимизированные изображения и анимации
+### 1. Responsive Design
+- Fully responsive interface for all devices
+- Mobile navigation with dropdown menu
+- Optimized images and animations
 
-### 2. Анимации и интерактивность
-- Плавные анимации при скролле (AOS)
-- Анимированная галактика в фоне
-- Интерактивная карта развития (Roadmap) с анимированными кругами
-- Анимированные кнопки и эффекты наведения
+### 2. Animations and Interactivity
+- Smooth scroll animations (AOS)
+- Animated galaxy background (Three.js)
+- Interactive roadmap with animated circles
+- Animated buttons and hover effects
 
-### 3. Секции
-- Hero секция с призывом к действию
-- About Us с каруселью информации
-- Roadmap с интерактивной временной шкалой
-- Our Dynamics
-- VR Game Market
-- Team
-- FAQ
-- Social Media
+### 3. Performance Optimization
+- Lazy loading of images
+- Optimized animations
+- CSS and JavaScript minification
+- Resource caching
 
-### 4. Оптимизация производительности
-- Ленивая загрузка изображений
-- Оптимизированные анимации
-- Минификация CSS и JavaScript
-- Кэширование ресурсов
+## 🚀 Deployment
 
-## 🚀 Деплой
+The project is automatically deployed to GitHub Pages when pushing to the `main` branch. GitHub Actions builds the project and publishes it to the `gh-pages` branch.
 
-Проект автоматически деплоится на GitHub Pages при пуше в ветку `main`. GitHub Actions собирает проект и публикует его в ветке `gh-pages`.
+## 🛠 Installation and Setup
 
-## 🛠 Установка и запуск
-
-1. Клонируйте репозиторий:
+1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/Metaverse.git
 ```
 
-2. Установите зависимости:
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Запустите проект в режиме разработки:
+3. Run the project in development mode:
 ```bash
 npm run dev
 ```
 
-4. Соберите проект для продакшена:
+4. Build the project for production:
 ```bash
 npm run build
 ```
 
-## 📦 Скрипты
+## 📦 Scripts
 
-- `npm run dev` - Запуск в режиме разработки
-- `npm run build` - Сборка проекта
-- `npm run preview` - Предпросмотр собранного проекта
+- `npm run dev` - Run in development mode
+- `npm run build` - Build the project
+- `npm run preview` - Preview the built project
 
-## 🔧 Конфигурация
+## 🔧 Configuration
 
 ### Webpack
-- Настроен для обработки SCSS, JavaScript и изображений
-- Оптимизация для продакшена
-- Поддержка Source Maps для разработки
+- Configured for SCSS, JavaScript, and image processing
+- Production optimization
+- Source Maps support for development
 
 ### GitHub Actions
-- Автоматический деплой на GitHub Pages
-- Кэширование зависимостей
-- Оптимизация процесса сборки
+- Automatic deployment to GitHub Pages
+- Dependency caching
+- Build process optimization
 
-## 📱 Поддерживаемые браузеры
+## 📱 Supported Browsers
 
-- Chrome (последние 2 версии)
-- Firefox (последние 2 версии)
-- Safari (последние 2 версии)
-- Edge (последние 2 версии)
+- Chrome (latest 2 versions)
+- Firefox (latest 2 versions)
+- Safari (latest 2 versions)
+- Edge (latest 2 versions)
 
-## 📄 Лицензия
+## 📄 License
 
 MIT 
