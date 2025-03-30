@@ -3,7 +3,7 @@ import { initNavbar } from './components/navbar';
 import { initSlider } from './components/slider';
 import { initStars } from './components/stars';
 import { initRoadmap } from './components/roadmap';
-import { initDynamics3D } from './dynamics3d';
+import { initDynamics3D } from './components/dynamics3d';
 import { createAnimationObserver } from './utils/animationObserver';
 
 // Initialize components when DOM is loaded

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import decoration1Svg from '../../assets/svg/dynamics/decoration_1.svg';
 import decoration2Svg from '../../assets/svg/dynamics/decoration_2.svg';
 import decoration3Svg from '../../assets/svg/dynamics/decoration_3.svg';
+import { createAnimationObserver } from '../utils/animationObserver';
 
 // Initialize scenes for each card
 const scenes = {
@@ -35,7 +36,7 @@ function createDecorativeCircles(sceneType) {
         config.svg,
         // onLoad callback
         (texture) => {
-            const planeGeometry = new THREE.PlaneGeometry(5, 5);
+            const planeGeometry = new THREE.PlaneGeometry(6, 6);
             const planeMaterial = new THREE.MeshPhongMaterial({
                 map: texture,
                 transparent: true,
@@ -358,10 +359,30 @@ export function initDynamics3D() {
         }, 100);
     });
 
-    // Create Intersection Observer
+    // Создаем наблюдатель для анимации свечения
+    const glowObserver = createAnimationObserver({
+        threshold: 0.1,
+        rootMargin: '50px',
+        onEnter: (element) => {
+            console.log('Glow animation started for:', element.id);
+        },
+        onLeave: (element) => {
+            console.log('Glow animation stopped for:', element.id);
+        }
+    });
+
+    // Начинаем наблюдение за контейнерами 3D моделей
+    ['guardians3d', 'metaverse3d', 'sankopa3d'].forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            glowObserver.observe(container);
+        }
+    });
+
+    // Create Intersection Observer for 3D rendering
     const observer = new IntersectionObserver(handleIntersection, {
-        threshold: [0, 0.1, 0.5, 1.0], // Добавляем больше порогов для плавности
-        rootMargin: '100px', // Увеличиваем отступ для более раннего начала загрузки
+        threshold: [0, 0.1, 0.5, 1.0],
+        rootMargin: '100px',
     });
 
     // Observe all 3D containers
@@ -394,5 +415,6 @@ export function initDynamics3D() {
             destroyRenderer(renderer, id);
         });
         renderers = {};
+        glowObserver.disconnect();
     });
 }

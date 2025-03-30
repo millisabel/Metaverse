@@ -13,7 +13,8 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].js',
     clean: true,
-    publicPath: isDevelopment ? '/' : './'
+    publicPath: isDevelopment ? '/' : './',
+    assetModuleFilename: 'assets/[name][ext]'
   },
   devServer: {
     static: {
@@ -41,10 +42,17 @@ module.exports = {
         ]
       },
       {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        test: /\.(png|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
         generator: {
-          filename: 'assets/[name][ext]'
+          filename: 'assets/images/[name][ext]'
+        }
+      },
+      {
+        test: /\.svg$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/svg/[name][ext]'
         }
       }
     ]
