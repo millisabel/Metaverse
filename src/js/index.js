@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Добавляем наблюдение за секцией roadmap
+    const roadmapSection = document.querySelector('#roadmap');
+    if (roadmapSection) {
+        animationObserver.observe(roadmapSection);
+    }
+
     // Добавляем наблюдение за кастомными анимированными элементами в roadmap
     const roadmapElements = [
         '.roadmap-quarter', // Квартальные блоки
