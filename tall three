@@ -1,5 +1,0 @@
-[33mcommit 0f3d1c9828d60ed84172def23e72506c5302bdbb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
-Author: millisabel <elena.kozlova.job@gmail.com>
-Date:   Fri Mar 28 22:52:18 2025 +0100
-
-    refactor: reorganize slider code into modules and update webpack configuration

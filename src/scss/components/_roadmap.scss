@@ -365,6 +365,23 @@
     }
 } 
 
+.connection-lines {
+    circle {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        
+        &.roadmap-animate {
+            opacity: 1;
+            animation: dotMove 3s linear infinite;
+        }
+
+        &:not(.roadmap-animate) {
+            animation: none;
+            opacity: 0;
+        }
+    }
+}
+
 // Animations for pulse circles
 @keyframes pulse {
     0% {
@@ -391,23 +408,6 @@
     100% {
         opacity: 0.3;
         transform: scale(1);
-    }
-}
-
-.connection-lines {
-    circle {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        
-        &.roadmap-animate {
-            opacity: 1;
-            animation: dotMove 3s linear infinite;
-        }
-
-        &:not(.roadmap-animate) {
-            animation: none;
-            opacity: 0;
-        }
     }
 }
 
