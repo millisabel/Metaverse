@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 build/
+dist/
 
 # IDE and editor files
 .idea/
