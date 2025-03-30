@@ -4,6 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const isDevelopment = process.env.NODE_ENV === 'development';
+const repoName = 'Metaverse'; // Имя вашего репозитория
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
@@ -12,7 +13,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].js',
     clean: true,
-    publicPath: isDevelopment ? '/' : './'
+    publicPath: isDevelopment ? '/' : `/${repoName}/`
   },
   devServer: {
     static: {
@@ -43,7 +44,8 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/index.html'
+      template: './src/index.html',
+      publicPath: isDevelopment ? '/' : `/${repoName}/`
     }),
     new MiniCssExtractPlugin({
       filename: 'css/[name].css'
