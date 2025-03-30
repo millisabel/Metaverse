@@ -13,7 +13,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/[name].js',
     clean: true,
-    publicPath: isDevelopment ? '/' : `/${repoName}/`
+    publicPath: isDevelopment ? '/' : './'
   },
   devServer: {
     static: {
@@ -39,13 +39,19 @@ module.exports = {
           'postcss-loader',
           'sass-loader'
         ]
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name][ext]'
+        }
       }
     ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/index.html',
-      publicPath: isDevelopment ? '/' : `/${repoName}/`
+      template: './src/index.html'
     }),
     new MiniCssExtractPlugin({
       filename: 'css/[name].css'
@@ -57,16 +63,8 @@ module.exports = {
           to: 'manifest.json'
         },
         {
-          from: 'src/assets/icons/favicon*.png',
-          to: 'assets/icons/[name][ext]'
-        },
-        {
-          from: 'src/assets/icons/apple-touch-icon.png',
-          to: 'assets/icons/apple-touch-icon.png'
-        },
-        {
-          from: 'src/assets/icons/Logo.svg',
-          to: 'assets/icons/Logo.svg'
+          from: 'src/assets/icons',
+          to: 'assets/icons'
         }
       ]
     })
