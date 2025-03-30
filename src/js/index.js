@@ -7,36 +7,29 @@ import { createAnimationObserver } from './utils/animationObserver';
 
 // Initialize components when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Создаем наблюдатель для анимаций
+    // Создаем наблюдатель для кастомных анимаций
     const animationObserver = createAnimationObserver({
         threshold: 0.1,
         rootMargin: '0px',
         onEnter: (element) => {
-            // Можно добавить дополнительную логику при появлении элемента
-            console.log('Element entered viewport:', element);
+            // Добавляем класс для анимации
+            element.classList.add('roadmap-animate');
         },
         onLeave: (element) => {
-            // Можно добавить дополнительную логику при исчезновении элемента
-            console.log('Element left viewport:', element);
+            // Удаляем класс анимации
+            element.classList.remove('roadmap-animate');
         }
     });
 
-    // Добавляем наблюдение за всеми анимированными секциями
-    const animatedSections = [
-        '#home',
-        '#about',
-        '#roadmap',
-        '#dynamics',
-        '#vr-market',
-        '#team',
-        '#faq',
-        '#social'
+    // Добавляем наблюдение за кастомными анимированными элементами в roadmap
+    const roadmapElements = [
+        '.roadmap-quarter', // Квартальные блоки
+        '.roadmap-circle',  // Круги
+        '.connection-lines circle' // Точки на линиях
     ];
 
-    animatedSections.forEach(section => {
-        animationObserver.observe(section, {
-            animationClass: 'section-animate'
-        });
+    roadmapElements.forEach(selector => {
+        animationObserver.observe(selector);
     });
 
     // Добавляем наблюдение за элементами с анимацией появления

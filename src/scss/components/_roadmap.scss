@@ -105,27 +105,48 @@
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            opacity: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         &:nth-child(1)::before {
             background-image: url('/src/assets/svg/circle/blur-q1.svg');
-            animation: glowBlur1 4s ease-in-out infinite;
         }
 
         &:nth-child(2)::before {
             background-image: url('/src/assets/svg/circle/blur-q2.svg');
-            animation: glowBlur2 5s ease-in-out infinite;
         }
 
         &:nth-child(3)::before {
             background-image: url('/src/assets/svg/circle/blur-q3.svg');
-            animation: glowBlur3 6s ease-in-out infinite;
         }
 
         &:nth-child(4)::before {
             background-image: url('/src/assets/svg/circle/blur-q4.svg');
-            animation: glowBlur4 5.5s ease-in-out infinite;
+        }
+
+        &.roadmap-animate {
+            &::before {
+                opacity: 1;
+                animation: glowBlur1 4s ease-in-out infinite;
+            }
+
+            &:nth-child(2)::before {
+                animation: glowBlur2 5s ease-in-out infinite;
+            }
+
+            &:nth-child(3)::before {
+                animation: glowBlur3 6s ease-in-out infinite;
+            }
+
+            &:nth-child(4)::before {
+                animation: glowBlur4 5.5s ease-in-out infinite;
+            }
+        }
+
+        &:not(.roadmap-animate)::before {
+            animation: none;
+            opacity: 0;
         }
 
         h3 {
@@ -243,25 +264,48 @@
         background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
+        opacity: 0;
+        transition: opacity 0.3s ease;
 
         &-1 {
             background-image: url('/src/assets/svg/circle/q-1.svg');
-            animation: pulse1 5s ease-in-out infinite;
         }
 
         &-2 {
             background-image: url('/src/assets/svg/circle/q-2.svg');
-            animation: pulse2 8s ease-in-out infinite;
         }
 
         &-3 {
             background-image: url('/src/assets/svg/circle/q-3.svg');
-            animation: pulse3 7s ease-in-out infinite;
         }
 
         &-4 {
             background-image: url('/src/assets/svg/circle/q-4.svg');
-            animation: pulse4 6s ease-in-out infinite;
+        }
+
+        &.roadmap-animate {
+            opacity: 1;
+            
+            &.roadmap-circle-1 {
+                animation: pulse1 5s ease-in-out infinite;
+            }
+
+            &.roadmap-circle-2 {
+                animation: pulse2 8s ease-in-out infinite;
+            }
+
+            &.roadmap-circle-3 {
+                animation: pulse3 7s ease-in-out infinite;
+            }
+
+            &.roadmap-circle-4 {
+                animation: pulse4 6s ease-in-out infinite;
+            }
+        }
+
+        &:not(.roadmap-animate) {
+            animation: none;
+            opacity: 0;
         }
     }
 
@@ -450,10 +494,17 @@
 
 .connection-lines {
     circle {
+        opacity: 0;
         transition: opacity 0.3s ease;
         
-        &.animate {
+        &.roadmap-animate {
+            opacity: 1;
             animation: dotMove 3s linear infinite;
+        }
+
+        &:not(.roadmap-animate) {
+            animation: none;
+            opacity: 0;
         }
     }
 }
