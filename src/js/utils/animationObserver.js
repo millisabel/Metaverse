@@ -227,6 +227,35 @@ export const initAosAnimations = () => {
 };
 
 /**
+ * Initialization of animations for VR Market section
+ */
+export const initVRMarketAnimations = () => {
+    const vrMarketObserver = createAnimationObserver({
+        threshold: 0.2,
+        rootMargin: '50px'
+    });
+
+    // Observe badge animation
+    vrMarketObserver.observe('.game-character--badge', {
+        onEnter: (element) => {
+            element.style.animationPlayState = 'running';
+        },
+        onLeave: (element) => {
+            element.style.animationPlayState = 'paused';
+        }
+    });
+
+    // Observe card with pseudo-element
+    vrMarketObserver.observe('#vr-market .card', {
+        pseudoElements: {
+            after: true // Animate only ::after pseudo-element
+        }
+    });
+
+    return vrMarketObserver;
+};
+
+/**
  * Initialization of all animations
 * @returns {Object} Object with observers for possible disabling
  */
@@ -234,7 +263,8 @@ export const initAllAnimations = () => {
     const observers = {
         roadmap: initRoadmapAnimations(),
         dynamics: initDynamicsAnimations(),
-        aos: initAosAnimations()
+        aos: initAosAnimations(),
+        vrMarket: initVRMarketAnimations() // Add VR Market animations
     };
 
     return observers;
