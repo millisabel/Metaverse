@@ -1,15 +1,8 @@
-.bg-img-game {
-    background-image: url('../assets/images/bg/BG-Game.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    position: relative;
-}
+
 
 .vr-market {
     position: relative;
     overflow: hidden;
-
     padding-bottom: 100vw;
 
     .game-characters {
@@ -23,8 +16,7 @@
 
     .game-character {
         position: absolute;
-        transition: transform 0.5s ease;
-
+        
         img {
             height: auto;
             transition: transform 0.3s ease;
@@ -33,25 +25,20 @@
         &--left {
             left: 50%;
             bottom: 10%;
-            z-index: -2;
-
             max-width: 50vw;
         }
 
         &--right {
             right: 40%;
             bottom: 5%;
-            z-index: -2;
-            
             max-width: 70vw;
         }
 
         &--badge {
             right: 0;
             bottom: 3%;
-            z-index: -1;
-
             max-width: 30vw;
+    
         }
     }
 
@@ -82,14 +69,18 @@
                 right: 5%;
                 bottom: 7%;
                 max-width: 100%;
+                
+                 
+                
+                    img{
+                        animation: roll  4s ease-in-out infinite alternate;
+                }
             }
         }
     }
 
     @include desktop-xxxl {
-
         .game-character {
-
             &--left {
                 left: 20%;
             }
