@@ -42,13 +42,6 @@ module.exports = {
         ]
       },
       {
-        test: /\.(png|jpg|jpeg|gif|webp)$/i,
-        type: 'asset/resource',
-        generator: {
-          filename: 'assets/images/[name][ext]'
-        }
-      },
-      {
         test: /\.svg$/i,
         type: 'asset/resource',
         generator: {
@@ -73,6 +66,10 @@ module.exports = {
         {
           from: 'src/assets/icons',
           to: 'assets/icons'
+        },
+        {
+          from: 'src/assets/images',
+          to: 'assets/images'
         }
       ]
     })
