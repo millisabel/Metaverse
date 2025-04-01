@@ -80,6 +80,18 @@ $link-hover-color: $accent-pink;
   }
 }
 
+@mixin desktop-xl {
+  @media (min-width: 1400px) {
+    @content;
+  }
+}
+
+@mixin desktop-xxxl {
+  @media (min-width: 1600px) {
+    @content;
+  }
+}
+
 // Typography Classes
 h1, .h1 {
   font-size: var(--heading-1-size-mobile);
