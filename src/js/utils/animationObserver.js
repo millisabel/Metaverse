@@ -1,12 +1,12 @@
 /**
- * Универсальная функция для отслеживания анимаций с помощью Intersection Observer
- * @param {Object} options - Настройки для Intersection Observer
- * @param {number} [options.threshold=0.1] - Порог видимости (0-1)
- * @param {number} [options.rootMargin='0px'] - Отступы для области видимости
- * @param {Function} [options.onEnter] - Callback при появлении элемента
- * @param {Function} [options.onLeave] - Callback при исчезновении элемента
- * @param {Function} [options.onChange] - Callback при изменении видимости
- * @returns {Function} Функция для добавления наблюдателя к элементам
+ * Universal function for creating animation observers
+ * @param {Object} options - Settings for Intersection Observer
+ * @param {number} [options.threshold=0.1] - Visibility threshold (0-1)
+ * @param {number} [options.rootMargin='0px'] - Margin for the visibility area
+ * @param {Function} [options.onEnter] - Callback when the element appears
+ * @param {Function} [options.onLeave] - Callback when the element disappears
+ * @param {Function} [options.onChange] - Callback when the element's visibility changes
+ * @returns {Function} Function to add an observer to elements
  */
 export const createAnimationObserver = ({
     threshold = 0.1,
@@ -15,31 +15,68 @@ export const createAnimationObserver = ({
     onLeave = null,
     onChange = null
 } = {}) => {
+    // Add CSS for managing animation of elements and pseudo-elements
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+        /* Base styles for all animated elements */
+        [data-animation-state="hidden"] {
+            opacity: 0;
+            animation-play-state: paused !important;
+        }
+        
+        [data-animation-state="visible"] {
+            opacity: 1;
+            animation-play-state: running !important;
+        }
+
+        /* Styles for pseudo-elements */
+        [data-animation-state="hidden"]::before,
+        [data-animation-state="hidden"]::after {
+            opacity: 0 !important;
+            animation-play-state: paused !important;
+        }
+        
+        [data-animation-state="visible"]::before,
+        [data-animation-state="visible"]::after {
+            opacity: 1 !important;
+            animation-play-state: running !important;
+        }
+
+        /* Support for AOS animations */
+        [data-animation-state="visible"][data-aos] {
+            transform: translate(0) !important;
+            opacity: 1 !important;
+        }
+    `;
+    document.head.appendChild(styleSheet);
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const { isIntersecting, target } = entry;
             
-            // Вызываем общий callback при изменении видимости
+            // Call the common callback when visibility changes
             if (onChange) {
                 onChange(entry);
             }
 
-            if (isIntersecting) {
-                // Добавляем класс для анимации
-                target.classList.add('animate');
-                
-                // Вызываем callback при появлении
-                if (onEnter) {
-                    onEnter(target);
-                }
-            } else {
-                // Удаляем класс анимации
-                target.classList.remove('animate');
-                
-                // Вызываем callback при исчезновении
-                if (onLeave) {
-                    onLeave(target);
-                }
+            // Determine the current state
+            const currentState = isIntersecting ? 'visible' : 'hidden';
+            
+            // Update the animation state
+            target.dataset.animationState = currentState;
+
+            // Dispatch a custom event
+            const eventName = isIntersecting ? 'animationenter' : 'animationleave';
+            const event = new CustomEvent(eventName, { 
+                detail: { target, state: currentState }
+            });
+            target.dispatchEvent(event);
+
+            // Call the corresponding callback
+            if (isIntersecting && onEnter) {
+                onEnter(target);
+            } else if (!isIntersecting && onLeave) {
+                onLeave(target);
             }
         });
     }, {
@@ -48,33 +85,45 @@ export const createAnimationObserver = ({
     });
 
     /**
-     * Добавляет элемент под наблюдение
-     * @param {HTMLElement|string} element - Элемент или селектор для поиска элементов
-     * @param {Object} [options] - Дополнительные опции для конкретного элемента
-     * @param {string} [options.animationClass='animate'] - Класс для анимации
-     * @param {Function} [options.onEnter] - Callback при появлении элемента
-     * @param {Function} [options.onLeave] - Callback при исчезновении элемента
+     * Adds an element under observation
+     * @param {HTMLElement|string} element - Element or selector to find elements
+     * @param {Object} [options] - Additional options for a specific element
+     * @param {Object} [options.pseudoElements] - Settings for pseudo-elements
+     * @param {boolean} [options.pseudoElements.before=false] - Animate ::before
+     * @param {boolean} [options.pseudoElements.after=false] - Animate ::after
+     * @param {Function} [options.onEnter] - Callback when the element appears
+     * @param {Function} [options.onLeave] - Callback when the element disappears
      */
     const observe = (element, options = {}) => {
         const {
-            animationClass = 'animate',
+            pseudoElements = {
+                before: false,
+                after: false
+            },
             onEnter: elementOnEnter,
             onLeave: elementOnLeave
         } = options;
 
-        // Если передан селектор, находим все элементы
+        // If a selector is passed, find all elements
         const elements = typeof element === 'string' 
             ? document.querySelectorAll(element)
             : [element];
 
         elements.forEach(el => {
-            // Добавляем класс для анимации
-            el.classList.add(animationClass);
+            // Initialize the animation state
+            el.dataset.animationState = 'hidden';
             
-            // Добавляем под наблюдение
+            // If you need to animate pseudo-elements, add the corresponding attributes
+            if (pseudoElements.before || pseudoElements.after) {
+                el.dataset.hasPseudoAnimation = 'true';
+                if (pseudoElements.before) el.dataset.animateBefore = 'true';
+                if (pseudoElements.after) el.dataset.animateAfter = 'true';
+            }
+            
+            // Add under observation
             observer.observe(el);
 
-            // Добавляем обработчики для конкретного элемента
+            // Add handlers for a specific element
             if (elementOnEnter) {
                 el.addEventListener('animationenter', () => elementOnEnter(el));
             }
@@ -85,8 +134,8 @@ export const createAnimationObserver = ({
     };
 
     /**
-     * Прекращает наблюдение за элементом
-     * @param {HTMLElement|string} element - Элемент или селектор
+     * Stops observing an element
+     * @param {HTMLElement|string} element - Element or selector
      */
     const unobserve = (element) => {
         const elements = typeof element === 'string' 
@@ -94,15 +143,25 @@ export const createAnimationObserver = ({
             : [element];
 
         elements.forEach(el => {
+            // Remove all data-attributes related to animation
+            delete el.dataset.animationState;
+            delete el.dataset.hasPseudoAnimation;
+            delete el.dataset.animateBefore;
+            delete el.dataset.animateAfter;
+            
             observer.unobserve(el);
         });
     };
 
     /**
-     * Отключает наблюдатель
+     * Disconnects the observer and removes the added styles
      */
     const disconnect = () => {
         observer.disconnect();
+        // Remove the added styles
+        if (styleSheet.parentNode) {
+            styleSheet.parentNode.removeChild(styleSheet);
+        }
     };
 
     return {
@@ -110,4 +169,73 @@ export const createAnimationObserver = ({
         unobserve,
         disconnect
     };
+};
+
+/**
+ * Initialization of animations for the roadmap section
+ */
+export const initRoadmapAnimations = () => {
+    const roadmapObserver = createAnimationObserver({
+        threshold: 0.1,
+        rootMargin: '0px'
+    });
+
+    const roadmapElements = [
+        '#roadmap',          // The entire section
+        '.roadmap-quarter',  // Quarterly blocks
+        '.roadmap-circle',   // Circles
+        '.connection-lines circle' // Points on lines
+    ];
+
+    roadmapElements.forEach(selector => {
+        roadmapObserver.observe(selector);
+    });
+
+    return roadmapObserver;
+};
+
+/**
+ * Initialization of animations for dynamics cards
+ */
+export const initDynamicsAnimations = () => {
+    const dynamicsObserver = createAnimationObserver({
+        threshold: 0.2,
+        rootMargin: '50px'
+    });
+
+    dynamicsObserver.observe('.card', {
+        pseudoElements: {
+            after: true // Animate only ::after pseudo-element
+        }
+    });
+
+    return dynamicsObserver;
+};
+
+/**
+ * Initialization of AOS animations
+ */
+export const initAosAnimations = () => {
+    const aosObserver = createAnimationObserver({
+        threshold: 0.1,
+        rootMargin: '50px'
+    });
+
+    aosObserver.observe('[data-aos]');
+
+    return aosObserver;
+};
+
+/**
+ * Initialization of all animations
+* @returns {Object} Object with observers for possible disabling
+ */
+export const initAllAnimations = () => {
+    const observers = {
+        roadmap: initRoadmapAnimations(),
+        dynamics: initDynamicsAnimations(),
+        aos: initAosAnimations()
+    };
+
+    return observers;
 }; 
