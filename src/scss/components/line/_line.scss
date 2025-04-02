@@ -4,32 +4,32 @@
     --line-top: 0;
     --line-bottom: 0;
     --line-left: 0;
+    --line-right: 100%;
 
     --line-width: 5px;
     --line-height: 100%;
 
     --line-color: var(--bs-white);
 
+    --line-padding-left: 1rem;
+    --line-padding-right: 0;
+
     position: relative;
-    padding-left: 1rem;
 
-    @include tablet{
-        padding-left: 2rem;
-    }
-
-    @include desktop{
-        padding-left: 5rem;
-    }
+    padding-left: var(--line-padding-left);
+    padding-right: var(--line-padding-right);
 
     &::before{
         content: '';
         position: absolute;
         top: var(--line-top);
         left: var(--line-left);
+        right: var(--line-right);
         bottom: var(--line-bottom);
 
         width: var(--line-width);
         height: var(--line-height);
+
         background-color: var(--line-color);
     }
 
@@ -52,20 +52,28 @@
     &-right{
         --line-left: 100%;
         --line-right: 0;
-        
-        right: var(--line-right);
 
-        padding-left: 0;
-        padding-right: 1rem;
+        --line-padding-left: 0;
+        --line-padding-right: 2rem;
+    }
+}
 
-        @include tablet{
-            padding-left: 0;
-            padding-right: 2rem;
+@include tablet{
+    .line{
+        --line-padding-left: 2rem;
+
+        &-right{
+            --line-padding-right: 2rem;
         }
-    
-        @include desktop{
-            padding-left: 0;
-            padding-right: 5rem;
+    }
+}
+
+@include desktop{
+    .line{
+        --line-padding-left: 5rem;
+
+        &-right{
+            --line-padding-right: 5rem;
         }
     }
 }
