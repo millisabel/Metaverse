@@ -11,6 +11,7 @@
     --line-color: var(--bs-white);
 
     position: relative;
+    padding-left: 1rem;
 
     @include tablet{
         padding-left: 2rem;
@@ -46,5 +47,25 @@
 
     &-cyan{
         --line-color: #{$accent-cyan};
+    }
+
+    &-right{
+        --line-left: 100%;
+        --line-right: 0;
+        
+        right: var(--line-right);
+
+        padding-left: 0;
+        padding-right: 1rem;
+
+        @include tablet{
+            padding-left: 0;
+            padding-right: 2rem;
+        }
+    
+        @include desktop{
+            padding-left: 0;
+            padding-right: 5rem;
+        }
     }
 }
