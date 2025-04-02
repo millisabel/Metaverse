@@ -7,6 +7,7 @@
     "start": "cross-env NODE_ENV=development webpack serve",
     "dev": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true webpack serve --mode development",
     "build": "cross-env NODE_ENV=production webpack --mode production",
+    "preview": "cross-env NODE_ENV=production webpack serve --mode production",
     "generate-favicons": "node scripts/generate-favicons.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
