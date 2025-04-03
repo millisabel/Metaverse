@@ -1,4 +1,6 @@
-.card {
+.card { 
+  --bs-card-title-color: #{$secondary-color};
+
     position: relative;
 
     height: 100%;
@@ -76,6 +78,6 @@
 
     &-text{
         font-weight: 200;
-        color: rgba($primary-text, 0.5)
+        color: $primary-color;
     }
 } 

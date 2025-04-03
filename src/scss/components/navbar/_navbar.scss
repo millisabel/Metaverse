@@ -1,9 +1,9 @@
 // navbar
 
 .navbar{
-    --bs-navbar-color: #{rgba($primary-text, 0.7)};
-    --bs-navbar-hover-color: #{$primary-text};
-    --bs-navbar-active-color: #{$primary-text};
+    --bs-navbar-color: #{$primary-color};
+    --bs-navbar-hover-color: #{$secondary-color};
+    --bs-navbar-active-color: #{$secondary-color};
     
     --bs-navbar-nav-link-padding-x: 1rem;
     --bs-navbar-padding-y: 3rem;

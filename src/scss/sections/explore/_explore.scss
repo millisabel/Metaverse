@@ -103,6 +103,8 @@
 
         &-content{
             position: relative;
+
+            background-size: 200% 200%;
         
             &.line {
                 --line-width: 5px;
@@ -153,3 +155,4 @@
         }
     }
 }
+

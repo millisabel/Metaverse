@@ -1,6 +1,7 @@
 // Custom colors
 $primary-bg: #090812;
-$primary-text: #FFFFFF;
+$primary-color: rgba(255, 255, 255, 0.6);
+$secondary-color: #ffffff;
 $accent-purple: #7A42F4;
 $accent-blue: #4642F4;
 $accent-pink: #F00AFE;
@@ -15,7 +16,7 @@ $primary-gradient: linear-gradient(15deg, $accent-purple, $accent-blue);
 
 // Bootstrap overrides
 $body-bg: $primary-bg;
-$body-color: $primary-text;
+$body-color: $primary-color;
 $primary: $accent-purple;
 $link-color: $accent-cyan;
 $link-hover-color: $accent-pink;
@@ -24,7 +25,6 @@ $link-hover-color: $accent-pink;
 :root {
   // Colors
   --bs-body-bg: #{$primary-bg};
-  --bs-body-color: #{$primary-text};
   --bs-primary: #{$accent-purple};
   --bs-primary-rgb: #{red($accent-purple)}, #{green($accent-purple)}, #{blue($accent-purple)};
   
@@ -36,12 +36,14 @@ $link-hover-color: $accent-pink;
   --bs-body-font-family: #{$font-family-base};
   --bs-body-font-size: 1.125rem; // 18px
   --bs-body-line-height: 1.6;
-  --bs-body-color: #{$primary-text};
+  --bs-body-color: #{$primary-color};
 
   // Headings
   --bs-headings-font-family: #{$font-family-heading};
   --bs-headings-font-weight: 700;
-  --bs-headings-color: #{$primary-text};
+  --bs-headings-color: #{$secondary-color};
+  --bs-heading-color: #{$secondary-color};
+
 
   // Custom Colors Variables
   --cs-purple: #{$accent-purple};
