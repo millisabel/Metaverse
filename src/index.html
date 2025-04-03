@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -235,11 +236,11 @@
                 <p class="text-uppercase mb-2 text-secondary" data-aos="fade-up">No Problem</p>
                 <h2 class="display-4 text-uppercase fw-bold" data-aos="fade-up" data-aos-delay="100">Our Brands</h2>
             </div>
-            <div class="row g-4 cards">
+            <div class="row g-4">
                 
                 <!-- Guardians Card -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card card-cyan">
+                    <div class="card card--dynamic card--cyan card--schadow">
                         <div class="card__3d card__3d--cyan" id="guardians3d"></div>
                         <div class="card-body">
                             <h3 class="card-title">Guardians of Lost Worlds (P2E Game)</h3>
@@ -252,7 +253,7 @@
 
                 <!-- Metaverse Card -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card card-blue">
+                    <div class="card card--dynamic card--blue card--schadow">
                         <div class="card__3d card__3d--blue" id="metaverse3d"></div>
                         <div class="card-body">
                             <h3 class="card-title">Crafty Metaverse Ecosystem</h3>
@@ -265,7 +266,7 @@
 
                 <!-- Sankopa Card -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="card card-pink">
+                    <div class="card card--dynamic card--pink card--schadow">
                         <div class="card__3d card__3d--purple" id="sankopa3d"></div>
                         <div class="card-body">
                             <h3 class="card-title">Sankopa</h3>
@@ -325,7 +326,7 @@
             </div>
         </div>
     </section>
-
+   
     <!-- Explore Now Section -->
     <section id="explore" class="explore min-vh-100 d-flex align-items-center">
         <div class="container d-flex flex-column gap-5">
@@ -374,14 +375,131 @@
     </section>
 
     <!-- Team Section -->
-    <section id="team" class="min-vh-100">
+    <section id="team" class="team min-vh-100 d-flex align-items-center py-5">
         <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h2 class="display-2" data-aos="fade-up">Our Team</h2>
+            <div class="text-center mb-5">
+                <p class="text-uppercase mb-2 text-secondary" data-aos="fade-up">WHO WE ARE</p>
+                <h2 class="text-uppercase" data-aos="fade-up" data-aos-delay="100">OUR TEAM</h2>
+            </div>
+            <div class="row g-4">
+                <!-- CTO/Creative Director -->
+                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card card--team card--team-bottom card--cyan card--team-left h-100">
+                        <div class="team-image">
+                            <picture>
+                                <source srcset="assets/images/others/Team/Stan.webp" type="image/webp">
+                                <img src="assets/images/others/Team/Stan.png" alt="Stan">
+                            </picture>
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 class="mb-2 card-title">STAN</h3>
+                            <p class="mb-4">CTO/Creative Director</p>
+                            <div class="team-social">
+                                <a href="#" class="text-decoration-none"><i class="bi bi-facebook"></i>
+                                    <span>facebook</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-twitter"></i>
+                                    <span>twitter</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-instagram"></i>
+                                    <span>instagram</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-linkedin"></i>
+                                    <span>linkedin</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="row row-cols-2 row-cols-md-4">
-                    <!-- Team member cards will be added here with data-aos="fade-up" and different delays -->
+
+                <!-- Chief Financial Officer -->
+                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card card--team card--team-top card--blue card--team-center h-100">
+                        <div class="team-image">
+                            <picture>
+                                <source srcset="assets/images/others/Team/Kwasi.webp" type="image/webp">
+                                <img src="assets/images/others/Team/Kwasi.png" alt="Kwasi">
+                            </picture>
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 class="mb-2 card-title">KWASI</h3>
+                            <p class="text-secondary mb-4">Chief Financial Officer</p>
+                            <div class="team-social">
+                                <a href="#" class="text-decoration-none"><i class="bi bi-facebook"></i>
+                                    <span>facebook</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-twitter"></i>
+                                    <span>twitter</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-instagram"></i>
+                                    <span>instagram</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-linkedin"></i>
+                                    <span>linkedin</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COO/Marketing Director -->
+                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="card card--team card--team-bottom card--purple card--team-center h-100">
+                        <div class="team-image">
+                            <picture>
+                                <source srcset="assets/images/others/Team/Kwame.webp" type="image/webp">
+                                <img src="assets/images/others/Team/Kwame.png" alt="Kwame">
+                            </picture>
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 class="mb-2 card-title">KWAME</h3>
+                            <p class="text-secondary mb-4">COO/Marketing Director</p>
+                            <div class="team-social">
+                                <a href="#" class="text-decoration-none"><i class="bi bi-facebook"></i>
+                                    <span>facebook</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-twitter"></i>
+                                    <span>twitter</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-instagram"></i>
+                                    <span>instagram</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-linkedin"></i>
+                                    <span>linkedin</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CEO/Developer -->
+                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="500">
+                    <div class="card card--team card--team-top card--pink card--team-right h-100">
+                        <div class="team-image">
+                            <picture>
+                                <source srcset="assets/images/others/Team/Kojo.webp" type="image/webp">
+                                <img src="assets/images/others/Team/Kojo.png" alt="Kojo">
+                            </picture>
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 class="mb-2 card-title">KOJO</h3>
+                            <p class="text-secondary mb-4">CEO/Developer</p>
+                            <div class="team-social">
+                                <a href="#" class="text-decoration-none"><i class="bi bi-facebook"></i>
+                                    <span>facebook</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-twitter"></i>
+                                    <span>twitter</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-instagram"></i>
+                                    <span>instagram</span>
+                                </a>
+                                <a href="#" class="text-decoration-none"><i class="bi bi-linkedin"></i>
+                                    <span>linkedin</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
