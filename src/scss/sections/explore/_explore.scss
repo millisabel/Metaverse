@@ -103,8 +103,6 @@
 
         &-content{
             position: relative;
-
-            background-size: 200% 200%;
         
             &.line {
                 --line-width: 5px;
@@ -132,7 +130,7 @@
                     width: 100%;
                     height: 100%;
 
-                    background-position: -11vw center;
+                    background-position: -10vw top;
                     background-size: cover;
                 }
     
@@ -155,4 +153,3 @@
         }
     }
 }
-
