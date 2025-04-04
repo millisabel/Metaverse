@@ -1,68 +1,69 @@
 #dynamics{
         overflow: hidden;
+
+    & .border-gradient {
+    
+    }
 }
 
-.card__3d {
-    position: relative;
+.card{
 
-    width: 100%;
-    min-height: 300px;
-    margin-bottom: 60px;
-    border-radius: 16px;
-
-    aspect-ratio: 1;
-    background-color: var(--bs-body-bg);
-    overflow: hidden;
-
-    &::before {
-        content: "";
-
-        position: absolute;
-
-        inset: -15px;  
-        z-index: -4;
-
-        background: linear-gradient(90deg, var(--cs-cyan), var(--cs-blue), var(--cs-pink), var(--cs-purple));
-        clip-path: inherit;
-        animation: neonMove 6s linear infinite;
-      }
-
-      &::after {
-        content: "";
-
-        position: absolute;
-        z-index: -2;
-
-        inset: 1px; 
-
-        background: var(--bs-body-bg);
-        clip-path: inherit;
-    }
+    &--3d {
     
-    canvas {
-        position: absolute;
-        top: 10%;
-        left: 10%;
+        width: 100%;
+        min-height: 300px;
+        margin-bottom: 60px;
+        border-radius: 16px;
+    
+        aspect-ratio: 1;
+        background-color: var(--bs-body-bg);
+        
+        animation: borderRotate 5s linear infinite;
 
-        width: 80% !important;
-        height: 80% !important;
-    }
+        canvas {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+    
+            width: 80% !important;
+            height: 80% !important;
+        }
+    
+        &-left {
+            --border-gradient-inner-clip-path: polygon(30% 0, 100% 0, 100% 0, 100% 100%, 100% 100%, 30% 100%, 0 70%, 0% 30%);
 
-    &--cyan {
-        clip-path: polygon(30% 0, 100% 0, 100% 0, 100% 100%, 100% 100%, 30% 100%, 0 70%, 0% 30%);
-        &::before{
-            animation-duration: 2s;
+            clip-path: var(--border-gradient-inner-clip-path);
+            animation-delay: 4s;
+        }
+    
+        &-center {
+            --border-gradient-inner-clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+
+            clip-path: var(--border-gradient-inner-clip-path);
+            animation-delay: 8s;
+        }
+    
+        &-right {
+            --border-gradient-inner-clip-path: polygon(0 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 0 100%, 0 100%, 0 0);
+
+            clip-path: var(--border-gradient-inner-clip-path);
+            animation-delay: 12s;
         }
     }
 
-    &--blue {
-        clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
-        animation-duration: 4s;
+    &:hover {
+        .card--3d {
+            &::before {
+                opacity: 1;
+                animation: none;
+            }
+        }  
     }
 
-    &--purple {
-        clip-path: polygon(0 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 0 100%, 0 100%, 0 0);
-        animation-duration: 6s;
+    &--dynamic.border-gradient{
+        --border-gradient-inner-border-radius: 16px;
+        --border-gradient-inner-height: auto;
+        --border-gradient-inset-after: 1px;
     }
 }
 

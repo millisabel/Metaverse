@@ -1,0 +1,76 @@
+// border-gradient
+
+.border-gradient {
+    --border-gradient-inner-width: 100%;
+    --border-gradient-inner-height: 100%;
+
+    --border-gradient-inner-padding: 2px;
+    --border-gradient-inner-border-radius: 10px;
+    --border-gradient-inner-background: var(--bs-body-bg);
+    --border-gradient-inner-clip-path: none;
+
+    --border-gradient-inset-before: -1px;
+    --border-gradient-inset-after: 3px;
+
+    --border-gradient-inner-background-before: linear-gradient(
+        135deg,
+        var(--cs-cyan),
+        var(--cs-blue),
+        var(--cs-purple),
+        var(--cs-pink)
+    );
+    --border-gradient-inner-background-after: var(--bs-body-bg);
+
+    &-inner {
+        position: relative;
+
+        width: var(--border-gradient-inner-width);
+        height: var(--border-gradient-inner-height);
+        padding: var(--border-gradient-inner-padding);
+        border-radius: var(--border-gradient-inner-border-radius);
+
+        background: var(--border-gradient-inner-background);
+
+        overflow: visible;
+        clip-path: var(--border-gradient-inner-clip-path);
+
+        &::before {
+            content: '';
+            position: absolute;
+            z-index: -2;
+
+            border-radius: var(--border-gradient-inner-border-radius);
+
+            inset: -1px;
+            background: var(--border-gradient-inner-background-before);
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+            clip-path: var(--border-gradient-inner-clip-path);
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            z-index: -1;
+
+            border-radius: var(--border-gradient-inner-border-radius);
+
+            inset: 3px;
+            background: var(--border-gradient-inner-background-after);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            clip-path: var(--border-gradient-inner-clip-path);
+        }
+    }
+
+    &:hover {
+        .border-gradient-inner {
+            &::before {
+                opacity: 1;
+                animation: borderRotate 4s linear infinite;
+            }
+        }  
+    }
+}
+
