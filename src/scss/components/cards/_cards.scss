@@ -250,7 +250,7 @@
 
 @include desktop {
     .card{
-        &-team {
+        &--team {
             &-top {
                 .card-image {
                     order: 2;
