@@ -1,0 +1,51 @@
+// faq
+
+.faq {
+
+    .faq-wrap {
+        margin: 0 auto;
+        background: linear-gradient(-90deg, rgba(58, 78, 255, 0) 0%, rgba(156, 58, 255, 0.14) 100%);
+    }
+
+    .accordion {  
+        --bs-accordion-btn-color:: var(--bs-white);  
+        --bs-accordion-bg: transparent;
+        --bs-accordion-border-width: 0;
+        --bs-accordion-active-bg: rgba(255, 255, 255, 0.03);
+        --bs-accordion-btn-focus-border-color: transparent;
+        --bs-accordion-btn-focus-box-shadow: none;
+        --bs-accordion-active-color: var(--cs-cyan);
+        --bs-accordion-active-bg: rgba(255, 255, 255, 0.1);
+
+        &-button {
+
+            &:not(.collapsed) {
+                --bs-accordion-active-color: var(--cs-cyan);
+            }
+
+            i {
+                color: var(--cs-cyan);
+                font-size: 1.2rem;
+            }
+
+            &:hover {
+                --bs-accordion-btn-color: var(--cs-cyan); 
+            }
+        }
+
+        &-body {
+            i {
+                color: var(--cs-blue);
+                font-size: 1.1rem;
+            }
+        }
+    }
+} 
+
+@include desktop{
+    .faq{
+        &-wrap {
+            width: 75%;
+        }
+    }
+}
