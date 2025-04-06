@@ -1,48 +1,21 @@
 // animation
 
-// 
+// moveGradient: background-position change
+// .button
 @keyframes moveGradient {
     0% {
-        background-position: 0% 50%;
+        background-position: 0 50%;
     }
     50% {
         background-position: 100% 50%;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 0 50%;
     }
 }
 
-// 
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(var(--bs-primary-rgb), 0.1);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0);
-    }
-}
-
-// .card--schadow
-@keyframes glowPulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.3;
-    }
-    50% {
-        transform: scale(2);
-        opacity: 0.5;
-    }
-    100% {
-        transform: scale(0.5);
-        opacity: 0.7;
-    }
-}
-
-// 
+// roll: rotate and scale change
+// .game-character--left img
   @keyframes roll  {
       0% {
           transform: rotate(0deg) scale(1);
@@ -52,7 +25,8 @@
       }
   }
 
-// .border-gradient
+// borderRotate: hue-rotate change
+//.border-gradient
   @keyframes borderRotate {
       from {
           filter: hue-rotate(0deg);
@@ -62,12 +36,79 @@
       }
   } 
 
-// 
-  @keyframes borderTransform {
-      from {
-          transform: rotate(0deg) scale(1.5);
+// SvgDraw: stroke-dashoffset change
+// .navbar-logo-path
+  @keyframes SvgDraw {
+      0% {
+          stroke-dashoffset: 120;
       }
-      to {
-          transform: rotate(360deg) scale(2)	;
+      100% {
+          stroke-dashoffset: 0;
       }
-  } 
+  }
+
+// logoShadowChange: filter drop-shadow change
+// .navbar-brand:hover
+  @keyframes shadowGlow {
+      0%, 100% {
+          filter: drop-shadow(0 0 8px #56FFEB); 
+      }
+      25% {
+          filter: drop-shadow(0 0 8px #4642F4); 
+      }
+      50% {
+          filter: drop-shadow(0 0 8px #7A42F4); 
+      }
+      75% {
+          filter: drop-shadow(0 0 8px #F00AFE); 
+      }
+  }
+
+  @keyframes scaleBounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+  }
+  
+
+// pulse: box-shadow change 
+// @keyframes pulse {
+//     0% {
+//         box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0.4);
+//     }
+//     70% {
+//         box-shadow: 0 0 0 10px rgba(var(--bs-primary-rgb), 0.1);
+//     }
+//     100% {
+//         box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0);
+//     }
+// }
+
+// .card--schadow
+//@keyframes glowPulse {
+//    0% {
+//        transform: scale(1);
+//        opacity: 0.3;
+//    }
+//    50% {
+//        transform: scale(2);
+//        opacity: 0.5;
+//    }
+//    100% {
+//        transform: scale(0.5);
+//        opacity: 0.7;
+//    }
+//}
+
+// borderTransform: rotate and scale change 
+//  @keyframes borderTransform {
+//      from {
+//          transform: rotate(0deg) scale(1.5);
+//      }
+//      to {
+//          transform: rotate(360deg) scale(2)	;
+//      }
+//  }
