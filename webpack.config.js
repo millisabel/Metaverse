@@ -20,7 +20,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist')
     },
-    port: 3001,
+    port: 3002,
     host: 'localhost',
     hot: false,
     liveReload: true,

@@ -1,0 +1,134 @@
+.social-media-section {
+  padding: 80px 0;
+  position: relative;
+  background: linear-gradient(180deg, rgba(0, 0, 20, 0.9) 0%, rgba(30, 0, 50, 0.9) 100%);
+  overflow: hidden;
+  color: rgb(0, 170, 255);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 2;
+
+    h2 {
+      font-size: 3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      background: linear-gradient(90deg, #00aaff, #aa00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  }
+
+  .social-cards-container {
+    position: relative;
+    margin: 0 auto;
+    max-width: 1400px;
+    height: 450px;
+    
+    canvas {
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto;
+      cursor: pointer;
+    }
+  }
+
+  .social-cards-controls {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    
+    .prev-btn, .next-btn {
+      background: none;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+    }
+    
+    .indicators {
+      display: flex;
+      gap: 8px;
+      
+      .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        
+        &.active {
+          background-color: white;
+          transform: scale(1.2);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .social-media-section {
+    padding: 60px 0;
+    
+    .section-header {
+      h2 {
+        font-size: 2.2rem;
+      }
+      
+      p {
+        font-size: 0.9rem;
+        padding: 0 20px;
+      }
+    }
+    
+    .social-cards-container {
+      height: 380px;
+    }
+    
+    .social-cards-controls {
+      display: flex;
+    }
+  }
+} 
