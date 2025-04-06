@@ -9,6 +9,10 @@ import { initAllAnimations } from './utils/animationObserver';
 
 // Initialize components when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // Update copyright year
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
     // Initialize all animations
     const animationObservers = initAllAnimations();
 
