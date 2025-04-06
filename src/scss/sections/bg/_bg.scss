@@ -1,10 +1,12 @@
 // bg
 
 .bg {
-    background-color: var(--bs-body-bg);
+    --bg-color: var(--bs-body-bg);
+
+    background-color: var(--bg-color);
 
     &-img{
-        --bg-img: url("../assets/images/bg/BG-hero.png");
+        --bg-img: linear-gradient(to bottom, #000000, #000000);
         --bg-img-size: cover;
         --bg-img-position: center;
         --bg-img-repeat: no-repeat;
@@ -18,6 +20,8 @@
             --bg-img: url("../assets/images/bg/BG-hero.png");
             --bg-img-size: 100%;
             --bg-img-position: center bottom;
+
+            --bg-color: #000;
 
             @include tablet {
                 --bg-img-size: 90%;
