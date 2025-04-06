@@ -155,21 +155,10 @@ class Card {
 }
 
 export const initSocialCards = () => {
-  const containerSection = document.getElementById('social-media-section');
+  const containerSection = document.getElementById('social');
   if (!containerSection) return;
 
-  // Create container for cards
-  const container = document.createElement('div');
-  container.className = 'social-cards-container';
-  container.style.cssText = `
-    position: relative;
-    width: 100%;
-    height: 450px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  `;
-  containerSection.appendChild(container);
+  const container = document.querySelector('.social-cards-container');
 
   // Create cards
   const cards = socialCards.map((data, index) => 
@@ -180,8 +169,7 @@ export const initSocialCards = () => {
   cards.forEach(card => container.appendChild(card.container));
 
   // Mobile controls
-  const mobileControls = document.createElement('div');
-  mobileControls.className = 'social-cards-controls';
+  const mobileControls = document.querySelector('.social-cards-controls');
   mobileControls.innerHTML = `
     <button class="prev-btn" aria-label="Previous slide">←</button>
     <div class="indicators">
@@ -189,7 +177,6 @@ export const initSocialCards = () => {
     </div>
     <button class="next-btn" aria-label="Next slide">→</button>
   `;
-  containerSection.appendChild(mobileControls);
 
   let currentSlide = 0;
   let autoSlideInterval = null;
