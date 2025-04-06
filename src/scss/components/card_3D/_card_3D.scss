@@ -1,9 +1,5 @@
 #dynamics{
         overflow: hidden;
-
-    & .border-gradient {
-    
-    }
 }
 
 .card{
@@ -17,8 +13,6 @@
     
         aspect-ratio: 1;
         background-color: var(--bs-body-bg);
-        
-        animation: borderRotate 5s linear infinite;
 
         canvas {
             position: absolute;
@@ -51,19 +45,10 @@
         }
     }
 
-    &:hover {
-        .card--3d {
-            &::before {
-                opacity: 1;
-                animation: none;
-            }
-        }  
-    }
-
     &--dynamic.border-gradient{
         --border-gradient-inner-border-radius: 16px;
         --border-gradient-inner-height: auto;
-        --border-gradient-inset-after: 1px;
+        --border-gradient-inset-before: 2px;
     }
 }
 
