@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 console.log('Galaxy.js loaded');
 
-export function initStars() {
-    const heroSection = document.getElementById('home');
+export function initStars(container) {
+    const heroSection = document.getElementById('hero');
     let renderer, scene, camera, stars;
     let animationFrameId = null;
     let isVisible = false;
     let phases, isMoving, movePhases, flickerSpeeds, flickerAmplitudes;
     let isInitialized = false;
     
-    // Инициализация сцены
+    // Initialize scene
     function initScene() {
         if (isInitialized) return;
         
@@ -20,33 +20,33 @@ export function initStars() {
             alpha: true 
         });
         
-        // Настройка рендерера
+        // Setup renderer
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Ограничиваем pixel ratio для производительности
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
         
-        // Добавляем рендерер в DOM
-        heroSection.insertBefore(renderer.domElement, heroSection.firstChild);
+        // Add renderer to container
+        container.appendChild(renderer.domElement);
         
-        // Устанавливаем стили
+        // Set styles
         renderer.domElement.style.position = 'absolute';
         renderer.domElement.style.top = '0';
         renderer.domElement.style.left = '0';
-        renderer.domElement.style.zIndex = '1';
+        renderer.domElement.style.zIndex = '2';
         renderer.domElement.style.pointerEvents = 'none';
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
-        renderer.domElement.style.overflow = 'hidden'; // Предотвращаем появление полосы прокрутки
+        renderer.domElement.style.overflow = 'hidden'; // Prevent scrollbar from appearing
         
-        // Настройка камеры
+        // Setup camera
         camera.position.z = 5;
         
-        // Определяем количество звезд в зависимости от размера экрана
+        // Determine star count based on screen size
         const isMobile = window.innerWidth < 768;
         const starCount = isMobile ? 2500 : 5000;
-        const depthRange = isMobile ? 500 : 1000; // Уменьшаем глубину для мобильных
+        const depthRange = isMobile ? 500 : 1000; // Decrease depth for mobile
         const starColors = [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF];
         
-        // Создаем геометрию для звезд
+        // Create geometry for stars
         const starsGeometry = new THREE.BufferGeometry();
         const positions = new Float32Array(starCount * 3);
         const colors = new Float32Array(starCount * 3);
@@ -57,7 +57,7 @@ export function initStars() {
         flickerSpeeds = new Float32Array(starCount);
         flickerAmplitudes = new Float32Array(starCount);
         
-        // Инициализация звезд
+        // Initialize stars
         for (let i = 0; i < starCount; i++) {
             positions[i * 3] = (Math.random() - 0.5) * depthRange;
             positions[i * 3 + 1] = (Math.random() - 0.5) * depthRange;
@@ -73,7 +73,7 @@ export function initStars() {
             isMoving[i] = Math.random() < 0.15 ? 1 : 0;
             movePhases[i] = Math.random() * Math.PI * 2;
             
-            // Настройка мерцания
+            // Setup flickering
             if (Math.random() < 0.3) {
                 flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
                 flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
@@ -101,7 +101,7 @@ export function initStars() {
         isInitialized = true;
     }
     
-    // Создание текстуры для круглых звезд
+    // Create texture for round stars
     function createStarTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 64;
@@ -123,13 +123,13 @@ export function initStars() {
         return texture;
     }
     
-    // Анимация
+    // Animation
     function animate() {
         if (!isVisible || !stars || !phases || !flickerSpeeds || !flickerAmplitudes) return;
         
         animationFrameId = requestAnimationFrame(animate);
         
-        // Обновляем позиции и размеры звезд
+        // Update positions and sizes of stars
         const positions = stars.geometry.attributes.position.array;
         const sizes = stars.geometry.attributes.size.array;
         const depthRange = window.innerWidth < 768 ? 500 : 1000;
@@ -137,12 +137,12 @@ export function initStars() {
         for (let i = 0; i < positions.length; i += 3) {
             const index = i / 3;
             
-            // Мерцание для всех звезд с разной скоростью и амплитудой
+            // Flickering for all stars with different speeds and amplitudes
             phases[index] += flickerSpeeds[index];
             const brightness = Math.sin(phases[index]) * flickerAmplitudes[index] + (1 - flickerAmplitudes[index] / 2);
             sizes[index] = brightness * (Math.random() * 3 + 1);
             
-            // Движение только для некоторых звезд
+            // Movement only for some stars
             if (isMoving[index] === 1) {
                 movePhases[index] += 0.003;
                 
@@ -151,7 +151,7 @@ export function initStars() {
                 positions[i + 2] += Math.sin(movePhases[index] * 0.5) * 0.02;
             }
             
-            // Возврат на противоположную сторону при выходе за границы
+            // Return to opposite side when exiting boundaries
             if (positions[i] < -depthRange) positions[i] = depthRange;
             if (positions[i] > depthRange) positions[i] = -depthRange;
             if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
@@ -160,18 +160,18 @@ export function initStars() {
             if (positions[i + 2] > depthRange) positions[i + 2] = -depthRange;
         }
         
-        // Обновляем атрибуты
+        // Update attributes
         stars.geometry.attributes.position.needsUpdate = true;
         stars.geometry.attributes.size.needsUpdate = true;
         
-        // Очень медленное вращение камеры
+        // Very slow camera rotation
         camera.rotation.x += 0.00002;
         camera.rotation.y += 0.00002;
         
         renderer.render(scene, camera);
     }
     
-    // Очистка ресурсов
+    // Cleanup resources
     function cleanup() {
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
@@ -187,7 +187,7 @@ export function initStars() {
             stars.material.dispose();
             stars = null;
         }
-        // Очищаем глобальные массивы
+        // Clear global arrays
         phases = null;
         isMoving = null;
         movePhases = null;
@@ -196,21 +196,21 @@ export function initStars() {
         isInitialized = false;
     }
     
-    // Обработчик изменения размера окна
+    // Window resize handler
     function handleResize() {
         if (!renderer || !camera) return;
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         
-        // Пересоздаем сцену при изменении размера экрана
+        // Recreate scene when screen size changes
         if (isInitialized) {
             cleanup();
             initScene();
         }
     }
     
-    // Наблюдатель за видимостью
+    // Visibility observer
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -233,7 +233,7 @@ export function initStars() {
         rootMargin: '50px'
     });
     
-    // Добавляем обработчики событий
+    // Add event listeners
     window.addEventListener('resize', handleResize);
     observer.observe(heroSection);
 } 
