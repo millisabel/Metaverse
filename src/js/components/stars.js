@@ -22,7 +22,7 @@ export function initStars(container) {
         
         // Setup renderer
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         // Add renderer to container
         container.appendChild(renderer.domElement);
@@ -35,7 +35,7 @@ export function initStars(container) {
         renderer.domElement.style.pointerEvents = 'none';
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
-        renderer.domElement.style.overflow = 'hidden'; // Prevent scrollbar from appearing
+        renderer.domElement.style.overflow = 'hidden';
         
         // Setup camera
         camera.position.z = 5;
@@ -43,7 +43,7 @@ export function initStars(container) {
         // Determine star count based on screen size
         const isMobile = window.innerWidth < 768;
         const starCount = isMobile ? 2500 : 5000;
-        const depthRange = isMobile ? 500 : 1000; // Decrease depth for mobile
+        const depthRange = isMobile ? 500 : 1000;
         const starColors = [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF];
         
         // Create geometry for stars
@@ -73,7 +73,6 @@ export function initStars(container) {
             isMoving[i] = Math.random() < 0.15 ? 1 : 0;
             movePhases[i] = Math.random() * Math.PI * 2;
             
-            // Setup flickering
             if (Math.random() < 0.3) {
                 flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
                 flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
@@ -226,7 +225,6 @@ export function initStars(container) {
                     cancelAnimationFrame(animationFrameId);
                     animationFrameId = null;
                 }
-                cleanup();
             }
         });
     }, {

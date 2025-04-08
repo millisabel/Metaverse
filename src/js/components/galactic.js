@@ -35,7 +35,6 @@ export class GalacticCloud {
                         cancelAnimationFrame(this.animationFrameId);
                         this.animationFrameId = null;
                     }
-                    this.cleanup();
                 }
             });
         }, {
@@ -248,46 +247,32 @@ export class GalacticCloud {
     handleResize() {
         if (!this.renderer || !this.camera) return;
 
-        // Проверяем видимость через IntersectionObserver
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const width = window.innerWidth;
-                    const height = window.innerHeight;
-                    const isMobile = width < 768;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const isMobile = width < 768;
 
-                    // Update renderer sizes
-                    this.camera.aspect = width / height;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(width, height);
-                    this.composer.setSize(width, height);
+        // Update renderer sizes
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+        this.composer.setSize(width, height);
 
-                    // Update camera position
-                    const radius = isMobile ? 20 : 15;
-                    const cameraHeight = isMobile ? -15 : 5;
-                    const offsetX = isMobile ? 0 : -4;
-                    this.camera.position.set(offsetX, cameraHeight, radius);
-                    this.camera.lookAt(offsetX, 0, 0);
+        // Update camera position
+        const radius = isMobile ? 20 : 15;
+        const cameraHeight = isMobile ? -15 : 5;
+        const offsetX = isMobile ? 0 : -4;
+        this.camera.position.set(offsetX, cameraHeight, radius);
+        this.camera.lookAt(offsetX, 0, 0);
 
-                    // Update galaxy size if needed
-                    if (this.spiralArms[0]) {
-                        const planeSize = isMobile ? 12 : 8;
-                        this.spiralArms[0].scale.set(planeSize/8, planeSize/8, planeSize/8);
-                    }
+        // Update galaxy size if needed
+        if (this.spiralArms[0]) {
+            const planeSize = isMobile ? 12 : 8;
+            this.spiralArms[0].scale.set(planeSize/8, planeSize/8, planeSize/8);
+        }
 
-                    if (this.galaxyCore) {
-                        this.galaxyCore.material.uniforms.resolution.value.set(width, height);
-                    }
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        observer.observe(this.container);
-        // Отключаем observer после проверки
-        setTimeout(() => observer.disconnect(), 1000);
+        if (this.galaxyCore) {
+            this.galaxyCore.material.uniforms.resolution.value.set(width, height);
+        }
     }
 
     cleanup() {

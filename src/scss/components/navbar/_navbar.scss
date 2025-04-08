@@ -16,21 +16,16 @@
 
     &-toggler{
         z-index: 1000;
-
-        padding: 0.5rem;
-        border: 1px solid transparent;
-        border-radius: 0.5rem;
-
-        transition: all 0.3s ease;
+        transition: transform 0.3s ease;
         
         &:hover,
         &:focus{
             transform: scale(1.1);
-            border-color: $accent-purple    ;
-            box-shadow: 
-                0 0 5px $accent-purple,
-                0 0 10px $accent-purple,
-                0 0 20px rgba($accent-cyan, 0.5);
+        }
+
+        &-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            transition: all 0.3s ease;
         }
     }
 

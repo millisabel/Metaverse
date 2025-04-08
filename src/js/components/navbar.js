@@ -6,6 +6,28 @@ export const initNavbar = () => {
     const scrollThreshold = 50;
     const navbarCollapse = document.querySelector('.navbar-collapse');
     const navItems = document.querySelectorAll('.navbar-nav .nav-item');
+    const logo = document.querySelector('.navbar-brand-logo');
+
+    // Проверка возможности отрисовки SVG
+    const checkSVGSupport = () => {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svg.appendChild(path);
+        return svg.getBBox && path.getTotalLength;
+    };
+
+    // Установка запасного логотипа
+    const setFallbackLogo = () => {
+        const logoContainer = document.querySelector('.navbar-brand');
+        if (logoContainer) {
+            logoContainer.innerHTML = '<img src="assets/icons/Logo.svg" alt="Logo" width="48" height="48">';
+        }
+    };
+
+    // Проверка поддержки SVG при инициализации
+    if (!checkSVGSupport()) {
+        setFallbackLogo();
+    }
 
     // AOS attribute management
     const handleAOSAttributes = () => {
