@@ -7,7 +7,7 @@ export const initNavbar = () => {
     const navbarCollapse = document.querySelector('.navbar-collapse');
     const navItems = document.querySelectorAll('.navbar-nav .nav-item');
 
-    // Управление атрибутами AOS
+    // AOS attribute management
     const handleAOSAttributes = () => {
         const isMobile = window.innerWidth < 992; // Bootstrap lg breakpoint
         navItems.forEach(item => {
@@ -85,7 +85,7 @@ export const initNavbar = () => {
             }
         });
 
-        // Обработчик изменения размера окна
+        // Window resize handler
         window.addEventListener('resize', () => {
             handleAOSAttributes();
             AOS.refresh();
