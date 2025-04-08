@@ -8,92 +8,137 @@
     --bs-navbar-nav-link-padding-x: 1rem;
     --bs-navbar-padding-y: 3rem;
 
-    background-color: var(--bs-body-bg);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    transition: background-color 0.3s ease;
+    background-color: transparent;
+    transition: 
+        background-color 0.3s ease, 
+        padding 0.4s ease,
+        box-shadow 0.5s ease;
 
-    @include desktop {
-        &.navbar-transparent {
-            background-color: rgba(var(--bs-body-bg-rgb), 0.2);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 15px #{$accent-purple}, 0 0 30px #{$accent-blue};
-        }
-    }
-
-    .nav-link {
-        position: relative;
-        padding-bottom: 0.5rem;
-        transition: opacity 0.3s ease;
-        white-space: nowrap;
-        
-        @media (min-width: 992px) and (max-width: 1199px) {
-            font-size: 0.9rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-        
-        &::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: $accent-cyan;
-            transition: width 0.3s ease-in-out;
-        }
-
-        &:not(.active):hover {
-            opacity: 1;
-            
-            &::after {
-                width: 100%;
-            }
-        }
-
-        &.active {
-            opacity: 1;
-            
-            &::after {
-                width: 50%;
-            }
-        }
-    }
-
-    & .navbar-nav{
-        --bs-navbar-padding-y: 3rem;
-        --bs-navbar-padding-x: 1rem;
-
-        height: 100vh;
-        padding: 100px 20px;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-
-        @media (min-width: 992px) and (max-width: 1199px) {
-            gap: 0.5rem !important;
-        }
-
-        @include desktop {
-            --bs-navbar-padding-y: 3rem;
-            height: auto;
-            transform: none;
-            padding: 0;
+    &-toggler{
+        z-index: 1000;
+        transition: transform 0.3s ease;
+        &:hover,
+        &:focus{
+            transform: scale(1.1);
         }
     }
 
     &-collapse{
-        height: 100vh;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;   
 
-        @include desktop {
-            height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;    
+
+        background-color: var(--bs-body-bg);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+
+        &.show{ 
+
+            & .navbar-nav{
+                
+            }
+        }
+    }
+
+    &-scrolled{
+        --bs-navbar-padding-y: 1rem;
+
+        .navbar-brand{
+            display: none;
         }
 
-        &.show{
-            & .navbar-nav{
-                transform: translateX(0);
+        .navbar-toggler{
+            margin-left: auto;
+        }
+    }
+
+    & .navbar-nav{
+
+    }
+
+    @include desktop {
+        &{
+    
+            &:hover{
+                --bs-navbar-padding-y: 3rem;
+
+                background-color: var(--bs-body-bg);
+                -webkit-backdrop-filter: blur(10px);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 0 15px #{$accent-purple}, 0 0 30px #{$accent-blue};
             }
+
+            &-collapse{
+                position: relative;
+                height: auto;
+
+                background-color: transparent;
+                -webkit-backdrop-filter: none;
+                backdrop-filter: none;
+            }
+
+            &-scrolled {
+                --bs-navbar-padding-y: 0.5rem;
+                
+                background-color: rgba(var(--bs-body-bg-rgb), 0.2);
+                -webkit-backdrop-filter: blur(10px);
+                backdrop-filter: blur(10px);
+
+                .navbar-brand{
+                    display: block;
+                }
+            }
+        }
+    }
+}
+
+// nav-link
+
+.nav-link {
+    position: relative;
+    padding-bottom: 0.5rem;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+    
+    @media (min-width: 992px) and (max-width: 1199px) {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+
+        font-size: 0.9rem;
+    }
+    
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        width: 0;
+        height: 2px;
+
+        background-color: $accent-cyan;
+        transition: width 0.3s ease-in-out;
+    }
+
+    &:not(.active):hover {
+        opacity: 1;
+        
+        &::after {
+            width: 100%;
+        }
+    }
+
+    &.active {
+        opacity: 1;
+        
+        &::after {
+            width: 50%;
         }
     }
 }

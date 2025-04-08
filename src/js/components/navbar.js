@@ -11,12 +11,9 @@ export const initNavbar = () => {
     const handleNavLinks = () => {
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                // Remove active class from all links
                 navLinks.forEach(l => l.classList.remove('active'));
-                // Add active class to clicked link
                 e.target.classList.add('active');
 
-                // If using mobile menu, close it after click
                 if (navbarCollapse.classList.contains('show')) {
                     bootstrap.Collapse.getInstance(navbarCollapse).hide();
                 }
@@ -72,9 +69,9 @@ export const initNavbar = () => {
     // Handle navbar transparency
     const handleNavbarTransparency = () => {
         if (window.scrollY > scrollThreshold) {
-            navbar.classList.add('navbar-transparent');
+            navbar.classList.add('navbar-scrolled');
         } else {
-            navbar.classList.remove('navbar-transparent');
+            navbar.classList.remove('navbar-scrolled');
         }
     };
 
