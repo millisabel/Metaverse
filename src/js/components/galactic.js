@@ -6,6 +6,56 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 export class GalacticCloud {
     constructor(container) {
         this.container = container;
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.galaxyCore = null;
+        this.spiralArms = [];
+        this.composer = null;
+        this.animationFrameId = null;
+        this.isVisible = false;
+        this.isInitialized = false;
+
+        this.init();
+    }
+
+    init() {
+        // Visibility observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.isVisible = true;
+                    if (!this.isInitialized) {
+                        this.initScene();
+                    }
+                    this.animate();
+                } else {
+                    this.isVisible = false;
+                    if (this.animationFrameId) {
+                        cancelAnimationFrame(this.animationFrameId);
+                        this.animationFrameId = null;
+                    }
+                    this.cleanup();
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+
+        observer.observe(this.container);
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (this.isVisible) {
+                this.handleResize();
+            }
+        });
+    }
+
+    initScene() {
+        if (this.isInitialized) return;
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({
@@ -14,15 +64,6 @@ export class GalacticCloud {
             powerPreference: "high-performance"
         });
 
-        this.init();
-        this.createGalaxyCore();
-        this.createSpiralArms();
-        this.setupPostProcessing();
-        this.animate();
-        this.handleResize();
-    }
-
-    init() {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setClearColor(0x000000, 0);
         this.container.appendChild(this.renderer.domElement);
@@ -30,7 +71,7 @@ export class GalacticCloud {
         // Adaptive camera setup for different devices
         const isMobile = window.innerWidth < 768;
         const radius = isMobile ? 20 : 15;
-        const height = isMobile ? -15 : 5; // Increase negative value for mobile
+        const height = isMobile ? -15 : 5;
         const offsetX = isMobile ? 0 : -4;
         
         this.camera.position.set(offsetX, height, radius);
@@ -44,23 +85,11 @@ export class GalacticCloud {
         pointLight.position.set(offsetX, 2, 0);
         this.scene.add(pointLight);
 
-        // Visibility observer
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    this.container.style.opacity = '1';
-                    this.container.style.transition = 'opacity 1s ease-in-out';
-                } else {
-                    this.container.style.opacity = '0';
-                    this.container.style.transition = 'opacity 1s ease-in-out';
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        this.observer.observe(this.container);
+        this.createGalaxyCore();
+        this.createSpiralArms();
+        this.setupPostProcessing();
+        
+        this.isInitialized = true;
     }
 
     createGalaxyCore() {
@@ -167,99 +196,132 @@ export class GalacticCloud {
     }
 
     animate() {
-        const animate = () => {
-            requestAnimationFrame(animate);
+        if (!this.isVisible || !this.scene || !this.camera) return;
 
-            const time = performance.now() * 0.0001;
-            const isMobile = window.innerWidth < 768;
-            const offsetX = isMobile ? 0 : -4;
-            
-            // Complex pulsation with multiple waves
-            const primaryWave = Math.sin(time * 0.5) * 0.15;
-            const secondaryWave = Math.sin(time * 0.2) * 0.1;
-            const microWave = Math.sin(time * 1.5) * 0.05;
-            
-            const pulseFactor = 2.0 + primaryWave + secondaryWave + microWave;
+        this.animationFrameId = requestAnimationFrame(() => this.animate());
 
-            // Galaxy core animation
-            if (this.galaxyCore) {
-                this.galaxyCore.material.uniforms.time.value = time;
-            }
+        const time = performance.now() * 0.0001;
+        const isMobile = window.innerWidth < 768;
+        const offsetX = isMobile ? 0 : -4;
+        
+        // Complex pulsation with multiple waves
+        const primaryWave = Math.sin(time * 0.5) * 0.15;
+        const secondaryWave = Math.sin(time * 0.2) * 0.1;
+        const microWave = Math.sin(time * 1.5) * 0.05;
+        
+        const pulseFactor = 2.0 + primaryWave + secondaryWave + microWave;
 
-            // Smooth galaxy pulsation
-            if (this.spiralArms[0]) {
-                this.spiralArms[0].scale.set(pulseFactor, pulseFactor, pulseFactor);
-            }
+        // Galaxy core animation
+        if (this.galaxyCore) {
+            this.galaxyCore.material.uniforms.time.value = time;
+        }
 
-            // Slow camera rotation in horizontal plane
-            const baseRadius = isMobile ? 20 : 15;
-            
-            // Complex camera distance change
-            const zoomPrimary = Math.sin(time * 0.3) * 2;
-            const zoomSecondary = Math.sin(time * 0.1) * 1;
-            const zoomMicro = Math.sin(time * 0.8) * 0.5;
-            
-            const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
-            
-            const cameraAngle = time * (isMobile ? 0.15 : 0.2);
-            this.camera.position.x = offsetX + Math.sin(cameraAngle) * currentRadius;
-            this.camera.position.z = Math.cos(cameraAngle) * currentRadius;
-            
-            // Add small vertical movement for more dynamics
-            const baseHeight = isMobile ? -15 : 5; // Increase negative value for mobile
-            const heightVariation = Math.sin(time * 0.4) * 0.5;
-            this.camera.position.y = baseHeight + heightVariation;
-            
-            this.camera.lookAt(0, 0, 0);
+        // Smooth galaxy pulsation
+        if (this.spiralArms[0]) {
+            this.spiralArms[0].scale.set(pulseFactor, pulseFactor, pulseFactor);
+        }
 
-            this.composer.render();
-        };
+        // Slow camera rotation in horizontal plane
+        const baseRadius = isMobile ? 20 : 15;
+        
+        // Complex camera distance change
+        const zoomPrimary = Math.sin(time * 0.3) * 2;
+        const zoomSecondary = Math.sin(time * 0.1) * 1;
+        const zoomMicro = Math.sin(time * 0.8) * 0.5;
+        
+        const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
+        
+        const cameraAngle = -time * (isMobile ? 0.15 : 0.2);
+        this.camera.position.x = offsetX + Math.sin(cameraAngle) * currentRadius;
+        this.camera.position.z = Math.cos(cameraAngle) * currentRadius;
+        
+        // Add small vertical movement for more dynamics
+        const baseHeight = isMobile ? -15 : 5;
+        const heightVariation = Math.sin(time * 0.4) * 0.5;
+        this.camera.position.y = baseHeight + heightVariation;
+        
+        this.camera.lookAt(0, 0, 0);
 
-        animate();
+        this.composer.render();
     }
 
     handleResize() {
-        window.addEventListener('resize', () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const isMobile = width < 768;
+        if (!this.renderer || !this.camera) return;
 
-            // Update renderer sizes
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(width, height);
-            this.composer.setSize(width, height);
+        // Проверяем видимость через IntersectionObserver
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const width = window.innerWidth;
+                    const height = window.innerHeight;
+                    const isMobile = width < 768;
 
-            // Update camera position
-            const radius = isMobile ? 20 : 15;
-            const cameraHeight = isMobile ? -15 : 5; // Increase negative value for mobile
-            const offsetX = isMobile ? 0 : -4;
-            this.camera.position.set(offsetX, cameraHeight, radius);
-            this.camera.lookAt(offsetX, 0, 0);
+                    // Update renderer sizes
+                    this.camera.aspect = width / height;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(width, height);
+                    this.composer.setSize(width, height);
 
-            // Update galaxy size if needed
-            if (this.spiralArms[0]) {
-                const planeSize = isMobile ? 12 : 8;
-                this.spiralArms[0].scale.set(planeSize/8, planeSize/8, planeSize/8);
-            }
+                    // Update camera position
+                    const radius = isMobile ? 20 : 15;
+                    const cameraHeight = isMobile ? -15 : 5;
+                    const offsetX = isMobile ? 0 : -4;
+                    this.camera.position.set(offsetX, cameraHeight, radius);
+                    this.camera.lookAt(offsetX, 0, 0);
 
-            if (this.galaxyCore) {
-                this.galaxyCore.material.uniforms.resolution.value.set(width, height);
-            }
+                    // Update galaxy size if needed
+                    if (this.spiralArms[0]) {
+                        const planeSize = isMobile ? 12 : 8;
+                        this.spiralArms[0].scale.set(planeSize/8, planeSize/8, planeSize/8);
+                    }
+
+                    if (this.galaxyCore) {
+                        this.galaxyCore.material.uniforms.resolution.value.set(width, height);
+                    }
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
         });
+
+        observer.observe(this.container);
+        // Отключаем observer после проверки
+        setTimeout(() => observer.disconnect(), 1000);
     }
 
-    // Add method for cleanup
     cleanup() {
-        if (this.observer) {
-            this.observer.disconnect();
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
         }
+        
         if (this.renderer) {
             this.renderer.dispose();
+            this.renderer.domElement.remove();
+            this.renderer = null;
         }
+        
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                if (object.geometry) object.geometry.dispose();
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+            this.scene = null;
+        }
+        
         if (this.composer) {
             this.composer.dispose();
+            this.composer = null;
         }
+        
+        this.isInitialized = false;
     }
 }
 

@@ -90,7 +90,7 @@ export function initStars(container) {
         const starsMaterial = new THREE.PointsMaterial({
             vertexColors: true,
             sizeAttenuation: true,
-            size: 2,
+            size: isMobile ? 1.5 : 2,
             transparent: true,
             opacity: 1,
             map: createStarTexture()
@@ -198,7 +198,8 @@ export function initStars(container) {
     
     // Window resize handler
     function handleResize() {
-        if (!renderer || !camera) return;
+        if (!renderer || !camera || !isVisible) return;
+        
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
