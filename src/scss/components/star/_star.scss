@@ -1,0 +1,117 @@
+.star {
+    position: relative;
+
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    margin: 0 0.5em;
+
+    vertical-align: middle;
+
+    &::before {
+        content: '';
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+
+        width: 100%;
+        height: 100%;
+        transform: translate(-50%, -50%);
+
+        background-image: url('../assets/svg/star/star.svg');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        animation: starPulse 2s infinite ease-in-out;
+    }
+
+    &::after {
+        content: '';
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        
+        width: 120%;
+        height: 120%;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+        animation: starGlow 2s infinite ease-in-out;
+    }
+
+    // Modifiers position
+    &--left {
+        margin-right: auto;
+        margin-left: 0;
+    }
+
+    &--right {
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    // Modifiers size
+    &--sm {
+        width: 1em;
+        height: 1em;
+    }
+
+    &--lg {
+        width: 2em;
+        height: 2em;
+    }
+
+    // Modifiers color
+    &--cyan {
+        &::before {
+            filter: drop-shadow(0 0 5px var(--accent-cyan)) drop-shadow(0 0 10px var(--accent-cyan));
+        }
+        &::after {
+            background: radial-gradient(circle, var(--accent-cyan) 0%, rgba(0, 255, 255, 0) 70%);
+        }
+    }
+
+    &--purple {
+        &::before {
+            filter: drop-shadow(0 0 5px var(--accent-purple)) drop-shadow(0 0 10px var(--accent-purple));
+        }
+        &::after {
+            background: radial-gradient(circle, var(--accent-purple) 0%, rgba(128, 0, 128, 0) 70%);
+        }
+    }
+
+    &--blue {
+        &::before {
+            filter: drop-shadow(0 0 5px var(--accent-blue)) drop-shadow(0 0 10px var(--accent-blue));
+        }
+        &::after {
+            background: radial-gradient(circle, var(--accent-blue) 0%, rgba(0, 0, 255, 0) 70%);
+        }
+    }
+}
+
+@keyframes starPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes starGlow {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.3;
+    }
+} 
