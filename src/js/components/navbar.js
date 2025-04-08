@@ -7,6 +7,21 @@ export const initNavbar = () => {
     const navbarCollapse = document.querySelector('.navbar-collapse');
     const navItems = document.querySelectorAll('.navbar-nav .nav-item');
 
+    // Управление атрибутами AOS
+    const handleAOSAttributes = () => {
+        const isMobile = window.innerWidth < 992; // Bootstrap lg breakpoint
+        navItems.forEach(item => {
+            if (isMobile) {
+                item.removeAttribute('data-aos');
+                item.removeAttribute('data-aos-delay');
+            } else {
+                const index = Array.from(navItems).indexOf(item);
+                item.setAttribute('data-aos', 'fade-down');
+                item.setAttribute('data-aos-delay', `${(index + 1) * 100}`);
+            }
+        });
+    };
+
     // Handle navigation links click
     const handleNavLinks = () => {
         navLinks.forEach(link => {
@@ -18,30 +33,6 @@ export const initNavbar = () => {
                     bootstrap.Collapse.getInstance(navbarCollapse).hide();
                 }
             });
-        });
-    };
-
-    // Handle mobile menu toggle
-    const handleMobileMenu = () => {
-        // Reset AOS attributes when menu is hidden
-        navbarCollapse.addEventListener('hidden.bs.collapse', () => {
-            navItems.forEach(item => {
-                item.setAttribute('data-aos-delay', item.getAttribute('data-aos-delay'));
-                item.classList.remove('aos-animate');
-            });
-        });
-
-        // Refresh AOS when menu is shown
-        navbarCollapse.addEventListener('shown.bs.collapse', () => {
-            navItems.forEach(item => {
-                item.classList.remove('aos-animate');
-            });
-            setTimeout(() => {
-                AOS.refresh();
-                navItems.forEach(item => {
-                    item.classList.add('aos-animate');
-                });
-            }, 50);
         });
     };
 
@@ -77,8 +68,8 @@ export const initNavbar = () => {
 
     // Initialize all navbar functionality
     const init = () => {
+        handleAOSAttributes();
         handleNavLinks();
-        handleMobileMenu();
         handleNavbarTransparency();
 
         // Add scroll event listener with throttle
@@ -92,6 +83,12 @@ export const initNavbar = () => {
                 });
                 ticking = true;
             }
+        });
+
+        // Обработчик изменения размера окна
+        window.addEventListener('resize', () => {
+            handleAOSAttributes();
+            AOS.refresh();
         });
     };
 
