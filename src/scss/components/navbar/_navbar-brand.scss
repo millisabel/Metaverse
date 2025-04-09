@@ -8,14 +8,6 @@
         width: var(--navbar-brand-size);
         height: var(--navbar-brand-size);
 
-        @media (min-width: 768px) {
-            --navbar-brand-size: 60px;
-        }
-
-        @media (min-width: 992px) {
-            --navbar-brand-size: 50px;
-        }
-
         &:hover{
             .navbar-brand-logo{
                 animation: shadowGlow 8s linear infinite, scaleBounce 5s ease infinite;
