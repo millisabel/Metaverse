@@ -11,6 +11,7 @@ export class AnimationController {
         this.resizeTimeout = null;
         this.observer = null;
         this.name = 'AnimationController';
+        this.isResizing = false;
 
         console.log(`[${this.name}] Initializing controller`);
         this.init();
@@ -26,7 +27,9 @@ export class AnimationController {
                     if (!this.isInitialized) {
                         this.initScene();
                     }
-                    this.animate();
+                    if (!this.isResizing) {
+                        this.animate();
+                    }
                 } else {
                     this.isVisible = false;
                     console.log(`[${this.name}] Object is not visible`);
@@ -42,16 +45,26 @@ export class AnimationController {
 
         // Handle resize
         window.addEventListener('resize', () => {
-            this.stopAnimation();
+            if (!this.isResizing) {
+                this.isResizing = true;
+                console.log(`[${this.name}] Resize started`);
+                this.stopAnimation();
+            }
 
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
+                this.isResizing = false;
                 console.log(`[${this.name}] Resize completed`);
                 if (this.isVisible) {
                     this.onResize();
-                    this.animate();
+                    // Добавляем дополнительную задержку перед запуском анимации
+                    setTimeout(() => {
+                        if (!this.isResizing) {
+                            this.animate();
+                        }
+                    }, 200);
                 }
-            }, 100);
+            }, 300); // Увеличиваем время ожидания завершения ресайза
         });
     }
 
