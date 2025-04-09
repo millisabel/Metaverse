@@ -1,0 +1,62 @@
+// modal
+
+.modal {
+    --bs-modal-bg: linear-gradient(135deg, rgba(13, 13, 13, 0.95) 0%, rgba(20, 20, 20, 0.95) 100%);
+    --bs-btn-close-opacity: 0.5;
+    --bs-btn-close-hover-opacity: 1;
+
+
+    &-content {
+        background: linear-gradient(135deg, #0b0f2b, #1f1147, #22002e);
+        box-shadow: 0 0 20px var(--cs-blue);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    &-header {
+        .modal-title {
+            color: var(--bs-white);
+        }
+
+        .btn-close {
+            filter: invert(1) sepia(1) saturate(3000%) hue-rotate(180deg);
+            transition: opacity var(--bs-transition);
+        }
+    }
+
+    &-body {
+        color: var(--bs-body-color);
+
+        .form-control {
+            border: 1px solid var(--cs-blue);
+            border-radius: var(--bs-border-radius-lg);
+
+            color: var(--bs-white);
+            
+            background: rgba(86, 255, 235, 0.08);
+            transition: all var(--bs-transition);
+          
+            &:focus {
+              border-color: var(--cs-purple);
+              
+              background: rgba(86, 255, 235, 0.15);
+              box-shadow: 0 0 12px rgba(240, 10, 254, 0.4); 
+              outline: none;
+            }
+          
+            &::placeholder {
+                color: rgba(255, 255, 255, 0.4);
+            }
+        }
+    }
+}
+
+
+.modal.fade .modal-dialog {
+    transform: scale(0.9);
+    transition: transform var(--bs-transition);
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+} 

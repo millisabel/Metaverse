@@ -53,7 +53,9 @@
                 <div class="hero-content col-12 col-lg-8 col-xxl-7 line line-purple pt-5" data-aos="fade-up" data-aos-delay="200">
                     <h1 data-aos="zoom-in" data-aos-duration="1000" class="text-center text-lg-start">A SHARED, MULTIVERSE MULTI-BLOCKCHAIN BASED <span class="star"></span>METAVERSE ECOSYSTEM</h1>
                     <div class="text-center text-lg-start mt-4" data-aos="fade-up" data-aos-delay="200">
-                        <a href="#" class="btn">Invest Now</a>
+                        <button type="button" class="btn open-modal"  data-bs-toggle="modal" data-bs-target="#contactModal">
+                            Invest Now
+                        </button>
                     </div>
                 </div>
             </div>
@@ -298,7 +300,9 @@
                                 Crafty Metaverse space will continuously evolve its 3D gaming space to include technologies such as VR headsets, augmented reality glasses, and game consoles.
                             </p>
                             <div data-aos="fade-up" data-aos-delay="300">
-                                <a href="#" class="btn">Invest Now</a>
+                                <button type="button" class="btn open-modal"  data-bs-toggle="modal" data-bs-target="#contactModal">
+                                    Invest Now
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -355,7 +359,9 @@
                 </div>
 
                 <div class="col-12 col-lg-4">
-                    <a href="#" class="btn btn-primary">Invest Now</a>
+                    <button type="button" class="btn open-modal"  data-bs-toggle="modal" data-bs-target="#contactModal">
+                        Invest Now
+                    </button>
                 </div>
             </div>
 
@@ -370,7 +376,9 @@
                         <p class="mb-4">Virtual Arts Studio where you can enhance your creativity by creating digital arts inspired by your game</p>
                     </div>
                     <div class="col-12 col-lg-4 offset-lg-4  text-md-end text-lg-start">
-                        <a href="#" class="btn btn-primary">Create</a>
+                        <button type="button" class="btn open-modal"  data-bs-toggle="modal" data-bs-target="#contactModal">
+                            Create
+                        </button>
                     </div>
                 </div>
             </div>
@@ -709,6 +717,40 @@
             offset: 100
         });
 
+
+
     </script>
+
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="contactModalLabel">Contact Us</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-4">Leave your contact details and we will get back to you soon.</p>
+                    <form id="contactForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" required placeholder="Your name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required placeholder="your.email@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" rows="4" required placeholder="Your message"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to top button -->
 </body>
 </html> 

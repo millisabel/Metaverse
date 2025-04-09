@@ -7,23 +7,24 @@ import { initDynamics3D } from './components/dynamics3d';
 import { initSocialCards } from './components/socialCards';
 import { initAllAnimations } from './utils/animationObserver';
 import { GalacticCloud } from './components/galactic';
-
+import initModal from './components/modal';
 
 // Initialize components when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Update copyright year
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-    // Initialize all animations
-    const animationObservers = initAllAnimations();
 
     // Initialize components
     initNavbar();
+    initModal();
     initSlider();
     initRoadmap();
     initDynamics3D();
     initSocialCards();
+
+    // Initialize all animations
+    const animationObservers = initAllAnimations();
+    
+    // Update copyright year
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
 
     // Initialize galactic background
     const homeSection = document.getElementById('hero');
