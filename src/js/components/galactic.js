@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { AnimationController } from '../utils/animationController';
+import { AnimationController } from '../utils/animationController_3D';
 
 export class GalacticCloud extends AnimationController {
     constructor(container) {

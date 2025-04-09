@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { AnimationController } from '../utils/animationController';
+import { AnimationController } from '../utils/animationController_3D';
 
 export class Stars extends AnimationController {
     constructor(container) {

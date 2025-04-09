@@ -1,6 +1,6 @@
 /**
- * Базовый класс для управления анимацией 3D объектов
- * Обеспечивает контроль видимости и обработку ресайза
+ * Basic class for managing the animation of 3D objects
+ * Provides visibility control and resize handling
  */
 export class AnimationController {
     constructor(container) {
@@ -57,14 +57,14 @@ export class AnimationController {
                 console.log(`[${this.name}] Resize completed`);
                 if (this.isVisible) {
                     this.onResize();
-                    // Добавляем дополнительную задержку перед запуском анимации
+                    // Add additional delay before starting animation
                     setTimeout(() => {
                         if (!this.isResizing) {
                             this.animate();
                         }
                     }, 200);
                 }
-            }, 300); // Увеличиваем время ожидания завершения ресайза
+            }, 300); // Increase the waiting time for the resize to complete
         });
     }
 
