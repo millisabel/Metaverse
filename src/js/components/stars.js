@@ -1,58 +1,25 @@
 import * as THREE from 'three';
+import { AnimationController } from '../utils/animationController';
 console.log('Galaxy.js loaded');
 
-export class Stars {
+export class Stars extends AnimationController {
     constructor(container) {
-        this.container = container;
-        this.heroSection = document.getElementById('hero');
-        this.renderer = null;
+        super(container);
         this.scene = null;
         this.camera = null;
+        this.renderer = null;
         this.stars = null;
-        this.animationFrameId = null;
-        this.isVisible = false;
         this.phases = null;
         this.isMoving = null;
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
-        this.isInitialized = false;
-
-        this.init();
-    }
-
-    init() {
-        // Visibility observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    this.isVisible = true;
-                    if (!this.isInitialized) {
-                        this.initScene();
-                    }
-                    this.animate();
-                } else {
-                    this.isVisible = false;
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                    }
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        observer.observe(this.heroSection);
-
-        // Add event listeners
-        window.addEventListener('resize', () => this.handleResize());
     }
 
     initScene() {
         if (this.isInitialized) return;
-        
+        console.log('[Stars] Инициализация сцены');
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ 
@@ -60,14 +27,10 @@ export class Stars {
             alpha: true 
         });
         
-        // Setup renderer
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        
-        // Add renderer to container
         this.container.appendChild(this.renderer.domElement);
         
-        // Set styles
         this.renderer.domElement.style.position = 'absolute';
         this.renderer.domElement.style.top = '0';
         this.renderer.domElement.style.left = '0';
@@ -77,16 +40,13 @@ export class Stars {
         this.renderer.domElement.style.height = '100%';
         this.renderer.domElement.style.overflow = 'hidden';
         
-        // Setup camera
         this.camera.position.z = 5;
         
-        // Determine star count based on screen size
         const isMobile = window.innerWidth < 768;
         const starCount = isMobile ? 2500 : 5000;
         const depthRange = isMobile ? 500 : 1000;
         const starColors = [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF];
         
-        // Create geometry for stars
         const starsGeometry = new THREE.BufferGeometry();
         const positions = new Float32Array(starCount * 3);
         const colors = new Float32Array(starCount * 3);
@@ -97,7 +57,6 @@ export class Stars {
         this.flickerSpeeds = new Float32Array(starCount);
         this.flickerAmplitudes = new Float32Array(starCount);
         
-        // Initialize stars
         for (let i = 0; i < starCount; i++) {
             positions[i * 3] = (Math.random() - 0.5) * depthRange;
             positions[i * 3 + 1] = (Math.random() - 0.5) * depthRange;
@@ -166,7 +125,6 @@ export class Stars {
         
         this.animationFrameId = requestAnimationFrame(() => this.animate());
         
-        // Update positions and sizes of stars
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
         const depthRange = window.innerWidth < 768 ? 500 : 1000;
@@ -174,12 +132,10 @@ export class Stars {
         for (let i = 0; i < positions.length; i += 3) {
             const index = i / 3;
             
-            // Flickering for all stars with different speeds and amplitudes
             this.phases[index] += this.flickerSpeeds[index];
             const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
             sizes[index] = brightness * (Math.random() * 3 + 1);
             
-            // Movement only for some stars
             if (this.isMoving[index] === 1) {
                 this.movePhases[index] += 0.003;
                 
@@ -188,7 +144,6 @@ export class Stars {
                 positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * 0.02;
             }
             
-            // Return to opposite side when exiting boundaries
             if (positions[i] < -depthRange) positions[i] = depthRange;
             if (positions[i] > depthRange) positions[i] = -depthRange;
             if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
@@ -197,52 +152,42 @@ export class Stars {
             if (positions[i + 2] > depthRange) positions[i + 2] = -depthRange;
         }
         
-        // Update attributes
         this.stars.geometry.attributes.position.needsUpdate = true;
         this.stars.geometry.attributes.size.needsUpdate = true;
         
-        // Very slow camera rotation
         this.camera.rotation.x += 0.00002;
         this.camera.rotation.y += 0.00002;
         
         this.renderer.render(this.scene, this.camera);
     }
     
-    handleResize() {
-        if (!this.renderer || !this.camera || !this.isVisible) return;
+    onResize() {
+        if (!this.renderer || !this.camera) return;
         
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        // Recreate scene when screen size changes
-        if (this.isInitialized) {
-            this.cleanup();
-            this.initScene();
-        }
     }
-    
+
     cleanup() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-        }
+        super.cleanup();
+        
         if (this.renderer) {
             this.renderer.dispose();
             this.renderer.domElement.remove();
             this.renderer = null;
         }
+        
         if (this.stars) {
             this.stars.geometry.dispose();
             this.stars.material.dispose();
             this.stars = null;
         }
-        // Clear arrays
+        
         this.phases = null;
         this.isMoving = null;
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
-        this.isInitialized = false;
     }
 } 
