@@ -1,12 +1,12 @@
 // Import components
 import { initNavbar } from './components/navbar';
 import { initSlider } from './components/slider';
-import { initStars } from './components/stars';
 import { initRoadmap } from './components/roadmap';
 import { initDynamics3D } from './components/dynamics3d';
 import { initSocialCards } from './components/socialCards';
 import { initAllAnimations } from './utils/animationObserver';
 import { GalacticCloud } from './components/galactic';
+import { Stars } from './components/stars';
 import initModal from './components/modal';
 
 // Initialize components when DOM is loaded
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         homeSection.insertBefore(starsContainer, homeSection.firstChild);
 
         // Initialize stars
-        initStars(starsContainer);
+        new Stars(starsContainer);
     }
 });
 

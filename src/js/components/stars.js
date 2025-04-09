@@ -1,44 +1,84 @@
 import * as THREE from 'three';
 console.log('Galaxy.js loaded');
 
-export function initStars(container) {
-    const heroSection = document.getElementById('hero');
-    let renderer, scene, camera, stars;
-    let animationFrameId = null;
-    let isVisible = false;
-    let phases, isMoving, movePhases, flickerSpeeds, flickerAmplitudes;
-    let isInitialized = false;
-    
-    // Initialize scene
-    function initScene() {
-        if (isInitialized) return;
+export class Stars {
+    constructor(container) {
+        this.container = container;
+        this.heroSection = document.getElementById('hero');
+        this.renderer = null;
+        this.scene = null;
+        this.camera = null;
+        this.stars = null;
+        this.animationFrameId = null;
+        this.isVisible = false;
+        this.phases = null;
+        this.isMoving = null;
+        this.movePhases = null;
+        this.flickerSpeeds = null;
+        this.flickerAmplitudes = null;
+        this.isInitialized = false;
+
+        this.init();
+    }
+
+    init() {
+        // Visibility observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.isVisible = true;
+                    if (!this.isInitialized) {
+                        this.initScene();
+                    }
+                    this.animate();
+                } else {
+                    this.isVisible = false;
+                    if (this.animationFrameId) {
+                        cancelAnimationFrame(this.animationFrameId);
+                        this.animationFrameId = null;
+                    }
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+
+        observer.observe(this.heroSection);
+
+        // Add event listeners
+        window.addEventListener('resize', () => this.handleResize());
+    }
+
+    initScene() {
+        if (this.isInitialized) return;
         
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        renderer = new THREE.WebGLRenderer({ 
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: true 
         });
         
         // Setup renderer
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         // Add renderer to container
-        container.appendChild(renderer.domElement);
+        this.container.appendChild(this.renderer.domElement);
         
         // Set styles
-        renderer.domElement.style.position = 'absolute';
-        renderer.domElement.style.top = '0';
-        renderer.domElement.style.left = '0';
-        renderer.domElement.style.zIndex = '2';
-        renderer.domElement.style.pointerEvents = 'none';
-        renderer.domElement.style.width = '100%';
-        renderer.domElement.style.height = '100%';
-        renderer.domElement.style.overflow = 'hidden';
+        this.renderer.domElement.style.position = 'absolute';
+        this.renderer.domElement.style.top = '0';
+        this.renderer.domElement.style.left = '0';
+        this.renderer.domElement.style.zIndex = '2';
+        this.renderer.domElement.style.pointerEvents = 'none';
+        this.renderer.domElement.style.width = '100%';
+        this.renderer.domElement.style.height = '100%';
+        this.renderer.domElement.style.overflow = 'hidden';
         
         // Setup camera
-        camera.position.z = 5;
+        this.camera.position.z = 5;
         
         // Determine star count based on screen size
         const isMobile = window.innerWidth < 768;
@@ -51,11 +91,11 @@ export function initStars(container) {
         const positions = new Float32Array(starCount * 3);
         const colors = new Float32Array(starCount * 3);
         const sizes = new Float32Array(starCount);
-        phases = new Float32Array(starCount);
-        isMoving = new Float32Array(starCount);
-        movePhases = new Float32Array(starCount);
-        flickerSpeeds = new Float32Array(starCount);
-        flickerAmplitudes = new Float32Array(starCount);
+        this.phases = new Float32Array(starCount);
+        this.isMoving = new Float32Array(starCount);
+        this.movePhases = new Float32Array(starCount);
+        this.flickerSpeeds = new Float32Array(starCount);
+        this.flickerAmplitudes = new Float32Array(starCount);
         
         // Initialize stars
         for (let i = 0; i < starCount; i++) {
@@ -69,16 +109,16 @@ export function initStars(container) {
             colors[i * 3 + 2] = (color & 255) / 255;
             
             sizes[i] = Math.random() * 3 + 1;
-            phases[i] = Math.random() * Math.PI * 2;
-            isMoving[i] = Math.random() < 0.15 ? 1 : 0;
-            movePhases[i] = Math.random() * Math.PI * 2;
+            this.phases[i] = Math.random() * Math.PI * 2;
+            this.isMoving[i] = Math.random() < 0.15 ? 1 : 0;
+            this.movePhases[i] = Math.random() * Math.PI * 2;
             
             if (Math.random() < 0.3) {
-                flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
-                flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
+                this.flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
+                this.flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
             } else {
-                flickerSpeeds[i] = 0.005;
-                flickerAmplitudes[i] = 0.2;
+                this.flickerSpeeds[i] = 0.005;
+                this.flickerAmplitudes[i] = 0.2;
             }
         }
         
@@ -92,16 +132,15 @@ export function initStars(container) {
             size: isMobile ? 1.5 : 2,
             transparent: true,
             opacity: 1,
-            map: createStarTexture()
+            map: this.createStarTexture()
         });
         
-        stars = new THREE.Points(starsGeometry, starsMaterial);
-        scene.add(stars);
-        isInitialized = true;
+        this.stars = new THREE.Points(starsGeometry, starsMaterial);
+        this.scene.add(this.stars);
+        this.isInitialized = true;
     }
     
-    // Create texture for round stars
-    function createStarTexture() {
+    createStarTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 64;
@@ -122,32 +161,31 @@ export function initStars(container) {
         return texture;
     }
     
-    // Animation
-    function animate() {
-        if (!isVisible || !stars || !phases || !flickerSpeeds || !flickerAmplitudes) return;
+    animate() {
+        if (!this.isVisible || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) return;
         
-        animationFrameId = requestAnimationFrame(animate);
+        this.animationFrameId = requestAnimationFrame(() => this.animate());
         
         // Update positions and sizes of stars
-        const positions = stars.geometry.attributes.position.array;
-        const sizes = stars.geometry.attributes.size.array;
+        const positions = this.stars.geometry.attributes.position.array;
+        const sizes = this.stars.geometry.attributes.size.array;
         const depthRange = window.innerWidth < 768 ? 500 : 1000;
         
         for (let i = 0; i < positions.length; i += 3) {
             const index = i / 3;
             
             // Flickering for all stars with different speeds and amplitudes
-            phases[index] += flickerSpeeds[index];
-            const brightness = Math.sin(phases[index]) * flickerAmplitudes[index] + (1 - flickerAmplitudes[index] / 2);
+            this.phases[index] += this.flickerSpeeds[index];
+            const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
             sizes[index] = brightness * (Math.random() * 3 + 1);
             
             // Movement only for some stars
-            if (isMoving[index] === 1) {
-                movePhases[index] += 0.003;
+            if (this.isMoving[index] === 1) {
+                this.movePhases[index] += 0.003;
                 
-                positions[i] += Math.sin(movePhases[index]) * 0.05;
-                positions[i + 1] += Math.cos(movePhases[index]) * 0.05;
-                positions[i + 2] += Math.sin(movePhases[index] * 0.5) * 0.02;
+                positions[i] += Math.sin(this.movePhases[index]) * 0.05;
+                positions[i + 1] += Math.cos(this.movePhases[index]) * 0.05;
+                positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * 0.02;
             }
             
             // Return to opposite side when exiting boundaries
@@ -160,79 +198,51 @@ export function initStars(container) {
         }
         
         // Update attributes
-        stars.geometry.attributes.position.needsUpdate = true;
-        stars.geometry.attributes.size.needsUpdate = true;
+        this.stars.geometry.attributes.position.needsUpdate = true;
+        this.stars.geometry.attributes.size.needsUpdate = true;
         
         // Very slow camera rotation
-        camera.rotation.x += 0.00002;
-        camera.rotation.y += 0.00002;
+        this.camera.rotation.x += 0.00002;
+        this.camera.rotation.y += 0.00002;
         
-        renderer.render(scene, camera);
+        this.renderer.render(this.scene, this.camera);
     }
     
-    // Cleanup resources
-    function cleanup() {
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-            animationFrameId = null;
-        }
-        if (renderer) {
-            renderer.dispose();
-            renderer.domElement.remove();
-            renderer = null;
-        }
-        if (stars) {
-            stars.geometry.dispose();
-            stars.material.dispose();
-            stars = null;
-        }
-        // Clear global arrays
-        phases = null;
-        isMoving = null;
-        movePhases = null;
-        flickerSpeeds = null;
-        flickerAmplitudes = null;
-        isInitialized = false;
-    }
-    
-    // Window resize handler
-    function handleResize() {
-        if (!renderer || !camera || !isVisible) return;
+    handleResize() {
+        if (!this.renderer || !this.camera || !this.isVisible) return;
         
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
         
         // Recreate scene when screen size changes
-        if (isInitialized) {
-            cleanup();
-            initScene();
+        if (this.isInitialized) {
+            this.cleanup();
+            this.initScene();
         }
     }
     
-    // Visibility observer
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                isVisible = true;
-                if (!isInitialized) {
-                    initScene();
-                }
-                animate();
-            } else {
-                isVisible = false;
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null;
-                }
-            }
-        });
-    }, {
-        threshold: 0.1,
-        rootMargin: '50px'
-    });
-    
-    // Add event listeners
-    window.addEventListener('resize', handleResize);
-    observer.observe(heroSection);
+    cleanup() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+        if (this.renderer) {
+            this.renderer.dispose();
+            this.renderer.domElement.remove();
+            this.renderer = null;
+        }
+        if (this.stars) {
+            this.stars.geometry.dispose();
+            this.stars.material.dispose();
+            this.stars = null;
+        }
+        // Clear arrays
+        this.phases = null;
+        this.isMoving = null;
+        this.movePhases = null;
+        this.flickerSpeeds = null;
+        this.flickerAmplitudes = null;
+        this.isInitialized = false;
+    }
 } 
