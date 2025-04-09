@@ -21,19 +21,32 @@ export class GalacticCloud extends AnimationController {
         console.log(`[${this.name}] Initializing scene`);
 
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(60, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({
             alpha: true,
             antialias: true,
             powerPreference: "high-performance"
         });
 
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setClearColor(0x000000, 0);
+        this.updateRendererSize();
         this.container.appendChild(this.renderer.domElement);
 
+        // Устанавливаем стили для канваса
+        const canvas = this.renderer.domElement;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '1';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.overflow = 'hidden';
+        canvas.style.transform = 'translateZ(0)';
+        canvas.style.backfaceVisibility = 'hidden';
+        canvas.style.willChange = 'transform';
+
         // Adaptive camera setup for different devices
-        const isMobile = window.innerWidth < 768;
+        const isMobile = this.container.clientWidth < 768;
         const radius = isMobile ? 20 : 15;
         const height = isMobile ? -15 : 5;
         const offsetX = isMobile ? 0 : -4;
@@ -54,6 +67,25 @@ export class GalacticCloud extends AnimationController {
         this.setupPostProcessing();
         
         this.isInitialized = true;
+    }
+
+    updateRendererSize() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        const pixelRatio = Math.min(window.devicePixelRatio, 2);
+        
+        this.renderer.setSize(width, height);
+        this.renderer.setPixelRatio(pixelRatio);
+        this.renderer.setClearColor(0x000000, 0);
+        
+        if (this.camera) {
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+        }
+        
+        if (this.composer) {
+            this.composer.setSize(width, height);
+        }
     }
 
     createGalaxyCore() {
@@ -118,7 +150,7 @@ export class GalacticCloud extends AnimationController {
         const galaxyTexture = textureLoader.load('./assets/images/galaxy-texture.png');
         
         // Adaptive plane size
-        const isMobile = window.innerWidth < 768;
+        const isMobile = this.container.clientWidth < 768;
         const planeSize = isMobile ? 12 : 8; // Increase size on mobile
         
         // Create main galaxy plane
@@ -165,7 +197,7 @@ export class GalacticCloud extends AnimationController {
         super.animate();
 
         const time = performance.now() * 0.0001;
-        const isMobile = window.innerWidth < 768;
+        const isMobile = this.container.clientWidth < 768;
         const offsetX = isMobile ? 0 : -4;
         
         // Complex pulsation with multiple waves
@@ -212,8 +244,8 @@ export class GalacticCloud extends AnimationController {
     onResize() {
         if (!this.renderer || !this.camera) return;
 
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
         const isMobile = width < 768;
 
         // Update renderer sizes
