@@ -31,7 +31,6 @@ export class GalacticCloud extends AnimationController {
         this.updateRendererSize();
         this.container.appendChild(this.renderer.domElement);
 
-        // Устанавливаем стили для канваса
         const canvas = this.renderer.domElement;
         canvas.style.position = 'absolute';
         canvas.style.top = '0';

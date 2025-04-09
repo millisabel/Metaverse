@@ -1,7 +1,7 @@
 export class ContainerManager {
     constructor(parent, options = {}) {
         this.parent = parent;
-        // Устанавливаем стили для родительского контейнера
+        // Set styles for the parent container
         this.parent.style.position = 'relative';
         this.parent.style.overflow = 'hidden';
         
