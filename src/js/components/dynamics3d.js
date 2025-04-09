@@ -156,7 +156,6 @@ let intersectionDebounceTimeout = null;
 // Function to start animation
 function startAnimation() {
     if (!isAnimating && activeElements.size > 0) {
-        console.log('Starting animation');
         isAnimating = true;
         animate();
     }
@@ -165,7 +164,6 @@ function startAnimation() {
 // Function to stop animation
 function stopAnimation() {
     if (isAnimating && activeElements.size === 0) {
-        console.log('Stopping animation');
         isAnimating = false;
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
@@ -183,7 +181,6 @@ function handleIntersection(entries) {
     intersectionDebounceTimeout = setTimeout(() => {
         entries.forEach(entry => {
             const id = entry.target.id;
-            console.log(`Element ${id} intersection:`, entry.isIntersecting);
 
             if (entry.isIntersecting) {
                 if (!renderers[id]) {
@@ -241,8 +238,6 @@ function updateRendererSize(renderer, container) {
 // Function to destroy renderer
 function destroyRenderer(renderer, id) {
     if (renderer) {
-        console.log('Destroying renderer...');
-
         // Удаляем элемент из активных
         activeElements.delete(id);
         stopAnimation();
@@ -270,14 +265,12 @@ function destroyRenderer(renderer, id) {
         });
 
         renderer = null;
-        console.log('Renderer destroyed successfully');
     }
 }
 
 // Animation loop
 function animate() {
     if (!isAnimating) {
-        console.log('Animation stopped');
         return;
     }
 
@@ -341,7 +334,6 @@ function animate() {
 
 // Initialize renderers and start animation
 export function initDynamics3D() {
-    console.log('Initializing 3D dynamics...');
 
     // Handle window resize with debounce
     let resizeTimeout;
@@ -363,12 +355,6 @@ export function initDynamics3D() {
     const glowObserver = createAnimationObserver({
         threshold: 0.1,
         rootMargin: '50px',
-        onEnter: (element) => {
-            console.log('Glow animation started for:', element.id);
-        },
-        onLeave: (element) => {
-            console.log('Glow animation stopped for:', element.id);
-        }
     });
 
     // Начинаем наблюдение за контейнерами 3D моделей
@@ -389,7 +375,6 @@ export function initDynamics3D() {
     ['guardians3d', 'metaverse3d', 'sankopa3d'].forEach(id => {
         const container = document.getElementById(id);
         if (container) {
-            console.log(`Observing container: ${id}`);
             observer.observe(container);
         } else {
             console.warn(`Container not found: ${id}`);

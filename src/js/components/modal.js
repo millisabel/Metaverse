@@ -3,7 +3,6 @@
 function initModal() {
     let lastTriggerButton = null;
     const modals = document.querySelectorAll('.modal');
-    console.log(modals);
   
     function logFocus(eventType, element, modalId) {
       console.log(`[${eventType}] Modal ID: ${modalId}, Focused element:`, document.activeElement);
