@@ -50,9 +50,9 @@ function createDecorativeCircles(sceneType) {
             group.add(plane);
         },
         // onProgress callback
-        (xhr) => {
-            console.log(`${sceneType} texture: ${(xhr.loaded / xhr.total * 100)}% loaded`);
-        },
+        // (xhr) => {
+        //     console.log(`${sceneType} texture: ${(xhr.loaded / xhr.total * 100)}% loaded`);
+        // },
         // onError callback
         (error) => {
             console.error(`Error loading texture for ${sceneType}:`, error);
@@ -184,7 +184,6 @@ function handleIntersection(entries) {
 
             if (entry.isIntersecting) {
                 if (!renderers[id]) {
-                    console.log(`Creating renderer for ${id}`);
                     const container = document.getElementById(id);
                     if (container) {
                         renderers[id] = createRenderer(container);
@@ -198,7 +197,6 @@ function handleIntersection(entries) {
             } else {
                 activeElements.delete(id);
                 if (renderers[id]) {
-                    console.log(`Destroying renderer for ${id}`);
                     destroyRenderer(renderers[id], id);
                     delete renderers[id];
                 }
@@ -247,13 +245,11 @@ function destroyRenderer(renderer, id) {
 
         // Удаляем canvas из DOM
         if (renderer.domElement && renderer.domElement.parentNode) {
-            console.log('Removing canvas from DOM');
             renderer.domElement.parentNode.removeChild(renderer.domElement);
         }
 
         // Принудительно освобождаем WebGL контекст
         if (renderer.getContext()) {
-            console.log('Forcing context loss');
             renderer.forceContextLoss();
         }
 
@@ -383,7 +379,6 @@ export function initDynamics3D() {
 
     // Добавляем обработчик для очистки при размонтировании
     window.addEventListener('beforeunload', () => {
-        console.log('Cleaning up before unload...');
         if (intersectionDebounceTimeout) {
             clearTimeout(intersectionDebounceTimeout);
         }
