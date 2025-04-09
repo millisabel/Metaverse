@@ -7,6 +7,7 @@ import { initSocialCards } from './components/socialCards';
 import { initAllAnimations } from './utils/animationObserver';
 import { GalacticCloud } from './components/galactic';
 import { Stars } from './components/stars';
+import { ContainerManager } from './utils/containerManager';
 import initModal from './components/modal';
 
 // Initialize components when DOM is loaded
@@ -30,27 +31,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const homeSection = document.getElementById('hero');
     if (homeSection) {
         // Create container for galactic background
-        const galacticContainer = document.createElement('div');
-        galacticContainer.style.position = 'absolute';
-        galacticContainer.style.top = '0';
-        galacticContainer.style.left = '0';
-        galacticContainer.style.width = '100%';
-        galacticContainer.style.height = '100%';
-        galacticContainer.style.zIndex = '1';
-        homeSection.insertBefore(galacticContainer, homeSection.firstChild);
+        const galacticManager = new ContainerManager(homeSection, { zIndex: '1' });
+        const galacticContainer = galacticManager.create();
 
         // Initialize galactic background
         new GalacticCloud(galacticContainer);
 
         // Create container for stars
-        const starsContainer = document.createElement('div');
-        starsContainer.style.position = 'absolute';
-        starsContainer.style.top = '0';
-        starsContainer.style.left = '0';
-        starsContainer.style.width = '100%';
-        starsContainer.style.height = '100%';
-        starsContainer.style.zIndex = '2';
-        homeSection.insertBefore(starsContainer, homeSection.firstChild);
+        const starsManager = new ContainerManager(homeSection, { zIndex: '2' });
+        const starsContainer = starsManager.create();
 
         // Initialize stars
         new Stars(starsContainer);
