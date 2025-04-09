@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { AnimationController } from '../utils/animationController';
-console.log('Galaxy.js loaded');
 
 export class Stars extends AnimationController {
     constructor(container) {
@@ -14,11 +13,12 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
+        this.name = 'Stars';
     }
 
     initScene() {
         if (this.isInitialized) return;
-        console.log('[Stars] Инициализация сцены');
+        console.log(`[${this.name}] Initializing scene`);
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -123,7 +123,7 @@ export class Stars extends AnimationController {
     animate() {
         if (!this.isVisible || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) return;
         
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
+        super.animate();
         
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
@@ -170,18 +170,21 @@ export class Stars extends AnimationController {
     }
 
     cleanup() {
+        console.log(`[${this.name}] Starting cleanup`);
         super.cleanup();
         
         if (this.renderer) {
             this.renderer.dispose();
             this.renderer.domElement.remove();
             this.renderer = null;
+            console.log(`[${this.name}] Renderer disposed`);
         }
         
         if (this.stars) {
             this.stars.geometry.dispose();
             this.stars.material.dispose();
             this.stars = null;
+            console.log(`[${this.name}] Stars disposed`);
         }
         
         this.phases = null;
@@ -189,5 +192,6 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
+        console.log(`[${this.name}] Cleanup completed`);
     }
 } 

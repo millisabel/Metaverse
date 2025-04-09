@@ -10,26 +10,26 @@ export class AnimationController {
         this.animationFrameId = null;
         this.resizeTimeout = null;
         this.observer = null;
+        this.name = 'AnimationController';
 
+        console.log(`[${this.name}] Initializing controller`);
         this.init();
     }
 
     init() {
-        console.log('[AnimationController] Инициализация контроллера анимации');
-
-        // Наблюдатель за видимостью
+        // Visibility observer
         this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    console.log('[AnimationController] Объект в зоне видимости');
                     this.isVisible = true;
+                    console.log(`[${this.name}] Object is visible`);
                     if (!this.isInitialized) {
                         this.initScene();
                     }
-                    this.startAnimation();
+                    this.animate();
                 } else {
-                    console.log('[AnimationController] Объект вне зоны видимости');
                     this.isVisible = false;
+                    console.log(`[${this.name}] Object is not visible`);
                     this.stopAnimation();
                 }
             });
@@ -40,68 +40,67 @@ export class AnimationController {
 
         this.observer.observe(this.container);
 
-        // Обработчик ресайза с дебаунсом
+        // Handle resize
         window.addEventListener('resize', () => {
-            console.log('[AnimationController] Начало ресайза');
             this.stopAnimation();
 
-            if (this.resizeTimeout) {
-                clearTimeout(this.resizeTimeout);
-            }
-
+            clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
-                console.log('[AnimationController] Завершение ресайза');
+                console.log(`[${this.name}] Resize completed`);
                 if (this.isVisible) {
                     this.onResize();
-                    this.startAnimation();
+                    this.animate();
                 }
-            }, 250);
+            }, 100);
         });
     }
 
-    startAnimation() {
-        if (!this.isVisible || this.animationFrameId) return;
-        console.log('[AnimationController] Запуск анимации');
-        this.animate();
+    animate() {
+        if (!this.animationFrameId) {
+            console.log(`[${this.name}] Starting animation`);
+        }
+        this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
     stopAnimation() {
         if (this.animationFrameId) {
-            console.log('[AnimationController] Остановка анимации');
+            console.log(`[${this.name}] Stopping animation`);
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
         }
     }
 
     cleanup() {
-        console.log('[AnimationController] Очистка ресурсов');
-        
-        this.stopAnimation();
-        
+        console.log(`[${this.name}] Starting cleanup`);
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;
+            console.log(`[${this.name}] Observer disconnected`);
+        }
+
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+            console.log(`[${this.name}] Animation stopped`);
         }
 
         if (this.resizeTimeout) {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = null;
+            console.log(`[${this.name}] Resize timeout cleared`);
         }
 
         this.isInitialized = false;
         this.isVisible = false;
+        console.log(`[${this.name}] Cleanup completed`);
     }
 
-    // Абстрактные методы, которые должны быть реализованы в дочерних классах
+    // Abstract methods to be implemented by subclasses
     initScene() {
-        throw new Error('Метод initScene должен быть реализован в дочернем классе');
-    }
-
-    animate() {
-        throw new Error('Метод animate должен быть реализован в дочернем классе');
+        throw new Error('initScene must be implemented by subclass');
     }
 
     onResize() {
-        throw new Error('Метод onResize должен быть реализован в дочернем классе');
+        throw new Error('onResize must be implemented by subclass');
     }
 } 

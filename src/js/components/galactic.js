@@ -2,58 +2,23 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { AnimationController } from '../utils/animationController';
 
-export class GalacticCloud {
+export class GalacticCloud extends AnimationController {
     constructor(container) {
-        this.container = container;
+        super(container);
         this.scene = null;
         this.camera = null;
         this.renderer = null;
         this.galaxyCore = null;
         this.spiralArms = [];
         this.composer = null;
-        this.animationFrameId = null;
-        this.isVisible = false;
-        this.isInitialized = false;
-
-        this.init();
-    }
-
-    init() {
-        // Visibility observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    this.isVisible = true;
-                    if (!this.isInitialized) {
-                        this.initScene();
-                    }
-                    this.animate();
-                } else {
-                    this.isVisible = false;
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                    }
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        observer.observe(this.container);
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            if (this.isVisible) {
-                this.handleResize();
-            }
-        });
+        this.name = 'GalacticCloud';
     }
 
     initScene() {
         if (this.isInitialized) return;
+        console.log(`[${this.name}] Initializing scene`);
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -197,7 +162,7 @@ export class GalacticCloud {
     animate() {
         if (!this.isVisible || !this.scene || !this.camera) return;
 
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
+        super.animate();
 
         const time = performance.now() * 0.0001;
         const isMobile = window.innerWidth < 768;
@@ -244,7 +209,7 @@ export class GalacticCloud {
         this.composer.render();
     }
 
-    handleResize() {
+    onResize() {
         if (!this.renderer || !this.camera) return;
 
         const width = window.innerWidth;
@@ -276,15 +241,14 @@ export class GalacticCloud {
     }
 
     cleanup() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-        }
+        console.log(`[${this.name}] Starting cleanup`);
+        super.cleanup();
         
         if (this.renderer) {
             this.renderer.dispose();
             this.renderer.domElement.remove();
             this.renderer = null;
+            console.log(`[${this.name}] Renderer disposed`);
         }
         
         if (this.scene) {
@@ -299,14 +263,16 @@ export class GalacticCloud {
                 }
             });
             this.scene = null;
+            console.log(`[${this.name}] Scene disposed`);
         }
         
         if (this.composer) {
             this.composer.dispose();
             this.composer = null;
+            console.log(`[${this.name}] Composer disposed`);
         }
         
-        this.isInitialized = false;
+        console.log(`[${this.name}] Cleanup completed`);
     }
 }
 
