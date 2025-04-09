@@ -24,21 +24,26 @@ export class Stars extends AnimationController {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
-            alpha: true 
+            alpha: true,
+            powerPreference: "high-performance"
         });
         
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.updateRendererSize();
+        
         this.container.appendChild(this.renderer.domElement);
         
-        this.renderer.domElement.style.position = 'absolute';
-        this.renderer.domElement.style.top = '0';
-        this.renderer.domElement.style.left = '0';
-        this.renderer.domElement.style.zIndex = '2';
-        this.renderer.domElement.style.pointerEvents = 'none';
-        this.renderer.domElement.style.width = '100%';
-        this.renderer.domElement.style.height = '100%';
-        this.renderer.domElement.style.overflow = 'hidden';
+        const canvas = this.renderer.domElement;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '2';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.overflow = 'hidden';
+        canvas.style.transform = 'translateZ(0)';
+        canvas.style.backfaceVisibility = 'hidden';
+        canvas.style.willChange = 'transform';
         
         this.camera.position.z = 5;
         
@@ -161,12 +166,22 @@ export class Stars extends AnimationController {
         this.renderer.render(this.scene, this.camera);
     }
     
-    onResize() {
-        if (!this.renderer || !this.camera) return;
+    updateRendererSize() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        const pixelRatio = Math.min(window.devicePixelRatio, 2);
         
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setSize(width, height);
+        this.renderer.setPixelRatio(pixelRatio);
+        
+        if (this.camera) {
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+        }
+    }
+
+    onResize() {
+        this.updateRendererSize();
     }
 
     cleanup() {
@@ -194,4 +209,4 @@ export class Stars extends AnimationController {
         this.flickerAmplitudes = null;
         console.log(`[${this.name}] Cleanup completed`);
     }
-} 
+}
