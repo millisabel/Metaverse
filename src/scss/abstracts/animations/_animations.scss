@@ -1,19 +1,5 @@
 // animation
 
-// moveGradient: background-position change
-// .button
-@keyframes moveGradient {
-    0% {
-        background-position: 0 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0 50%;
-    }
-}
-
 // roll: rotate and scale change
 // .game-character--left img
   @keyframes roll  {

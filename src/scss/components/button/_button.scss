@@ -1,25 +1,43 @@
 .btn {
     --bs-btn-padding-x: 3rem;
     --bs-btn-padding-y: 1rem;
+
     --bs-btn-font-family: "Poppins", sans-serif;
     --bs-btn-font-size: 1.3rem;
     --bs-btn-font-weight: 900;
     --bs-btn-line-height: 1.4;
     --bs-btn-color: var(--bs-white);
+    --bs-btn-hover-color: var(--bs-white);
+    --bs-btn-active-color: var(--bs-white);
+
     --bs-btn-bg: var(--cs-btn-bg);
+    --bs-btn-hover-bg: transparent;
+    --bs-btn-active-bg: var(--bs-primary);
+
     --bs-btn-border-width: 0;
-    --bs-btn-border-color: transparent;
     --bs-btn-border-radius: 8px;
+    --bs-btn-border-color: transparent;
+    --bs-btn-active-border-color: transparent;
     --bs-btn-hover-border-color: transparent;
+
+    --cs-btn-before-bg: var(--bs-btn-bg);
+    --cs-btn-after-bg: var(--bs-btn-bg);
+    
 
     position: relative;
     z-index: 1;
-    overflow: hidden;
+    overflow: visible;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
     isolation: isolate;
     will-change: transform;
     backface-visibility: hidden;
     -webkit-font-smoothing: antialiased;
+    
+    & > * {
+        position: relative;
+        z-index: 2;
+    }
     
     &::before {
         content: '';
@@ -32,52 +50,75 @@
 
         border-radius: calc(var(--bs-btn-border-radius) - 2px); 
 
-        background: var(--bs-btn-bg);
+        background: var(--cs-btn-before-bg);
         transition: all 0.3s ease;
     }
     
     &::after {
-        content: '';
-        position: absolute;
-        z-index: -2;
-
-        inset: 0; 
-        background: linear-gradient(
+        --cs-btn-after-bg: linear-gradient(
             90deg,
             var(--bs-primary),
             var(--bs-white),
             var(--bs-black),
             var(--bs-primary)
         );
-        background-size: 300% 100%;
+
+        content: '';
+        position: absolute;
+        z-index: -2;
+        inset: 0;
+        
         border-radius: 8px;
+
+        background: var(--cs-btn-after-bg);
+        background-size: 300% 100%;
         animation: moveGradient 4s linear infinite;
+        transform-origin: center;
+        transition: transform 0.3s ease;
     }
     
     &:hover {
-        box-shadow: 0 5px 10px 0px $accent-purple;
+        transform: translateY(-4px);
         
         &::before {
-            
+            --cs-btn-before-bg: var(--bs-primary);
+
+            transform: translateY(2px);
         }
         
         &::after {
+            --cs-btn-after-bg: var(--cs-cyan);
+
             filter: blur(10px);
             opacity: 0.8;
             animation: none;
+            transform: translateY(8px) scale(0.85);
         }
     }
     
     &:active {
-        transform: translateY(2px);
+        transform: scale(0.98);
         
         &::before {
-            background: darken($accent-purple, 10%);
+            filter: brightness(0.9);
         }
     }
 
     &:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 3px $accent-purple;
+        box-shadow: 0 0 0 3px var(--cs-purple);
+    }
+}
+
+
+@keyframes moveGradient {
+    0% {
+        background-position: 0 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
     }
 }
