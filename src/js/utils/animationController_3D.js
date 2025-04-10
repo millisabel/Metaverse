@@ -83,8 +83,32 @@ export class AnimationController {
         }
     }
 
-    cleanup() {
+    cleanup(renderer, scene) {
         console.log(`[${this.name}] Starting cleanup`);
+
+
+        if (renderer) {
+            renderer.dispose();
+            renderer.domElement.remove();
+            renderer = null;
+            console.log(`[${this.name}] Renderer disposed`);
+        }
+
+        if (scene) {
+            scene.traverse((object) => {
+                if (object.geometry) object.geometry.dispose();
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+            scene = null;
+            console.log(`[${this.name}] Scene disposed`);
+        }
+
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;

@@ -142,14 +142,7 @@ export class Stars extends AnimationController {
 
     cleanup() {
         console.log(`[${this.name}] Starting cleanup`);
-        super.cleanup();
-        
-        if (this.renderer) {
-            this.renderer.dispose();
-            this.renderer.domElement.remove();
-            this.renderer = null;
-            console.log(`[${this.name}] Renderer disposed`);
-        }
+        super.cleanup(this.renderer, this.scene);
         
         if (this.stars) {
             this.stars.geometry.dispose();

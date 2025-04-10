@@ -494,6 +494,6 @@ export class Constellation extends AnimationController {
     cleanup() {
         this.constellations = [];
         this.backgroundStars = null;
-        super.cleanup();
+        super.cleanup(this.renderer, this.scene);
     }
 } 

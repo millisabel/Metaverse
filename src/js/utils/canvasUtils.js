@@ -42,4 +42,24 @@ export const updateRendererSize = (renderer, container, camera, options = {}) =>
     if (composer) {
         composer.setSize(width, height);
     }
-}; 
+};
+
+export function cleanupResources(renderer, scene) {
+    if (renderer) {
+        renderer.dispose();
+        renderer.domElement.remove();
+    }
+
+    if (scene) {
+        scene.traverse((object) => {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(material => material.dispose());
+                } else {
+                    object.material.dispose();
+                }
+            }
+        });
+    }
+}

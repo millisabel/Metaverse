@@ -58,25 +58,6 @@ export class GalacticCloud extends AnimationController {
         this.isInitialized = true;
     }
 
-    // updateRendererSize() {
-    //     const width = this.container.clientWidth;
-    //     const height = this.container.clientHeight;
-    //     const pixelRatio = Math.min(window.devicePixelRatio, 2);
-    //
-    //     this.renderer.setSize(width, height);
-    //     this.renderer.setPixelRatio(pixelRatio);
-    //     this.renderer.setClearColor(0x000000, 0);
-    //
-    //     if (this.camera) {
-    //         this.camera.aspect = width / height;
-    //         this.camera.updateProjectionMatrix();
-    //     }
-    //
-    //     if (this.composer) {
-    //         this.composer.setSize(width, height);
-    //     }
-    // }
-
     createGalaxyCore() {
         const coreGeometry = new THREE.PlaneGeometry(2, 2, 128, 128);
         const coreMaterial = new THREE.ShaderMaterial({
@@ -263,29 +244,7 @@ export class GalacticCloud extends AnimationController {
 
     cleanup() {
         console.log(`[${this.name}] Starting cleanup`);
-        super.cleanup();
-        
-        if (this.renderer) {
-            this.renderer.dispose();
-            this.renderer.domElement.remove();
-            this.renderer = null;
-            console.log(`[${this.name}] Renderer disposed`);
-        }
-        
-        if (this.scene) {
-            this.scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
-            this.scene = null;
-            console.log(`[${this.name}] Scene disposed`);
-        }
+        super.cleanup(this.renderer, this.scene);
         
         if (this.composer) {
             this.composer.dispose();
