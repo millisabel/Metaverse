@@ -20,20 +20,20 @@ export class Glow extends AnimationController {
                 max: isMobile ? 1.5 : 2
             },
             speed: {
-                min: 0.1,
-                max: 0.5
+                min: isMobile ? 0.05 : 0.0002,
+                max: isMobile ? 0.1 : 0.0005
             },
             opacity: {
                 min: 0.05,
-                max: 0.25
+                max: 0.15
             },
             scale: {
-                min: 0.8,
+                min: 0.5,
                 max: 1.2
             },
             pulse: {
-                min: 0.2,
-                max: 2.0
+                min: 0.02,
+                max: 1.0
             },
             zIndex: '1',
             ...options
@@ -80,7 +80,8 @@ export class Glow extends AnimationController {
     }
 
     createGlows() {
-        const geometry = new THREE.PlaneGeometry(1, 1);
+        const segments = 32;
+        const geometry = new THREE.CircleGeometry(0.5, segments);
         
         for (let i = 0; i < this.options.count; i++) {
             const size = this.getRandomValue(this.options.size.min, this.options.size.max);
@@ -99,16 +100,17 @@ export class Glow extends AnimationController {
                     pulseSpeed: { value: pulseSpeed }
                 },
                 vertexShader: `
-                    uniform float time;
-                    uniform float scale;
-                    uniform float pulseSpeed;
-                    varying vec2 vUv;
-                    varying float vPulse;
-                    
-                    void main() {
-                        vUv = uv;
-                        vPulse = scale * (0.5 + 0.5 * sin(time * pulseSpeed));
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        uniform float time;
+    uniform float scale;
+    uniform float pulseSpeed;
+    varying vec2 vUv;
+    varying float vPulse;
+
+    void main() {
+        vUv = uv;
+        // Более выраженная пульсация
+        vPulse = scale * (0.7 + 0.3 * sin(time * pulseSpeed));
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                     }
                 `,
                 fragmentShader: `
@@ -196,16 +198,18 @@ export class Glow extends AnimationController {
 
         this.glows.forEach(glow => {
             const mesh = glow.mesh;
+
+            const timeOffset = time * glow.speed * 0.5;
             
             // Update position
-            mesh.position.x += glow.direction.x * glow.speed * 0.01;
-            mesh.position.y += glow.direction.y * glow.speed * 0.01;
+            mesh.position.x += Math.sin(timeOffset) * glow.direction.x * 0.002;
+            mesh.position.y += Math.cos(timeOffset) * glow.direction.y * 0.002;
             
             // Add depth movement
-            mesh.position.z = Math.sin(time * glow.speed) * 0.5;
+            mesh.position.z = Math.sin(time * glow.speed * 0.3) * 0.2;
             
             // Add subtle rotation
-            mesh.rotation.z += glow.speed * 0.001;
+            mesh.rotation.z += glow.speed * 0.0002;
             
             // Check boundaries and bounce
             if (Math.abs(mesh.position.x) > aspect) {
