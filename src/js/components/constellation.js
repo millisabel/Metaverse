@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { AnimationController } from '../utils/animationController_3D';
 import { createCanvas, updateRendererSize } from '../utils/canvasUtils';
 import constellationsData from '../data/constellations.json';
-import { BaseAnimation } from '../utils/baseAnimation';
 import { createStarTexture } from '../utils/textureUtils';
 
 class Star {
@@ -416,17 +415,64 @@ class BackgroundStars {
     }
 }
 
-export class Constellation extends BaseAnimation {
+export class Constellation extends AnimationController {
     constructor(container) {
-        super(container, { zIndex: '2' });
+        super(container);
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
         this.constellations = [];
         this.backgroundStars = null;
         this.name = 'Constellation';
         this.frame = 0;
     }
 
+    updateRendererSize() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        const pixelRatio = Math.min(window.devicePixelRatio, 2);
+        
+        this.renderer.setSize(width, height);
+        this.renderer.setPixelRatio(pixelRatio);
+        
+        if (this.camera) {
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+        }
+    }
+
+    onResize() {
+        this.updateRendererSize();
+    }
+
     initScene() {
-        super.initScene();
+        if (this.isInitialized) return;
+        console.log(`[${this.name}] Initializing scene`);
+
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance"
+        });
+        
+        this.updateRendererSize();
+        
+        this.container.appendChild(this.renderer.domElement);
+        
+        const canvas = this.renderer.domElement;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '2';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.overflow = 'hidden';
+        canvas.style.transform = 'translateZ(0)';
+        canvas.style.backfaceVisibility = 'hidden';
+        canvas.style.willChange = 'transform';
         
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(0, 0, -1);
@@ -443,6 +489,8 @@ export class Constellation extends BaseAnimation {
 
         // Добавляем туман для эффекта глубины
         this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
+        
+        this.isInitialized = true;
     }
 
     animate() {
