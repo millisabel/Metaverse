@@ -1,5 +1,9 @@
 import * as THREE from 'three';
+import { AnimationController } from '../utils/animationController_3D';
+import { createCanvas, updateRendererSize } from '../utils/canvasUtils';
 import constellationsData from '../data/constellations.json';
+import { BaseAnimation } from '../utils/baseAnimation';
+import { createStarTexture } from '../utils/textureUtils';
 
 class Star {
     constructor(position, texture) {
@@ -87,7 +91,7 @@ class ConstellationGroup {
         this.maxDistance = -150;
         this.minDistance = -10;
 
-        // Параметры для вращения в разных плоскостях (уменьшена скорость вращения)
+        // Параметры для вращения
         this.rotationSpeed = {
             x: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
             y: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
@@ -98,12 +102,12 @@ class ConstellationGroup {
         this.rotationTimer = 0;
         this.rotationTransitionProgress = 0;
 
-        // Параметры для орбитального движения (увеличена скорость и радиус)
+        // Параметры для орбитального движения
         this.orbitSpeed = 0.03 + Math.random() * 0.02;
         this.orbitRadius = 50 + Math.random() * 60;
         this.orbitPhase = Math.random() * Math.PI * 2;
         
-        // Параметры для дополнительного движения по полотну (увеличена скорость и радиус)
+        // Параметры для дополнительного движения по полотну
         this.canvasSpeed = 0.01 + Math.random() * 0.01;
         this.canvasRadius = 100 + Math.random() * 100;
         this.canvasPhase = Math.random() * Math.PI * 2;
@@ -122,7 +126,7 @@ class ConstellationGroup {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        this.maxScreenDistance = 200; // Максимальное расстояние от центра экрана
+        this.maxScreenDistance = 200;
         
         this.init(starTexture);
     }
@@ -133,6 +137,62 @@ class ConstellationGroup {
             nextIndex = Math.floor(Math.random() * this.data.stars.length);
         } while (nextIndex === this.activeStarIndex);
         return nextIndex;
+    }
+
+    createConnectionLines() {
+        this.data.connections.forEach(connection => {
+            const lineMaterial = new THREE.LineBasicMaterial({ 
+                color: new THREE.Color(this.data.color),
+                transparent: true, 
+                opacity: 0.2,
+                linewidth: 2
+            });
+
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                this.stars[connection[0]].position,
+                this.stars[connection[1]].position
+            ]);
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            this.group.add(line);
+        });
+    }
+
+    updateRotation(time) {
+        this.rotationTimer += 0.016;
+        this.rotationTransitionProgress += 0.01;
+        
+        if (this.rotationTimer >= this.rotationChangeTime) {
+            this.targetRotationSpeed = {
+                x: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
+                y: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
+                z: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1)
+            };
+            this.rotationTimer = 0;
+            this.rotationTransitionProgress = 0;
+            this.rotationChangeTime = 15 + Math.random() * 15;
+        }
+
+        if (this.rotationTransitionProgress < 1) {
+            this.rotationSpeed.x = THREE.MathUtils.lerp(
+                this.rotationSpeed.x,
+                this.targetRotationSpeed.x,
+                this.rotationTransitionProgress
+            );
+            this.rotationSpeed.y = THREE.MathUtils.lerp(
+                this.rotationSpeed.y,
+                this.targetRotationSpeed.y,
+                this.rotationTransitionProgress
+            );
+            this.rotationSpeed.z = THREE.MathUtils.lerp(
+                this.rotationSpeed.z,
+                this.targetRotationSpeed.z,
+                this.rotationTransitionProgress
+            );
+        }
+
+        this.group.rotation.x += this.rotationSpeed.x;
+        this.group.rotation.y += this.rotationSpeed.y;
+        this.group.rotation.z += this.rotationSpeed.z;
     }
 
     init(starTexture) {
@@ -150,21 +210,7 @@ class ConstellationGroup {
         });
 
         // Создаем соединения между звездами
-        this.data.connections.forEach(connection => {
-            const lineMaterial = new THREE.LineBasicMaterial({ 
-                color: new THREE.Color(this.data.color),
-                transparent: true, 
-                opacity: 0.2,
-                linewidth: 2
-            });
-
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-                this.stars[connection[0]].position,
-                this.stars[connection[1]].position
-            ]);
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            this.group.add(line);
-        });
+        this.createConnectionLines();
 
         // Устанавливаем начальную позицию группы
         this.group.position.set(
@@ -226,44 +272,7 @@ class ConstellationGroup {
         this.group.position.z = zPosition;
 
         // Обновляем таймер вращения
-        this.rotationTimer += 0.016;
-        this.rotationTransitionProgress += 0.01;
-        
-        // Проверяем, нужно ли сменить направление вращения
-        if (this.rotationTimer >= this.rotationChangeTime) {
-            this.targetRotationSpeed = {
-                x: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
-                y: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
-                z: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1)
-            };
-            this.rotationTimer = 0;
-            this.rotationTransitionProgress = 0;
-            this.rotationChangeTime = 15 + Math.random() * 15;
-        }
-
-        // Плавно интерполируем текущую скорость вращения к целевой
-        if (this.rotationTransitionProgress < 1) {
-            this.rotationSpeed.x = THREE.MathUtils.lerp(
-                this.rotationSpeed.x,
-                this.targetRotationSpeed.x,
-                this.rotationTransitionProgress
-            );
-            this.rotationSpeed.y = THREE.MathUtils.lerp(
-                this.rotationSpeed.y,
-                this.targetRotationSpeed.y,
-                this.rotationTransitionProgress
-            );
-            this.rotationSpeed.z = THREE.MathUtils.lerp(
-                this.rotationSpeed.z,
-                this.targetRotationSpeed.z,
-                this.rotationTransitionProgress
-            );
-        }
-
-        // Вращение созвездия по всем осям
-        this.group.rotation.x += this.rotationSpeed.x;
-        this.group.rotation.y += this.rotationSpeed.y;
-        this.group.rotation.z += this.rotationSpeed.z;
+        this.updateRotation(time);
 
         // Орбитальное движение с учетом масштабирования
         const orbitX = Math.cos(time * this.orbitSpeed + this.orbitPhase) * this.orbitRadius * smoothScaleFactor;
@@ -325,11 +334,7 @@ class BackgroundStars {
         this.group = new THREE.Group();
         this.count = count;
         this.starTexture = starTexture;
-        this.phases = new Float32Array(count);
-        this.flickerSpeeds = new Float32Array(count);
-        this.flickerAmplitudes = new Float32Array(count);
-        this.movePhases = new Float32Array(count);
-        this.isMoving = new Float32Array(count);
+        this.stars = [];
         this.init();
     }
 
@@ -343,17 +348,20 @@ class BackgroundStars {
             positions[i * 3 + 2] = -300 + Math.random() * 200;
             
             sizes[i] = Math.random() * 1 + 0.5;
-            this.phases[i] = Math.random() * Math.PI * 2;
-            this.movePhases[i] = Math.random() * Math.PI * 2;
-            this.isMoving[i] = Math.random() < 0.15 ? 1 : 0;
             
-            if (Math.random() < 0.3) {
-                this.flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
-                this.flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
-            } else {
-                this.flickerSpeeds[i] = 0.005;
-                this.flickerAmplitudes[i] = 0.2;
-            }
+            // Создаем объект с параметрами для каждой звезды
+            this.stars.push({
+                phase: Math.random() * Math.PI * 2,
+                movePhase: Math.random() * Math.PI * 2,
+                isMoving: Math.random() < 0.15,
+                flickerSpeed: Math.random() < 0.3 
+                    ? 0.05 + Math.random() * 0.1 
+                    : 0.005,
+                flickerAmplitude: Math.random() < 0.3 
+                    ? 0.5 + Math.random() * 0.5 
+                    : 0.2,
+                delay: Math.random() * Math.PI * 2 // Случайная задержка для мерцания
+            });
         }
 
         const geometry = new THREE.BufferGeometry();
@@ -379,16 +387,19 @@ class BackgroundStars {
         const sizes = this.points.geometry.attributes.size.array;
         
         for (let i = 0; i < this.count; i++) {
-            this.phases[i] += this.flickerSpeeds[i];
-            const brightness = Math.sin(this.phases[i]) * this.flickerAmplitudes[i] + (1 - this.flickerAmplitudes[i] / 2);
+            const star = this.stars[i];
+            
+            // Обновляем мерцание с учетом задержки
+            star.phase += star.flickerSpeed + Math.random() * 0.01;
+            const brightness = Math.sin(star.phase + star.delay) * star.flickerAmplitude + (1 - star.flickerAmplitude / 2);
             sizes[i] = brightness * (Math.random() * 1 + 0.5);
             
-            if (this.isMoving[i] === 1) {
-                this.movePhases[i] += 0.003;
+            if (star.isMoving) {
+                star.movePhase += 0.003;
                 
-                positions[i * 3] += Math.sin(this.movePhases[i]) * 0.05;
-                positions[i * 3 + 1] += Math.cos(this.movePhases[i]) * 0.05;
-                positions[i * 3 + 2] += Math.sin(this.movePhases[i] * 0.5) * 0.02;
+                positions[i * 3] += Math.sin(star.movePhase) * 0.05;
+                positions[i * 3 + 1] += Math.cos(star.movePhase) * 0.05;
+                positions[i * 3 + 2] += Math.sin(star.movePhase * 0.5) * 0.02;
                 
                 // Ограничиваем движение по экрану
                 if (positions[i * 3] < -800) positions[i * 3] = 800;
@@ -405,26 +416,22 @@ class BackgroundStars {
     }
 }
 
-export class Constellation {
+export class Constellation extends BaseAnimation {
     constructor(container) {
-        this.container = container;
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        super(container, { zIndex: '2' });
         this.constellations = [];
         this.backgroundStars = null;
-        
-        this.init();
+        this.name = 'Constellation';
+        this.frame = 0;
     }
 
-    init() {
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.container.appendChild(this.renderer.domElement);
+    initScene() {
+        super.initScene();
         
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(0, 0, -1);
         
-        const starTexture = this.createStarTexture();
+        const starTexture = createStarTexture();
         this.backgroundStars = new BackgroundStars(2000, starTexture);
         this.scene.add(this.backgroundStars.group);
         
@@ -433,41 +440,34 @@ export class Constellation {
             this.scene.add(constellationGroup.group);
             this.constellations.push(constellationGroup);
         });
-        
-        this.animate();
-    }
 
-    createStarTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
-        const ctx = canvas.getContext('2d');
-        
-        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.9)');
-        gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.6)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 64, 64);
-        
-        const texture = new THREE.Texture(canvas);
-        texture.needsUpdate = true;
-        return texture;
+        // Добавляем туман для эффекта глубины
+        this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
     }
 
     animate() {
-        requestAnimationFrame(() => this.animate());
+        if (!this.isVisible || !this.scene || !this.camera) return;
+
+        super.animate();
         
-        const time = Date.now() * 0.001;
+        // Обновляем анимацию через кадр
+        if (this.frame % 2 === 0) {
+            const time = Date.now() * 0.001;
+            
+            this.backgroundStars.update(time);
+            
+            this.constellations.forEach((constellation, index) => {
+                constellation.update(time, this.constellations.filter(c => c !== constellation));
+            });
+        }
         
-        this.backgroundStars.update(time);
-        
-        this.constellations.forEach((constellation, index) => {
-            constellation.update(time, this.constellations.filter(c => c !== constellation));
-        });
-        
+        this.frame++;
         this.renderer.render(this.scene, this.camera);
+    }
+
+    cleanup() {
+        this.constellations = [];
+        this.backgroundStars = null;
+        super.cleanup();
     }
 } 
