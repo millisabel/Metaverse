@@ -13,7 +13,7 @@ export function initSlider() {
     let currentSlide = 0;
     let animationFrame = null;
 
-    // Функция для получения актуальных размеров и позиций
+    // Get dimensions
     function getDimensions() {
         const handleRect = handle.getBoundingClientRect();
         const trackRect = track.getBoundingClientRect();
@@ -24,7 +24,7 @@ export function initSlider() {
         };
     }
 
-    // Функция для обновления позиции индикатора
+    // Function to update indicator position
     function updateIndicatorPosition(slideIndex) {
         const { handleWidth, trackWidth } = getDimensions();
         const progress = (slideIndex / (totalSlides - 1)) * 100;
@@ -34,14 +34,14 @@ export function initSlider() {
         fill.style.width = `${position + handleWidth}px`;
     }
 
-    // Функция для получения индекса слайда из позиции
+    // Function to get slide index from position
     function getSlideIndexFromPosition(position) {
         const { handleWidth, trackWidth } = getDimensions();
         const progress = position / (trackWidth - handleWidth);
         return Math.round(progress * (totalSlides - 1));
     }
 
-    // Функция для плавного перемещения индикатора
+    // Function to smoothly move indicator
     function smoothMoveToPosition(targetPosition, duration = 300) {
         const { handleWidth } = getDimensions();
         const startPosition = handle.offsetLeft;
@@ -52,7 +52,7 @@ export function initSlider() {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            // Функция плавности (easing)
+            // Smoothness function (easing)
             const easeProgress = progress < 0.5
                 ? 2 * progress * progress
                 : 1 - Math.pow(-2 * progress + 2, 2) / 2;
@@ -72,14 +72,14 @@ export function initSlider() {
         animationFrame = requestAnimationFrame(animate);
     }
 
-    // Обработчики для drag-and-drop
+    // Drag-and-drop handlers
     function handleDragStart(e) {
         isDragging = true;
         startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
         startLeft = handle.offsetLeft;
         carousel.pause();
 
-        // Отменяем текущую анимацию при начале перетаскивания
+        // Cancel current animation when dragging starts
         if (animationFrame) {
             cancelAnimationFrame(animationFrame);
             animationFrame = null;
@@ -94,7 +94,7 @@ export function initSlider() {
         const currentX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
         const deltaX = currentX - startX;
         
-        // Ограничиваем перемещение строго в пределах трека
+        // Limit movement strictly within the track
         const maxLeft = trackWidth - handleWidth;
         const newLeft = Math.max(0, Math.min(startLeft + deltaX, maxLeft));
         
@@ -111,15 +111,15 @@ export function initSlider() {
         const trackRect = track.getBoundingClientRect();
         const finalPosition = finalX - trackRect.left;
         
-        // Ограничиваем финальную позицию в пределах трека
+        // Limit final position within the track
         const maxPosition = trackWidth - handleWidth;
         const clampedPosition = Math.max(0, Math.min(finalPosition, maxPosition));
         const newSlideIndex = getSlideIndexFromPosition(clampedPosition);
 
-        // Вычисляем конечную позицию для индикатора
+        // Calculate target position for indicator
         const targetPosition = (newSlideIndex / (totalSlides - 1)) * (trackWidth - handleWidth);
 
-        // Плавно перемещаем индикатор к конечной позиции
+        // Smoothly move indicator to final position
         smoothMoveToPosition(targetPosition);
 
         if (newSlideIndex !== currentSlide) {
@@ -129,7 +129,7 @@ export function initSlider() {
         currentSlide = newSlideIndex;
     }
 
-    // Добавляем обработчики событий
+    // Add event listeners
     handle.addEventListener('mousedown', handleDragStart);
     handle.addEventListener('touchstart', handleDragStart, { passive: false });
     document.addEventListener('mousemove', handleDragMove);
@@ -137,7 +137,7 @@ export function initSlider() {
     document.addEventListener('mouseup', handleDragEnd);
     document.addEventListener('touchend', handleDragEnd);
 
-    // Инициализируем карусель
+    // Initialize carousel
     const carousel = new bootstrap.Carousel(carouselElement, {
         interval: 5000,
         touch: true,
@@ -145,7 +145,7 @@ export function initSlider() {
         nextWhenVisible: false,
     });
 
-    // Отслеживаем видимость секции
+    // Track visibility of section
     const aboutSection = document.getElementById('about');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -168,12 +168,12 @@ export function initSlider() {
         updateIndicatorPosition(currentIndex);
     }
 
-    // Слушаем событие изменения слайда
+    // Listen for slide change event
     carouselElement.addEventListener('slide.bs.carousel', function(e) {
         updateNumbers(e.to);
         currentSlide = e.to;
     });
 
-    // Инициализируем начальные значения
+    // Initialize initial values
     updateNumbers(0);
 }
