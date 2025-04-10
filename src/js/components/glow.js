@@ -277,7 +277,7 @@ export class Glow extends AnimationController {
     log(message, type = 'info') {
         const timestamp = new Date().toISOString();
         const prefix = `[${this.name}]`;
-        const formattedMessage = `${timestamp} ${prefix} ${message}`;
+        const formattedMessage = `${prefix} ${message}`;
         
         switch (type) {
             case 'error':
