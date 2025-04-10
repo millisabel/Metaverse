@@ -1,26 +1,15 @@
 import * as THREE from 'three';
 
-export const createCanvas = (container, options = {}) => {
-    const {
-        antialias = true,
-        alpha = true,
-        zIndex = '0',
-        pointerEvents = 'none',
-        powerPreference = 'high-performance'
-    } = options;
+export const createCanvas = (renderer, options = {}) => {
+    const { zIndex = '0' } = options;
 
-    const renderer = new THREE.WebGLRenderer({ 
-        antialias,
-        alpha,
-        powerPreference
-    });
-    
     const canvas = renderer.domElement;
+
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
     canvas.style.left = '0';
     canvas.style.zIndex = zIndex;
-    canvas.style.pointerEvents = pointerEvents;
+    canvas.style.pointerEvents = 'none';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.overflow = 'hidden';
@@ -28,16 +17,7 @@ export const createCanvas = (container, options = {}) => {
     canvas.style.backfaceVisibility = 'hidden';
     canvas.style.willChange = 'transform';
     
-    const pixelRatio = Math.min(window.devicePixelRatio, 2);
-    renderer.setPixelRatio(pixelRatio);
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    
-    container.appendChild(canvas);
-    
-    return {
-        renderer,
-        canvas
-    };
+    return canvas;
 };
 
 export const updateRendererSize = (renderer, container, camera, options = {}) => {

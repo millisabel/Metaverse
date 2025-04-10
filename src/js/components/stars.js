@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { AnimationController } from '../utils/animationController_3D';
-import {updateRendererSize} from "../utils/canvasUtils";
+import {createCanvas, updateRendererSize} from "../utils/canvasUtils";
 import { createStarTexture } from '../utils/textureUtils';
 
 export class Stars extends AnimationController {
@@ -34,18 +34,7 @@ export class Stars extends AnimationController {
         
         this.container.appendChild(this.renderer.domElement);
         
-        const canvas = this.renderer.domElement;
-        canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.zIndex = '2';
-        canvas.style.pointerEvents = 'none';
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        canvas.style.overflow = 'hidden';
-        canvas.style.transform = 'translateZ(0)';
-        canvas.style.backfaceVisibility = 'hidden';
-        canvas.style.willChange = 'transform';
+        createCanvas(this.renderer, { zIndex: '2' });
         
         this.camera.position.z = 5;
         
