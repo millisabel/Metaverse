@@ -126,4 +126,12 @@
             }
         }
     }
+
+    @include desktop{
+        &-indicators{
+            &-custom{
+                padding: 1rem 0;
+            }
+        }
+    }
 }
