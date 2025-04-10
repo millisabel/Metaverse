@@ -12,8 +12,8 @@
         "connections": [
             [0, 1], [1, 2], [2, 3], [3, 4], [2, 5]
         ],
-        "color": "#FFFFFF",
-        "basePosition": { "x": -100, "y": 20, "z": -250 },
+        "color": "#F00AFE",
+        "basePosition": { "x": -100, "y": 20, "z": 0 },
         "rotation": { "x": 0.2, "y": 0.5, "z": 0.1 },
         "offsetY": 0,
         "cycleOffset": 0,
@@ -34,7 +34,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [2, 6]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 10, "y": 20, "z": -30 },
+        "basePosition": { "x": 10, "y": 20, "z": 0 },
         "rotation": { "x": -0.3, "y": 0.2, "z": 0.4 },
         "offsetY": 2,
         "cycleOffset": 1.57,
@@ -58,7 +58,7 @@
             [5, 6], [6, 7], [7, 8]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": -150, "y": -200, "z": -350 },
+        "basePosition": { "x": -150, "y": -20, "z": 0 },
         "rotation": { "x": 0.1, "y": -0.4, "z": 0.2 },
         "offsetY": -2,
         "cycleOffset": 3.14,
@@ -79,7 +79,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [2, 6]
         ],
         "color": "#FF6B6B",
-        "basePosition": { "x": -15, "y": 10, "z": -30 },
+        "basePosition": { "x": -15, "y": 10, "z": 0 },
         "rotation": { "x": -0.2, "y": 0.3, "z": -0.1 },
         "offsetY": 1,
         "cycleOffset": 4.71,
@@ -101,7 +101,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": -15, "y": 40, "z": -80 },
+        "basePosition": { "x": -15, "y": 40, "z": 0 },
         "rotation": { "x": 0.4, "y": -0.2, "z": 0.3 },
         "offsetY": -1,
         "cycleOffset": 0.78,
@@ -123,7 +123,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 100, "y": -45, "z": -200 },
+        "basePosition": { "x": 100, "y": -45, "z": 0 },
         "rotation": { "x": -0.1, "y": 0.4, "z": -0.2 },
         "offsetY": 3,
         "cycleOffset": 2.36,
@@ -144,7 +144,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 0, "y": 0, "z": -20 },
+        "basePosition": { "x": 0, "y": 0, "z": 0 },
         "rotation": { "x": 0.3, "y": -0.1, "z": 0.4 },
         "offsetY": -3,
         "cycleOffset": 1.57,
@@ -166,7 +166,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 140, "y": -10, "z": -230 },
+        "basePosition": { "x": 140, "y": -10, "z": 0 },
         "rotation": { "x": -0.4, "y": 0.3, "z": -0.3 },
         "offsetY": 4,
         "cycleOffset": 3.93,
@@ -188,7 +188,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 30, "y": -80, "z": -150 },
+        "basePosition": { "x": 30, "y": -80, "z": 0 },
         "rotation": { "x": 0.2, "y": -0.3, "z": 0.1 },
         "offsetY": -4,
         "cycleOffset": 5.5,
@@ -209,7 +209,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 5, "y": 5, "z": -20 },
+        "basePosition": { "x": 5, "y": 5, "z": 0 },
         "rotation": { "x": -0.3, "y": 0.1, "z": -0.4 },
         "offsetY": 5,
         "cycleOffset": 0.39,
@@ -231,7 +231,7 @@
             [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": 5, "y": -15, "z": -100 },
+        "basePosition": { "x": 5, "y": -15, "z": 0 },
         "rotation": { "x": 0.1, "y": -0.4, "z": 0.2 },
         "offsetY": -5,
         "cycleOffset": 1.18,
@@ -254,10 +254,201 @@
             [4, 5], [5, 6], [6, 7]
         ],
         "color": "#FFFFFF",
-        "basePosition": { "x": -20, "y": -15, "z": -200 },
+        "basePosition": { "x": -20, "y": -15, "z": 0 },
         "rotation": { "x": -0.2, "y": 0.2, "z": -0.1 },
         "offsetY": 6,
         "cycleOffset": 2.36,
         "amplitude": 6.5
+    },
+    {
+        "name": "Orion",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 2, "z": 0 },
+            { "x": 2, "y": 1, "z": 0 },
+            { "x": 3, "y": 3, "z": 0 },
+            { "x": 4, "y": 2, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#FFD700",
+        "basePosition": { "x": 50, "y": 30, "z": 0 },
+        "rotation": { "x": 0.1, "y": 0.2, "z": 0.3 },
+        "offsetY": 2,
+        "cycleOffset": 1.57,
+        "amplitude": 5
+    },
+    {
+        "name": "Cassiopeia",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1, "z": 0 },
+            { "x": 2, "y": 0, "z": 0 },
+            { "x": 3, "y": 1, "z": 0 },
+            { "x": 4, "y": 0.5, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#8A2BE2",
+        "basePosition": { "x": -50, "y": -30, "z": 0 },
+        "rotation": { "x": -0.2, "y": 0.1, "z": -0.3 },
+        "offsetY": -2,
+        "cycleOffset": 3.14,
+        "amplitude": 4
+    },
+    {
+        "name": "Andromeda",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1, "z": 0 },
+            { "x": 2, "y": 0.5, "z": 0 },
+            { "x": 3, "y": 1, "z": 0 },
+            { "x": 4, "y": 0, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#FF69B4",
+        "basePosition": { "x": -70, "y": -50, "z": 0 },
+        "rotation": { "x": -0.3, "y": -0.2, "z": -0.1 },
+        "offsetY": -3,
+        "cycleOffset": 2.36,
+        "amplitude": 6
+    },
+    {
+        "name": "Pegasus",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1, "z": 0 },
+            { "x": 2, "y": 0.5, "z": 0 },
+            { "x": 3, "y": 1.5, "z": 0 },
+            { "x": 4, "y": 1, "z": 0 },
+            { "x": 5, "y": 0, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4], [4, 5]
+        ],
+        "color": "#1E90FF",
+        "basePosition": { "x": -70, "y": -40, "z": 0 },
+        "rotation": { "x": -0.3, "y": 0.2, "z": -0.2 },
+        "offsetY": -3,
+        "cycleOffset": 1.8,
+        "amplitude": 5.5
+    },
+    {
+        "name": "Lyra",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1, "z": 0 },
+            { "x": 2, "y": 0.5, "z": 0 },
+            { "x": 3, "y": 1.5, "z": 0 },
+            { "x": 4, "y": 1, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#FFD700",
+        "basePosition": { "x": 20, "y": 50, "z": 0 },
+        "rotation": { "x": 0.1, "y": 0.2, "z": 0.1 },
+        "offsetY": 2,
+        "cycleOffset": 1.2,
+        "amplitude": 4
+    },
+    {
+        "name": "Cygnus",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1.5, "z": 0 },
+            { "x": 2, "y": 1, "z": 0 },
+            { "x": 3, "y": 2, "z": 0 },
+            { "x": 4, "y": 1.5, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#FF4500",
+        "basePosition": { "x": -30, "y": 60, "z": 0 },
+        "rotation": { "x": 0.2, "y": 0.3, "z": 0.2 },
+        "offsetY": 3,
+        "cycleOffset": 2.1,
+        "amplitude": 5
+    },
+    {
+        "name": "Draco",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1, "z": 0 },
+            { "x": 2, "y": 0.5, "z": 0 },
+            { "x": 3, "y": 1.5, "z": 0 },
+            { "x": 4, "y": 1, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#8A2BE2",
+        "basePosition": { "x": 40, "y": -20, "z": 0 },
+        "rotation": { "x": -0.1, "y": 0.2, "z": -0.1 },
+        "offsetY": -2,
+        "cycleOffset": 3.5,
+        "amplitude": 6
+    },
+    {
+        "name": "Hercules",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1.5, "z": 0 },
+            { "x": 2, "y": 1, "z": 0 },
+            { "x": 3, "y": 2, "z": 0 },
+            { "x": 4, "y": 1.5, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#1E90FF",
+        "basePosition": { "x": -50, "y": 30, "z": 0 },
+        "rotation": { "x": 0.3, "y": -0.2, "z": 0.3 },
+        "offsetY": 1,
+        "cycleOffset": 4.0,
+        "amplitude": 5.5
+    },
+    {
+        "name": "Perseus",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1, "z": 0 },
+            { "x": 2, "y": 0.5, "z": 0 },
+            { "x": 3, "y": 1.5, "z": 0 },
+            { "x": 4, "y": 1, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#FF69B4",
+        "basePosition": { "x": 60, "y": -40, "z": 0 },
+        "rotation": { "x": -0.2, "y": 0.1, "z": -0.2 },
+        "offsetY": -3,
+        "cycleOffset": 2.8,
+        "amplitude": 6.5
+    },
+    {
+        "name": "Auriga",
+        "stars": [
+            { "x": 0, "y": 0, "z": 0 },
+            { "x": 1, "y": 1.5, "z": 0 },
+            { "x": 2, "y": 1, "z": 0 },
+            { "x": 3, "y": 2, "z": 0 },
+            { "x": 4, "y": 1.5, "z": 0 }
+        ],
+        "connections": [
+            [0, 1], [1, 2], [2, 3], [3, 4]
+        ],
+        "color": "#00FA9A",
+        "basePosition": { "x": -80, "y": 20, "z": 0 },
+        "rotation": { "x": 0.4, "y": -0.3, "z": 0.4 },
+        "offsetY": 4,
+        "cycleOffset": 1.5,
+        "amplitude": 7
     }
 ]
