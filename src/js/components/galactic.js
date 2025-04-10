@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { AnimationController } from '../utils/animationController_3D';
+import { createCanvas, updateRendererSize } from '../utils/canvasUtils';
 
 export class GalacticCloud extends AnimationController {
     constructor(container) {
@@ -28,7 +29,7 @@ export class GalacticCloud extends AnimationController {
             powerPreference: "high-performance"
         });
 
-        this.updateRendererSize();
+        updateRendererSize(this.renderer, this.container, this.camera);
         this.container.appendChild(this.renderer.domElement);
 
         const canvas = this.renderer.domElement;
@@ -68,24 +69,24 @@ export class GalacticCloud extends AnimationController {
         this.isInitialized = true;
     }
 
-    updateRendererSize() {
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
-        const pixelRatio = Math.min(window.devicePixelRatio, 2);
-        
-        this.renderer.setSize(width, height);
-        this.renderer.setPixelRatio(pixelRatio);
-        this.renderer.setClearColor(0x000000, 0);
-        
-        if (this.camera) {
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-        }
-        
-        if (this.composer) {
-            this.composer.setSize(width, height);
-        }
-    }
+    // updateRendererSize() {
+    //     const width = this.container.clientWidth;
+    //     const height = this.container.clientHeight;
+    //     const pixelRatio = Math.min(window.devicePixelRatio, 2);
+    //
+    //     this.renderer.setSize(width, height);
+    //     this.renderer.setPixelRatio(pixelRatio);
+    //     this.renderer.setClearColor(0x000000, 0);
+    //
+    //     if (this.camera) {
+    //         this.camera.aspect = width / height;
+    //         this.camera.updateProjectionMatrix();
+    //     }
+    //
+    //     if (this.composer) {
+    //         this.composer.setSize(width, height);
+    //     }
+    // }
 
     createGalaxyCore() {
         const coreGeometry = new THREE.PlaneGeometry(2, 2, 128, 128);

@@ -427,22 +427,11 @@ export class Constellation extends AnimationController {
         this.frame = 0;
     }
 
-    updateRendererSize() {
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
-        const pixelRatio = Math.min(window.devicePixelRatio, 2);
-        
-        this.renderer.setSize(width, height);
-        this.renderer.setPixelRatio(pixelRatio);
-        
-        if (this.camera) {
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-        }
-    }
-
     onResize() {
-        this.updateRendererSize();
+        updateRendererSize(this.renderer, this.container, this.camera, {
+            clearColor: { color: 0x000000, alpha: 0 },
+            composer: this.composer
+        });
     }
 
     initScene() {
@@ -457,7 +446,7 @@ export class Constellation extends AnimationController {
             powerPreference: "high-performance"
         });
         
-        this.updateRendererSize();
+        updateRendererSize(this.renderer, this.container, this.camera);
         
         this.container.appendChild(this.renderer.domElement);
         

@@ -40,7 +40,9 @@ export const createCanvas = (container, options = {}) => {
     };
 };
 
-export const updateRendererSize = (renderer, container, camera) => {
+export const updateRendererSize = (renderer, container, camera, options = {}) => {
+    const { clearColor = null, composer = null } = options;
+
     const width = container.clientWidth;
     const height = container.clientHeight;
     const pixelRatio = Math.min(window.devicePixelRatio, 2);
@@ -51,5 +53,13 @@ export const updateRendererSize = (renderer, container, camera) => {
     if (camera) {
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+    }
+
+    if (clearColor !== null) {
+        renderer.setClearColor(clearColor.color, clearColor.alpha);
+    }
+
+    if (composer) {
+        composer.setSize(width, height);
     }
 }; 

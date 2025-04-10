@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { AnimationController } from '../utils/animationController_3D';
+import {updateRendererSize} from "../utils/canvasUtils";
 
 export class Stars extends AnimationController {
     constructor(container) {
@@ -28,7 +29,7 @@ export class Stars extends AnimationController {
             powerPreference: "high-performance"
         });
         
-        this.updateRendererSize();
+        updateRendererSize(this.renderer, this.container, this.camera);
         
         this.container.appendChild(this.renderer.domElement);
         
@@ -165,23 +166,9 @@ export class Stars extends AnimationController {
         
         this.renderer.render(this.scene, this.camera);
     }
-    
-    updateRendererSize() {
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
-        const pixelRatio = Math.min(window.devicePixelRatio, 2);
-        
-        this.renderer.setSize(width, height);
-        this.renderer.setPixelRatio(pixelRatio);
-        
-        if (this.camera) {
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-        }
-    }
 
     onResize() {
-        this.updateRendererSize();
+        updateRendererSize(this.renderer, this.container, this.camera);
     }
 
     cleanup() {
