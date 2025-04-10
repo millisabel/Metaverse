@@ -8,14 +8,16 @@ export class Glow extends AnimationController {
         super(parent);
         this.name = 'Glow';
         this.log(`Initializing ${this.name}`);
+        
+        const isMobile = window.innerWidth <= 768;
 
         // Default options
         this.options = {
-            count: 5,
+            count: isMobile ? 3 : 5,
             colors: ['#ffffff', '#f0f0f0', '#e0e0e0'],
             size: {
-                min: 0.5,
-                max: 2
+                min: isMobile ? 0.2 : 0.5,
+                max: isMobile ? 1.5 : 2
             },
             speed: {
                 min: 0.1,
@@ -47,8 +49,10 @@ export class Glow extends AnimationController {
             this.scene = new THREE.Scene();
             
             // Create camera
+            const rect = this.container.getBoundingClientRect();
+            const aspect = rect.width / rect.height;
             this.camera = new THREE.OrthographicCamera(
-                -1, 1, 1, -1, 0.1, 1000
+                -aspect, aspect, 1, -1, 0.1, 1000
             );
             this.camera.position.z = 1;
 
@@ -167,9 +171,7 @@ export class Glow extends AnimationController {
         mesh.position.z = Math.random() * 2 - 1;
         
         // Adjust scale based on aspect ratio for both axes
-        const scaleX = size * (aspect > 1 ? 1 : aspect);
-        const scaleY = size * (aspect > 1 ? 1 / aspect : 1);
-        mesh.scale.set(scaleX, scaleY, 1);
+        mesh.scale.set(size, size, 1);
         
         // Random rotation for more natural look
         mesh.rotation.z = Math.random() * Math.PI * 2;
@@ -233,11 +235,12 @@ export class Glow extends AnimationController {
         if (!this.renderer || !this.camera) return;
 
         const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
         updateRendererSize(this.renderer, this.container, this.camera);
         
         // Update camera aspect ratio
-        this.camera.left = -1;
-        this.camera.right = 1;
+        this.camera.left = -aspect;
+        this.camera.right = aspect;
         this.camera.top = 1;
         this.camera.bottom = -1;
         this.camera.updateProjectionMatrix();

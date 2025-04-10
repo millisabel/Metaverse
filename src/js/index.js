@@ -52,10 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const roadMapSection = document.getElementById('roadmap');
     const isMobile = window.innerWidth <= 768;
-    const isTablet = window.innerWidth <= 1199;
+    const isTablet = window.innerWidth <= 1099;
+
     if (roadMapSection) {
         new Glow(roadMapSection, {
-            count: isMobile ? 3 : isTablet ? 8 : 10,
+            count: isMobile ? 5 : isTablet ? 8 : 10,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
         });
     }   
