@@ -320,40 +320,120 @@ class ConstellationGroup {
     }
 }
 
+class BackgroundStars {
+    constructor(count, starTexture) {
+        this.group = new THREE.Group();
+        this.count = count;
+        this.starTexture = starTexture;
+        this.phases = new Float32Array(count);
+        this.flickerSpeeds = new Float32Array(count);
+        this.flickerAmplitudes = new Float32Array(count);
+        this.movePhases = new Float32Array(count);
+        this.isMoving = new Float32Array(count);
+        this.init();
+    }
+
+    init() {
+        const positions = new Float32Array(this.count * 3);
+        const sizes = new Float32Array(this.count);
+        
+        for (let i = 0; i < this.count; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 800;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 800;
+            positions[i * 3 + 2] = -300 + Math.random() * 200;
+            
+            sizes[i] = Math.random() * 1 + 0.5;
+            this.phases[i] = Math.random() * Math.PI * 2;
+            this.movePhases[i] = Math.random() * Math.PI * 2;
+            this.isMoving[i] = Math.random() < 0.15 ? 1 : 0;
+            
+            if (Math.random() < 0.3) {
+                this.flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
+                this.flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
+            } else {
+                this.flickerSpeeds[i] = 0.005;
+                this.flickerAmplitudes[i] = 0.2;
+            }
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const material = new THREE.PointsMaterial({
+            color: 0xFFFFFF,
+            size: 1,
+            map: this.starTexture,
+            transparent: true,
+            opacity: 1,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true
+        });
+
+        this.points = new THREE.Points(geometry, material);
+        this.group.add(this.points);
+    }
+
+    update(time) {
+        const positions = this.points.geometry.attributes.position.array;
+        const sizes = this.points.geometry.attributes.size.array;
+        
+        for (let i = 0; i < this.count; i++) {
+            this.phases[i] += this.flickerSpeeds[i];
+            const brightness = Math.sin(this.phases[i]) * this.flickerAmplitudes[i] + (1 - this.flickerAmplitudes[i] / 2);
+            sizes[i] = brightness * (Math.random() * 1 + 0.5);
+            
+            if (this.isMoving[i] === 1) {
+                this.movePhases[i] += 0.003;
+                
+                positions[i * 3] += Math.sin(this.movePhases[i]) * 0.05;
+                positions[i * 3 + 1] += Math.cos(this.movePhases[i]) * 0.05;
+                positions[i * 3 + 2] += Math.sin(this.movePhases[i] * 0.5) * 0.02;
+                
+                // Ограничиваем движение по экрану
+                if (positions[i * 3] < -800) positions[i * 3] = 800;
+                if (positions[i * 3] > 800) positions[i * 3] = -800;
+                if (positions[i * 3 + 1] < -800) positions[i * 3 + 1] = 800;
+                if (positions[i * 3 + 1] > 800) positions[i * 3 + 1] = -800;
+                if (positions[i * 3 + 2] < -300) positions[i * 3 + 2] = -100;
+                if (positions[i * 3 + 2] > -100) positions[i * 3 + 2] = -300;
+            }
+        }
+        
+        this.points.geometry.attributes.position.needsUpdate = true;
+        this.points.geometry.attributes.size.needsUpdate = true;
+    }
+}
+
 export class Constellation {
     constructor(container) {
         this.container = container;
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.constellations = [];
+        this.backgroundStars = null;
         
         this.init();
     }
 
     init() {
-        // Настраиваем рендерер
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.container.appendChild(this.renderer.domElement);
         
-        // Настраиваем камеру
         this.camera.position.set(0, 0, 0);
-        this.camera.lookAt(0, 0, 0);
+        this.camera.lookAt(0, 0, -1);
         
-        // Создаем текстуру для звезд
         const starTexture = this.createStarTexture();
+        this.backgroundStars = new BackgroundStars(2000, starTexture);
+        this.scene.add(this.backgroundStars.group);
         
-        // Создаем созвездия
         constellationsData.forEach((data) => {
             const constellationGroup = new ConstellationGroup(data, starTexture);
             this.scene.add(constellationGroup.group);
             this.constellations.push(constellationGroup);
         });
-
-        // Проверяем количество созданных созвездий
-        console.log('Created constellations:', this.constellations.length);
         
-        // Запускаем рендеринг
         this.animate();
     }
 
@@ -365,8 +445,8 @@ export class Constellation {
         
         const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
         gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.8)');
-        gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.4)');
+        gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.9)');
+        gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.6)');
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
         
         ctx.fillStyle = gradient;
@@ -380,9 +460,10 @@ export class Constellation {
     animate() {
         requestAnimationFrame(() => this.animate());
         
-        const time = Date.now() * 0.001; // Преобразуем время в секунды
+        const time = Date.now() * 0.001;
         
-        // Обновляем все созвездия
+        this.backgroundStars.update(time);
+        
         this.constellations.forEach((constellation, index) => {
             constellation.update(time, this.constellations.filter(c => c !== constellation));
         });
