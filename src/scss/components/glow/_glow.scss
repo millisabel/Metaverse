@@ -1,0 +1,17 @@
+.glow-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(20px);
+    transform: translateZ(0);
+    will-change: transform;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
