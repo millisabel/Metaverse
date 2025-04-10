@@ -9,6 +9,7 @@ import { GalacticCloud } from './components/galactic';
 import { Stars } from './components/stars';
 import { ContainerManager } from './utils/containerManager';
 import initModal from './components/modal';
+import { Constellation } from './components/constellation';
 
 // Initialize components when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,6 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize stars
         new Stars(starsContainer);
+    }
+
+    // Initialize constellation in the about section
+    const aboutSection = document.getElementById('about');
+    if (aboutSection) {
+        const constellationManager = new ContainerManager(aboutSection, { zIndex: '1' });
+        const constellationContainer = constellationManager.create();
+
+        new Constellation(constellationContainer);
     }
 });
 
