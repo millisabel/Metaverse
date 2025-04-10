@@ -21,7 +21,7 @@ module.exports = {
       directory: path.join(__dirname, 'dist')
     },
     port: 3002,
-    host: 'localhost',
+    host: '0.0.0.0',
     hot: false,
     liveReload: true,
     open: true,
