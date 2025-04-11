@@ -4,19 +4,10 @@ function initModal() {
     let lastTriggerButton = null;
     const modals = document.querySelectorAll('.modal');
   
-    function logFocus(eventType, element, modalId) {
-      console.log(`[${eventType}] Modal ID: ${modalId}, Focused element:`, document.activeElement);
-    }
-  
     modals.forEach(modal => {
       modal.addEventListener('show.bs.modal', (event) => {
         lastTriggerButton = event.relatedTarget;
         const modalId = modal.getAttribute('id');
-        logFocus('Modal opening triggered', lastTriggerButton, modalId);
-      });
-  
-      modal.addEventListener('shown.bs.modal', () => {
-        logFocus('Modal shown', document.activeElement, modal.getAttribute('id'));
       });
   
       modal.addEventListener('hide.bs.modal', (event) => {
@@ -24,7 +15,6 @@ function initModal() {
         if (lastTriggerButton) {
           setTimeout(() => {
             lastTriggerButton.focus();
-            logFocus('Focus returned before hide', lastTriggerButton, modalId);
   
             if (document.activeElement !== lastTriggerButton) {
               console.warn(`[${modalId}] Focus did not move, forcing blur on btn-close`);
@@ -36,10 +26,6 @@ function initModal() {
         } else {
           console.warn(`[${modalId}] No trigger button found to return focus`);
         }
-      });
-  
-      modal.addEventListener('hidden.bs.modal', () => {
-        logFocus('Modal hidden', document.activeElement, modal.getAttribute('id'));
       });
     });
     }

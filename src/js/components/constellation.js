@@ -53,7 +53,7 @@ class Star {
 
     update(isActive, time, transitionProgress = 1) {
         if (isActive) {
-            // Плавное увеличение и уменьшение размера активной звезды
+            // Smoothly increase and decrease the size of the active star
             this.currentSize = this.baseSize + Math.sin(time) * 0.5;
             this.mesh.material.opacity = transitionProgress;
             this.glowMesh.material.opacity = 0.6 * transitionProgress;
@@ -82,16 +82,16 @@ class ConstellationGroup {
         this.changeSpeed = 0.5 + Math.random() * 0.5;
         this.animationSpeed = 0.5 + Math.random() * 0.5;
         
-        // Параметры для движения по Z
+        // Parameters for Z movement
         this.zSpeed = 0.02 + Math.random() * 0.03;
         this.zAmplitude = 5 + Math.random() * 2;
         this.zPhase = Math.random() * Math.PI * 2;
         
-        // Ограничения по расстоянию
+        // Distance constraints
         this.maxDistance = -150;
         this.minDistance = -10;
 
-        // Параметры для вращения
+        // Parameters for rotation
         this.rotationSpeed = {
             x: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
             y: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
@@ -102,26 +102,26 @@ class ConstellationGroup {
         this.rotationTimer = 0;
         this.rotationTransitionProgress = 0;
 
-        // Параметры для орбитального движения
+        // Parameters for orbital movement
         this.orbitSpeed = 0.03 + Math.random() * 0.02;
         this.orbitRadius = 50 + Math.random() * 60;
         this.orbitPhase = Math.random() * Math.PI * 2;
         
-        // Параметры для дополнительного движения по полотну
+        // Parameters for additional canvas movement
         this.canvasSpeed = 0.01 + Math.random() * 0.01;
         this.canvasRadius = 100 + Math.random() * 100;
         this.canvasPhase = Math.random() * Math.PI * 2;
         
-        // Сохраняем базовые позиции для масштабирования
+        // Save base positions for scaling
         this.baseX = this.data.basePosition.x;
         this.baseY = this.data.basePosition.y;
 
-        // Параметры для избегания столкновений
+        // Parameters for avoiding collisions
         this.avoidanceRadius = 100;
         this.avoidanceSpeed = 0.1;
         this.avoidanceForce = new THREE.Vector3();
 
-        // Параметры для ограничения движения по экрану
+        // Parameters for screen movement constraints
         this.screenBounds = {
             width: window.innerWidth,
             height: window.innerHeight
@@ -196,7 +196,7 @@ class ConstellationGroup {
     }
 
     init(starTexture) {
-        // Создаем звезды
+        // Create stars
         this.data.stars.forEach(starData => {
             const position = new THREE.Vector3(
                 starData.x,
@@ -209,10 +209,10 @@ class ConstellationGroup {
             this.group.add(star.glowMesh);
         });
 
-        // Создаем соединения между звездами
+        // Create connections between stars
         this.createConnectionLines();
 
-        // Устанавливаем начальную позицию группы
+        // Set initial position of the group
         this.group.position.set(
             this.data.basePosition.x,
             this.data.basePosition.y,
@@ -250,51 +250,51 @@ class ConstellationGroup {
     }
 
     update(time, otherConstellations) {
-        // Плавное изменение прогресса перехода
+        // Smooth transition progress change
         this.transitionProgress += this.changeSpeed * 0.01;
         
-        // Если переход завершен, начинаем новый
+        // If transition is complete, start a new one
         if (this.transitionProgress >= 1) {
             this.transitionProgress = 0;
             this.activeStarIndex = this.nextStarIndex;
             this.nextStarIndex = this.getNextStarIndex();
         }
 
-        // Вычисляем движение в пределах ограничений
+        // Calculate movement within constraints
         const progress = (Math.sin(time * this.zSpeed + this.zPhase) + 1) / 2;
         const zPosition = this.minDistance + (this.maxDistance - this.minDistance) * progress;
         
-        // Вычисляем коэффициент масштабирования на основе Z-позиции
+        // Calculate scale factor based on Z-position
         const scaleFactor = Math.abs(zPosition / this.maxDistance);
         const smoothScaleFactor = Math.pow(scaleFactor, 0.7);
         
-        // Обновляем позицию по Z
+        // Update Z-position
         this.group.position.z = zPosition;
 
-        // Обновляем таймер вращения
+        // Update rotation timer
         this.updateRotation(time);
 
-        // Орбитальное движение с учетом масштабирования
+        // Orbital movement with scaling
         const orbitX = Math.cos(time * this.orbitSpeed + this.orbitPhase) * this.orbitRadius * smoothScaleFactor;
         const orbitY = Math.sin(time * this.orbitSpeed + this.orbitPhase) * this.orbitRadius * smoothScaleFactor;
         
-        // Дополнительное движение по полотну с учетом масштабирования
+        // Additional canvas movement with scaling
         const canvasX = Math.cos(time * this.canvasSpeed + this.canvasPhase) * this.canvasRadius * smoothScaleFactor;
         const canvasY = Math.sin(time * this.canvasSpeed + this.canvasPhase) * this.canvasRadius * smoothScaleFactor;
         
-        // Вычисляем текущую позицию с учетом всех движений
+        // Calculate current position considering all movements
         let currentX = this.baseX + orbitX + canvasX;
         let currentY = this.baseY + orbitY + canvasY;
 
-        // Применяем масштабирование к текущей позиции
+        // Apply scaling to current position
         currentX *= smoothScaleFactor;
         currentY *= smoothScaleFactor;
 
-        // Ограничиваем движение по экрану в зависимости от глубины
+        // Constrain movement on screen depending on depth
         const depthFactor = Math.abs(zPosition / this.maxDistance);
         const maxAllowedDistance = this.maxScreenDistance * depthFactor;
         
-        // Проверяем и ограничиваем расстояние от центра
+        // Check and constrain distance from center
         const distanceFromCenter = Math.sqrt(currentX * currentX + currentY * currentY);
         if (distanceFromCenter > maxAllowedDistance) {
             const scale = maxAllowedDistance / distanceFromCenter;
@@ -302,22 +302,22 @@ class ConstellationGroup {
             currentY *= scale;
         }
 
-        // Обновляем позицию
+        // Update position
         this.group.position.x = currentX;
         this.group.position.y = currentY;
 
-        // Обновляем силу избегания
+        // Update avoidance force
         this.updateAvoidanceForce(otherConstellations);
 
-        // Применяем силу избегания к позиции
+        // Apply avoidance force to position
         this.group.position.add(this.avoidanceForce);
 
-        // Обновляем все звезды
+        // Update all stars
         this.stars.forEach((star, index) => {
             const isCurrentActive = index === this.activeStarIndex;
             const isNextActive = index === this.nextStarIndex;
             
-            // Плавный переход между активными звездами
+            // Smooth transition between active stars
             if (isCurrentActive) {
                 star.update(true, time * this.animationSpeed, 1 - this.transitionProgress);
             } else if (isNextActive) {
@@ -349,7 +349,7 @@ class BackgroundStars {
             
             sizes[i] = Math.random() * 1 + 0.5;
             
-            // Создаем объект с параметрами для каждой звезды
+            // Create an object with parameters for each star
             this.stars.push({
                 phase: Math.random() * Math.PI * 2,
                 movePhase: Math.random() * Math.PI * 2,
@@ -360,7 +360,7 @@ class BackgroundStars {
                 flickerAmplitude: Math.random() < 0.3 
                     ? 0.5 + Math.random() * 0.5 
                     : 0.2,
-                delay: Math.random() * Math.PI * 2 // Случайная задержка для мерцания
+                delay: Math.random() * Math.PI * 2 // Random delay for flickering
             });
         }
 
@@ -389,7 +389,7 @@ class BackgroundStars {
         for (let i = 0; i < this.count; i++) {
             const star = this.stars[i];
             
-            // Обновляем мерцание с учетом задержки
+            // Update flickering with delay
             star.phase += star.flickerSpeed + Math.random() * 0.01;
             const brightness = Math.sin(star.phase + star.delay) * star.flickerAmplitude + (1 - star.flickerAmplitude / 2);
             sizes[i] = brightness * (Math.random() * 1 + 0.5);
@@ -401,7 +401,7 @@ class BackgroundStars {
                 positions[i * 3 + 1] += Math.cos(star.movePhase) * 0.05;
                 positions[i * 3 + 2] += Math.sin(star.movePhase * 0.5) * 0.02;
                 
-                // Ограничиваем движение по экрану
+                // Constrain movement on screen
                 if (positions[i * 3] < -800) positions[i * 3] = 800;
                 if (positions[i * 3] > 800) positions[i * 3] = -800;
                 if (positions[i * 3 + 1] < -800) positions[i * 3 + 1] = 800;
@@ -469,7 +469,7 @@ export class Constellation extends AnimationController {
             this.constellations.push(constellationGroup);
         });
 
-        // Добавляем туман для эффекта глубины
+        // Add fog for depth effect
         this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
         
         this.isInitialized = true;
@@ -480,7 +480,7 @@ export class Constellation extends AnimationController {
 
         super.animate();
         
-        // Обновляем анимацию через кадр
+        // Update animation through frame
         if (this.frame % 2 === 0) {
             const time = Date.now() * 0.001;
             
