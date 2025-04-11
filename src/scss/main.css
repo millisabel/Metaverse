@@ -809,14 +809,14 @@ body {
 .carousel-indicators-handle:hover {
   background: #9c72f7;
 }
-.carousel-control {
+.carousel-controls {
   font-size: 1.5rem;
   font-weight: 600;
 }
-.carousel-control-next-number {
+.carousel-controls-next-number {
   transition: color 0.3s ease;
 }
-.carousel-control-next:hover .carousel-control-next-number {
+.carousel-controls-next:hover .carousel-control-next-number {
   color: #9c72f7;
 }
 @media (min-width: 992px) {
