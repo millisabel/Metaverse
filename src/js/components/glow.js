@@ -42,9 +42,15 @@ export class Glow extends AnimationController {
 
         this.glows = [];
         this.clock = new THREE.Clock();
+        this.isInitialized = false;
     }
 
     initScene() {
+        if (this.isInitialized) {
+            this.logger.log('Scene already initialized', 'warn');
+            return;
+        }
+
         try {
             // Create scene
             this.scene = new THREE.Scene();
@@ -73,10 +79,12 @@ export class Glow extends AnimationController {
             
             // Initial render
             this.render();
-
+            
+            this.isInitialized = true;
             this.logger.log('Scene initialized successfully');
         } catch (error) {
             this.logger.log(`Error during scene initialization: ${error.message}`, 'error');
+            this.cleanup();
         }
     }
 
@@ -188,8 +196,6 @@ export class Glow extends AnimationController {
             return;
         }
 
-        super.animate();
-
         const time = this.clock.getElapsedTime();
         const rect = this.container.getBoundingClientRect();
         const aspect = rect.width / rect.height;
@@ -223,6 +229,7 @@ export class Glow extends AnimationController {
         });
 
         this.render();
+        super.animate();
     }
 
     render() {

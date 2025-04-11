@@ -72,9 +72,35 @@ export class AnimationController {
         });
     }
 
+    canAnimate() {
+        if (!this.isVisible) {
+            this.logger.log('Object is not visible', 'debug');
+            return false;
+        }
+
+        if (this.isResizing) {
+            this.logger.log('Object is resizing', 'debug');
+            return false;
+        }
+
+        if (!this.isInitialized) {
+            this.logger.log('Object is not initialized', 'debug');
+            return false;
+        }
+
+        return true;
+    }
+
     animate() {
+        if (!this.canAnimate()) {
+            if (this.animationFrameId) {
+                this.stopAnimation();
+            }
+            return;
+        }
+
         if (!this.animationFrameId) {
-            this.logger.log(`Starting animation`);
+            this.logger.log('Starting animation');
         }
 
         this.animationFrameId = requestAnimationFrame(() => this.animate());
