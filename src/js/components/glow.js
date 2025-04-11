@@ -252,6 +252,8 @@ export class Glow extends AnimationController {
 
     cleanup() {
         this.log('Starting cleanup');
+
+        this.stopAnimation();
         
         if (this.glows) {
             this.glows.forEach(glow => {

@@ -72,6 +72,13 @@ export class AnimationController {
         if (!this.animationFrameId) {
             console.log(`[${this.name}] Starting animation`);
         }
+
+
+        // Проверяем, не запущена ли уже анимация
+        if (this.animationFrameId) {
+            console.log(`[${this.name}] Animation already running`);
+            return;
+        }
         this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
