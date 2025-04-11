@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { ContainerManager } from '../utils/containerManager';
 import { AnimationController } from '../utils/animationController_3D';
 import { createCanvas, updateRendererSize, cleanupResources } from '../utils/canvasUtils';
 import {createLogger} from "../utils/logger";
@@ -182,17 +181,14 @@ export class Glow extends AnimationController {
     }
 
     animate() {
-        if (!this.isVisible) {
+        if (!this.isVisible || !this.scene || !this.camera || !this.isInitialized) {
             if (this.animationFrameId) {
-                this.logger.log('Stopping animation');
                 this.stopAnimation();
             }
             return;
         }
 
-        if (!this.animationFrameId) {
-            this.logger.log('Starting animation');
-        }
+        super.animate();
 
         const time = this.clock.getElapsedTime();
         const rect = this.container.getBoundingClientRect();
@@ -200,7 +196,6 @@ export class Glow extends AnimationController {
 
         this.glows.forEach(glow => {
             const mesh = glow.mesh;
-
             const timeOffset = time * glow.speed * 0.5;
             
             // Update position
@@ -228,7 +223,6 @@ export class Glow extends AnimationController {
         });
 
         this.render();
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
     render() {
@@ -254,8 +248,6 @@ export class Glow extends AnimationController {
 
     cleanup() {
         this.logger.log('Starting cleanup');
-
-        this.stopAnimation();
         
         if (this.glows) {
             this.glows.forEach(glow => {
@@ -268,9 +260,20 @@ export class Glow extends AnimationController {
             this.glows = [];
         }
 
-        cleanupResources(this.renderer, this.scene);
-        super.cleanup();
+        if (this.renderer) {
+            this.renderer.dispose();
+            if (this.renderer.domElement && this.renderer.domElement.parentNode) {
+                this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+            }
+        }
 
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.isInitialized = false;
+
+        super.cleanup();
+        
         this.logger.log('Cleanup completed');
     }
 

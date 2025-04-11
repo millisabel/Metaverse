@@ -145,7 +145,6 @@ export class Stars extends AnimationController {
     }
 
     cleanup() {
-        this.logger.log(`Starting cleanup`);
         super.cleanup(this.renderer, this.scene);
         
         if (this.stars) {

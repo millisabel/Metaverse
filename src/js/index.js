@@ -45,9 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize stars
         new Stars(starsContainer);
-
-        // Initialize glows for hero section
-        
     }
 
     const roadMapSection = document.getElementById('roadmap');
@@ -59,8 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             count: isMobile ? 5 : isTablet ? 8 : 10,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
         });
-    }   
-    
+    }
 
     // Initialize constellation in the about section
     const aboutSection = document.getElementById('about');
