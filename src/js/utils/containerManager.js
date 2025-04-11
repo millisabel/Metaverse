@@ -15,6 +15,7 @@ export class ContainerManager {
             height: '100%',
             zIndex: '1',
             overflow: 'hidden',
+            pointerEvents: 'none',
             ...options
         };
     }
