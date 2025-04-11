@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { AnimationController } from '../utils/animationController_3D';
 import {createCanvas, updateRendererSize} from "../utils/canvasUtils";
 import { createStarTexture } from '../utils/textureUtils';
+import {createLogger} from "../utils/logger";
 
 export class Stars extends AnimationController {
     constructor(container) {
@@ -15,12 +16,15 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
+
         this.name = 'Stars';
+        this.logger = createLogger(this.name);
+        this.logger.log('Initializing controller');
     }
 
     initScene() {
         if (this.isInitialized) return;
-        console.log(`[${this.name}] Initializing scene`);
+        this.logger.log(`Initializing scene`);
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -141,14 +145,14 @@ export class Stars extends AnimationController {
     }
 
     cleanup() {
-        console.log(`[${this.name}] Starting cleanup`);
+        this.logger.log(`Starting cleanup`);
         super.cleanup(this.renderer, this.scene);
         
         if (this.stars) {
             this.stars.geometry.dispose();
             this.stars.material.dispose();
             this.stars = null;
-            console.log(`[${this.name}] Stars disposed`);
+            this.logger.log(`Stars disposed`);
         }
         
         this.phases = null;
@@ -156,6 +160,6 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
-        console.log(`[${this.name}] Cleanup completed`);
+        this.logger.log(`Cleanup completed`);
     }
 }

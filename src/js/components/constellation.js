@@ -3,6 +3,7 @@ import { AnimationController } from '../utils/animationController_3D';
 import { createCanvas, updateRendererSize } from '../utils/canvasUtils';
 import constellationsData from '../data/constellations.json';
 import { createStarTexture } from '../utils/textureUtils';
+import {createLogger} from "../utils/logger";
 
 class Star {
     constructor(position, texture) {
@@ -423,8 +424,11 @@ export class Constellation extends AnimationController {
         this.renderer = null;
         this.constellations = [];
         this.backgroundStars = null;
-        this.name = 'Constellation';
         this.frame = 0;
+
+        this.name = 'Constellation';
+        this.logger = createLogger(this.name);
+        this.logger.log('Initializing controller');
     }
 
     onResize() {
@@ -436,7 +440,7 @@ export class Constellation extends AnimationController {
 
     initScene() {
         if (this.isInitialized) return;
-        console.log(`[${this.name}] Initializing scene`);
+        this.logger.log(`Initializing scene`);
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);

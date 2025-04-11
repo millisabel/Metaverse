@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { ContainerManager } from '../utils/containerManager';
 import { AnimationController } from '../utils/animationController_3D';
 import { createCanvas, updateRendererSize, cleanupResources } from '../utils/canvasUtils';
+import {createLogger} from "../utils/logger";
 
 export class Glow extends AnimationController {
     constructor(parent, options = {}) {
         super(parent);
         this.name = 'Glow';
-        this.log(`Initializing ${this.name}`);
+        this.logger = createLogger(this.name);
+        this.logger.log('Initializing controller');
         
         const isMobile = window.innerWidth <= 768;
 
@@ -72,10 +74,10 @@ export class Glow extends AnimationController {
             
             // Initial render
             this.render();
-            
-            this.log('Scene initialized successfully');
+
+            this.logger.log('Scene initialized successfully');
         } catch (error) {
-            this.log(`Error during scene initialization: ${error.message}`, 'error');
+            this.logger.log(`Error during scene initialization: ${error.message}`, 'error');
         }
     }
 
@@ -182,14 +184,14 @@ export class Glow extends AnimationController {
     animate() {
         if (!this.isVisible) {
             if (this.animationFrameId) {
-                this.log('Stopping animation');
+                this.logger.log('Stopping animation');
                 this.stopAnimation();
             }
             return;
         }
 
         if (!this.animationFrameId) {
-            this.log('Starting animation');
+            this.logger.log('Starting animation');
         }
 
         const time = this.clock.getElapsedTime();
@@ -251,7 +253,7 @@ export class Glow extends AnimationController {
     }
 
     cleanup() {
-        this.log('Starting cleanup');
+        this.logger.log('Starting cleanup');
 
         this.stopAnimation();
         
@@ -268,27 +270,11 @@ export class Glow extends AnimationController {
 
         cleanupResources(this.renderer, this.scene);
         super.cleanup();
-        
-        this.log('Cleanup completed');
+
+        this.logger.log('Cleanup completed');
     }
 
     getRandomValue(min, max) {
         return Math.random() * (max - min) + min;
-    }
-
-    log(message, type = 'info') {
-        const prefix = `[${this.name}]`;
-        const formattedMessage = `${prefix} ${message}`;
-        
-        switch (type) {
-            case 'error':
-                console.error(formattedMessage);
-                break;
-            case 'warn':
-                console.warn(formattedMessage);
-                break;
-            default:
-                console.log(formattedMessage);
-        }
     }
 }

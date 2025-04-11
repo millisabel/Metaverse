@@ -4,6 +4,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { AnimationController } from '../utils/animationController_3D';
 import { createCanvas, updateRendererSize } from '../utils/canvasUtils';
+import {createLogger} from "../utils/logger";
 
 export class GalacticCloud extends AnimationController {
     constructor(container) {
@@ -14,12 +15,15 @@ export class GalacticCloud extends AnimationController {
         this.galaxyCore = null;
         this.spiralArms = [];
         this.composer = null;
+
         this.name = 'GalacticCloud';
+        this.logger = createLogger(this.name);
+        this.logger.log('Initializing controller');
     }
 
     initScene() {
         if (this.isInitialized) return;
-        console.log(`[${this.name}] Initializing scene`);
+        this.logger.log(`Initializing scene`);
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
@@ -243,16 +247,16 @@ export class GalacticCloud extends AnimationController {
     }
 
     cleanup() {
-        console.log(`[${this.name}] Starting cleanup`);
+        this.logger.log(`Starting cleanup`);
         super.cleanup(this.renderer, this.scene);
         
         if (this.composer) {
             this.composer.dispose();
             this.composer = null;
-            console.log(`[${this.name}] Composer disposed`);
+            this.logger.log(`Composer disposed`);
         }
-        
-        console.log(`[${this.name}] Cleanup completed`);
+
+        this.logger.log(`Cleanup completed`);
     }
 }
 

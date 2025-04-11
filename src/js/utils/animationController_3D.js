@@ -1,3 +1,5 @@
+import {createLogger} from "./logger";
+
 /**
  * Basic class for managing the animation of 3D objects
  * Provides visibility control and resize handling
@@ -10,10 +12,12 @@ export class AnimationController {
         this.animationFrameId = null;
         this.resizeTimeout = null;
         this.observer = null;
-        this.name = 'AnimationController';
         this.isResizing = false;
 
-        console.log(`[${this.name}] Initializing controller`);
+        this.name = 'AnimationController';
+        this.logger = createLogger(this.name);
+        this.logger.log('Initializing controller');
+
         this.init();
     }
 
@@ -23,7 +27,7 @@ export class AnimationController {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     this.isVisible = true;
-                    console.log(`[${this.name}] Object is visible`);
+                    this.logger.log(`Object is visible`);
                     if (!this.isInitialized) {
                         this.initScene();
                     }
@@ -32,7 +36,7 @@ export class AnimationController {
                     }
                 } else {
                     this.isVisible = false;
-                    console.log(`[${this.name}] Object is not visible`);
+                    this.logger.log(`Object is not visible`);
                     this.stopAnimation();
                 }
             });
@@ -47,14 +51,14 @@ export class AnimationController {
         window.addEventListener('resize', () => {
             if (!this.isResizing) {
                 this.isResizing = true;
-                console.log(`[${this.name}] Resize started`);
+                this.logger.log(`Resize started`);
                 this.stopAnimation();
             }
 
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
                 this.isResizing = false;
-                console.log(`[${this.name}] Resize completed`);
+                this.logger.log(`Resize completed`);
                 if (this.isVisible) {
                     this.onResize();
                     // Add additional delay before starting animation
@@ -70,35 +74,31 @@ export class AnimationController {
 
     animate() {
         if (!this.animationFrameId) {
-            console.log(`[${this.name}] Starting animation`);
+            this.logger.log(`Starting animation`);
         }
 
-
-        // Проверяем, не запущена ли уже анимация
-        if (this.animationFrameId) {
-            console.log(`[${this.name}] Animation already running`);
-            return;
-        }
         this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
     stopAnimation() {
         if (this.animationFrameId) {
-            console.log(`[${this.name}] Stopping animation`);
+            const id = this.animationFrameId;
+            this.logger.log(`Stopping animation - frame ID: ${this.animationFrameId}`);
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
+            this.logger.log(`Animation frame ID ${id} is ${this.animationFrameId}`);
         }
     }
 
     cleanup(renderer, scene) {
-        console.log(`[${this.name}] Starting cleanup`);
+        this.logger.log(`Starting cleanup`);
 
 
         if (renderer) {
             renderer.dispose();
             renderer.domElement.remove();
             renderer = null;
-            console.log(`[${this.name}] Renderer disposed`);
+            this.logger.log(`Renderer disposed`);
         }
 
         if (scene) {
@@ -113,30 +113,30 @@ export class AnimationController {
                 }
             });
             scene = null;
-            console.log(`[${this.name}] Scene disposed`);
+            this.logger.log(`Scene disposed`);
         }
 
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;
-            console.log(`[${this.name}] Observer disconnected`);
+            this.logger.log(`Observer disconnected`);
         }
 
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
-            console.log(`[${this.name}] Animation stopped`);
+            this.logger.log(`Animation stopped`);
         }
 
         if (this.resizeTimeout) {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = null;
-            console.log(`[${this.name}] Resize timeout cleared`);
+            this.logger.log(`Resize timeout cleared`);
         }
 
         this.isInitialized = false;
         this.isVisible = false;
-        console.log(`[${this.name}] Cleanup completed`);
+        this.logger.log(`this.logger.logCleanup completed`);
     }
 
     // Abstract methods to be implemented by subclasses
