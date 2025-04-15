@@ -43,9 +43,9 @@ export const createAnimationObserver = ({
         }
 
         /* Support for AOS animations */
-        // [data-animation-state="visible"][data-aos] {
-        //     transform: translate(0) !important;
-        //     opacity: 1 !important;
+        [data-animation-state="visible"][data-aos] {
+            transform: translate(0) !important;
+            opacity: 1 !important;
         }
     `;
     document.head.appendChild(styleSheet);
@@ -215,16 +215,16 @@ export const initDynamicsAnimations = () => {
 /**
  * Initialization of AOS animations
  */
-// export const initAosAnimations = () => {
-//     const aosObserver = createAnimationObserver({
-//         threshold: 0.1,
-//         rootMargin: '50px'
-//     });
-//
-//     aosObserver.observe('[data-aos]');
-//
-//     return aosObserver;
-// };
+export const initAosAnimations = () => {
+    const aosObserver = createAnimationObserver({
+        threshold: 0.1,
+        rootMargin: '50px'
+    });
+
+    aosObserver.observe('[data-aos]');
+
+    return aosObserver;
+};
 
 /**
  * Initialization of animations for VR Market section
@@ -261,10 +261,10 @@ export const initVRMarketAnimations = () => {
  */
 export const initAllAnimations = () => {
     const observers = {
-        roadmap: initRoadmapAnimations(),
+        // roadmap: initRoadmapAnimations(),
         dynamics: initDynamicsAnimations(),
         // aos: initAosAnimations(),
-        vrMarket: initVRMarketAnimations() // Add VR Market animations
+        // vrMarket: initVRMarketAnimations()
     };
 
     return observers;
