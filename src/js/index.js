@@ -1,20 +1,31 @@
-// Import components
+// Utils
 import { Logger } from './utils/logger';
+import { ContainerManager } from './utils/containerManager';
 
+// Observer CSS
+import AnimationObserverCSS from './utils/animationObserver_CSS';
+
+// 3D components
 import { Stars } from './components/three/stars';
 import { GalacticCloud } from './components/three/galactic';
 import { Glow } from './components/three/glow';
+import { Constellation } from './components/three/constellation';
+import { initDynamics3D } from './components/three/dynamics3d';
+import { initSocialCards } from './components/three/socialCards';
 
-import { initNavbar } from './components/navbar';
-import { initSlider } from './components/slider';
-import { initRoadmap } from './components/roadmap';
-import { initDynamics3D } from './components/dynamics3d';
-import { initSocialCards } from './components/socialCards';
-import { ContainerManager } from './utils/containerManager';
-import initModal from './components/modal';
-import { Constellation } from './components/constellation';
-import AnimationObserverCSS from './utils/animationObserver_CSS';
-import { initMoreButtons } from './components/moreButton';
+// UI components
+import { initRoadmap } from './components/ui/roadmap';
+
+// Controllers
+import { initMoreButtons } from './controllers/moreButton';
+
+// Common components
+import { initNavbar } from './components/common/navbar';
+import { initSlider } from './components/common/slider';
+import initModal from './components/common/modal';
+
+
+
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();

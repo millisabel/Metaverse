@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { AnimationController } from '../utils/animationController_3D';
-import { createCanvas, updateRendererSize } from '../utils/canvasUtils';
-import constellationsData from '../data/constellations.json';
-import { createStarTexture } from '../utils/textureUtils';
-import {createLogger} from "../utils/logger";
+
+import { AnimationController } from '../../utils/animationController_3D';
+import { createCanvas, updateRendererSize } from '../../utils/canvasUtils';
+import constellationsData from '../../data/constellations.json';
+import { createStarTexture } from '../../utils/textureUtils';
+import {createLogger} from "../../utils/logger";
 
 class Star {
     constructor(position, texture) {

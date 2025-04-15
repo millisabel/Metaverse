@@ -1,5 +1,5 @@
-import { createLogger } from '../utils/logger';
-import AnimationObserverCSS from '../utils/animationObserver_CSS';
+import { createLogger } from '../../utils/logger';
+import AnimationObserverCSS from '../../utils/animationObserver_CSS';
 
 export class Roadmap {
     constructor(container) {

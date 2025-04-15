@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import decoration1Svg from '../../assets/svg/dynamics/decoration_1.svg';
-import decoration2Svg from '../../assets/svg/dynamics/decoration_2.svg';
-import decoration3Svg from '../../assets/svg/dynamics/decoration_3.svg';
-import { createAnimationObserver } from '../utils/animationObserver';
+import decoration1Svg from '../../../assets/svg/dynamics/decoration_1.svg';
+import decoration2Svg from '../../../assets/svg/dynamics/decoration_2.svg';
+import decoration3Svg from '../../../assets/svg/dynamics/decoration_3.svg';
+import { createAnimationObserver } from '../../utils/animationObserver';
 
 // Initialize scenes for each card
 const scenes = {
