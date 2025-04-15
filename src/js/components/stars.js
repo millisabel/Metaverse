@@ -21,7 +21,6 @@ export class Stars extends AnimationController {
         this.logger = createLogger(this.name);
         this.logger.log('Controller initialization', {
             conditions: ['initializing-controller'],
-            functionName: 'update'
         });
     }
 
