@@ -428,7 +428,9 @@ export class Constellation extends AnimationController {
 
         this.name = 'Constellation';
         this.logger = createLogger(this.name);
-        this.logger.log('Initializing controller');
+        this.logger.log('Controller initialization', {
+            conditions: ['initializing-controller'],
+        });
     }
 
     onResize() {
@@ -440,7 +442,10 @@ export class Constellation extends AnimationController {
 
     initScene() {
         if (this.isInitialized) return;
-        this.logger.log(`Initializing scene`);
+        this.logger.log('Scene initialization', {
+            conditions: ['initializing-scene'],
+            functionName: 'initScene'
+        });
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -475,29 +480,65 @@ export class Constellation extends AnimationController {
         this.isInitialized = true;
     }
 
-    animate() {
-        if (!this.isVisible || !this.scene || !this.camera) return;
-
-        super.animate();
-        
-        // Update animation through frame
-        if (this.frame % 2 === 0) {
-            const time = Date.now() * 0.001;
-            
-            this.backgroundStars.update(time);
-            
-            this.constellations.forEach((constellation, index) => {
-                constellation.update(time, this.constellations.filter(c => c !== constellation));
-            });
-        }
-        
-        this.frame++;
-        this.renderer.render(this.scene, this.camera);
-    }
+    // animate() {
+    //     if (!this.isVisible || !this.scene || !this.camera) return;
+    //
+    //     super.animate();
+    //
+    //     // Update animation through frame
+    //     if (this.frame % 2 === 0) {
+    //         const time = Date.now() * 0.001;
+    //
+    //         this.backgroundStars.update(time);
+    //
+    //         this.constellations.forEach((constellation, index) => {
+    //             constellation.update(time, this.constellations.filter(c => c !== constellation));
+    //         });
+    //     }
+    //
+    //     this.frame++;
+    //     this.renderer.render(this.scene, this.camera);
+    // }
 
     cleanup() {
         this.constellations = [];
         this.backgroundStars = null;
         super.cleanup(this.renderer, this.scene);
+    }
+
+    update() {
+        if (!this.canAnimate()) {
+            return;
+        }
+
+        // Логируем только при первом вызове update
+        if (!this.animationFrameId) {
+            this.logger.log('Starting update cycle', {
+                conditions: ['running'],
+                functionName: 'update',
+                trackType: 'animation'
+            });
+        }
+
+        // Оптимизация - обновляем каждый второй кадр
+        if (this.frame % 2 === 0) {
+            const time = Date.now() * 0.001;
+
+            if (this.backgroundStars) {
+                this.backgroundStars.update(time);
+            }
+
+            if (this.constellations) {
+                this.constellations.forEach(constellation => {
+                    constellation.update(time, this.constellations.filter(c => c !== constellation));
+                });
+            }
+        }
+
+        this.frame++;
+
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
     }
 } 
