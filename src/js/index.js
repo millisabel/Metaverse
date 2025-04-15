@@ -40,16 +40,15 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Create a logger instance
-    const observer = new AnimationObserverCSS();
 
     // Initialize components
-    initNavbar();
-    initModal();
-    initSlider();
     initRoadmap();
     initDynamics3D();
     initSocialCards();
+
+    initNavbar();
+    initModal();
+    initSlider();
     initMoreButtons(document.querySelector('.roadmap'));
     
     // Update copyright year
