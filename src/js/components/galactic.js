@@ -18,12 +18,18 @@ export class GalacticCloud extends AnimationController {
 
         this.name = 'GalacticCloud';
         this.logger = createLogger(this.name);
-        this.logger.log('Initializing controller');
+        this.logger.log('Controller initialization', {
+            conditions: ['initializing-controller'],
+        });
     }
 
     initScene() {
         if (this.isInitialized) return;
-        this.logger.log(`Initializing scene`);
+
+        this.logger.log('Scene initialization', {
+            conditions: ['initializing-scene'],
+            functionName: 'update'
+        });
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
@@ -165,10 +171,8 @@ export class GalacticCloud extends AnimationController {
         this.composer.addPass(bloomPass);
     }
 
-    animate() {
+    update() {
         if (!this.isVisible || !this.scene || !this.camera) return;
-
-        super.animate();
 
         const time = performance.now() * 0.0001;
         const isMobile = this.container.clientWidth < 768;
