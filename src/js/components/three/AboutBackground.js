@@ -27,14 +27,22 @@ export class AboutBackground {
             },
             depth: {
                 range: window.innerWidth < 768 ? 500 : 1000,
-                z: [-500, -200]
+                z: [300, -400] 
             },
             movement: {
                 enabled: true,
-                probability: 0.15
+                probability: 0.3,
+                speed: 0.0003,
+                amplitude: {
+                    x: 0.02,
+                    y: 0.02,
+                    z: 0.02
+                }
             },
             camera: {
-                rotation: false
+                rotation: false,
+                position: { z: -100 },
+                speed: { x: 0.0005, y: 0.0005 } 
             },
             material: {
                 opacity: 0.7,

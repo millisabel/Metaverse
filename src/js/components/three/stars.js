@@ -77,7 +77,7 @@ export class Stars extends AnimationController {
         });
 
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: true,
@@ -92,9 +92,9 @@ export class Stars extends AnimationController {
 
     initStarAttributes(positions, colors, sizes) {
         for (let i = 0; i < this.options.count; i++) {
-            // Positions
-            positions[i * 3] = (Math.random() - 0.5) * this.options.depth.range;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * this.options.depth.range;
+            // Positions with gaussian distribution
+            positions[i * 3] = this.gaussianRandom(0, this.options.depth.range / 3);
+            positions[i * 3 + 1] = this.gaussianRandom(0, this.options.depth.range / 3);
             positions[i * 3 + 2] = this.options.depth.z[0] + Math.random() * (this.options.depth.z[1] - this.options.depth.z[0]);
 
             // Colors
@@ -108,7 +108,7 @@ export class Stars extends AnimationController {
 
             // Animation parameters
             this.phases[i] = Math.random() * Math.PI * 2;
-            this.isMoving[i] = Math.random() < this.options.movement.probability ? 1 : 0;
+            this.isMoving[i] = this.options.movement.enabled && Math.random() < this.options.movement.probability ? 1 : 0;
             this.movePhases[i] = Math.random() * Math.PI * 2;
 
             if (Math.random() < this.options.flicker.fast.probability) {
@@ -152,11 +152,41 @@ export class Stars extends AnimationController {
         return min + Math.random() * (max - min);
     }
 
+    gaussianRandom(mean = 0, stdev = 1) {
+        const u = 1 - Math.random();
+        const v = Math.random();
+        const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        return z * stdev + mean;
+    }
+
     setupScene() {
         updateRendererSize(this.renderer, this.container, this.camera);
         this.container.appendChild(this.renderer.domElement);
         createCanvas(this.renderer, { zIndex: '2' });
-        this.camera.position.z = 5;
+        
+        // Apply all camera settings from options
+        if (this.options.camera) {
+            // Apply position
+            if (this.options.camera.position) {
+                Object.entries(this.options.camera.position).forEach(([axis, value]) => {
+                    this.camera.position[axis] = value;
+                });
+            }
+
+            // Apply rotation
+            if (this.options.camera.rotation !== undefined) {
+                this.options.camera.rotation = this.options.camera.rotation;
+            }
+
+            // Apply speed
+            if (this.options.camera.speed) {
+                this.options.camera.speed = {
+                    ...this.options.camera.speed,
+                    x: this.options.camera.speed.x || 0.00002,
+                    y: this.options.camera.speed.y || 0.00002
+                };
+            }
+        }
     }
 
     createStars() {
@@ -177,7 +207,6 @@ export class Stars extends AnimationController {
     }
 
     update() {
-
         if (!this.isVisible || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) {
             if (this.animationFrameId) {
                 this.logger.log('Animation stopped', {
@@ -197,36 +226,43 @@ export class Stars extends AnimationController {
         
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
-        const depthRange = window.innerWidth < 768 ? 500 : 1000;
+        const depthRange = this.options.depth.range;
+        
+        // Apply camera rotation if enabled
+        if (this.options.camera?.rotation) {
+            this.camera.rotation.x += this.options.camera.speed.x;
+            this.camera.rotation.y += this.options.camera.speed.y;
+        }
         
         for (let i = 0; i < positions.length; i += 3) {
             const index = i / 3;
             
             this.phases[index] += this.flickerSpeeds[index];
             const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
-            sizes[index] = brightness * (Math.random() * 3 + 1);
+            sizes[index] = brightness * this.randomRange(this.options.size.min, this.options.size.max);
             
             if (this.isMoving[index] === 1) {
-                this.movePhases[index] += 0.003;
+                this.movePhases[index] += this.options.movement.speed;
                 
-                positions[i] += Math.sin(this.movePhases[index]) * 0.05;
-                positions[i + 1] += Math.cos(this.movePhases[index]) * 0.05;
-                positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * 0.02;
+                // Use default amplitude if not specified
+                const amplitude = this.options.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
+                
+                positions[i] += Math.sin(this.movePhases[index]) * amplitude.x;
+                positions[i + 1] += Math.cos(this.movePhases[index]) * amplitude.y;
+                positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * amplitude.z;
             }
             
+            // Boundary checks
             if (positions[i] < -depthRange) positions[i] = depthRange;
             if (positions[i] > depthRange) positions[i] = -depthRange;
             if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
             if (positions[i + 1] > depthRange) positions[i + 1] = -depthRange;
-            if (positions[i + 2] < -depthRange) positions[i + 2] = depthRange;
-            if (positions[i + 2] > depthRange) positions[i + 2] = -depthRange;
+            if (positions[i + 2] < this.options.depth.z[0]) positions[i + 2] = this.options.depth.z[1];
+            if (positions[i + 2] > this.options.depth.z[1]) positions[i + 2] = this.options.depth.z[0];
         }
         
         this.stars.geometry.attributes.position.needsUpdate = true;
         this.stars.geometry.attributes.size.needsUpdate = true;
-        
-        this.camera.rotation.x += 0.00002;
-        this.camera.rotation.y += 0.00002;
         
         this.renderer.render(this.scene, this.camera);
     }
