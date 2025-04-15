@@ -170,31 +170,73 @@ export class Logger {
         visible: {
             icon: '💡',
             style: {
-                background: 'rgba(31,126,10,0.5)',
+                background: 'rgba(31,126,10,0)',
                 color: '#666666',
             },
         },
         hidden: {
             icon: '👻',
             style: {
-                background: 'rgba(91,21,177,0.1)',
+                background: 'rgba(31,126,10,0)',
                 color: '#666666',
             },
         },
         running: {
             icon: '▶️',
             style: {
-                background: 'rgba(10,112,175,0.5)',
+                background: 'rgba(10,112,175,0)',
                 color: '#666666',
             },
         },
         paused: {
             icon: '⏸️',
             style: {
-                background: 'rgba(195,130,11,0.2)',
+                background: 'rgba(10,112,175,0)',
                 color: '#666666',
             },
         },
+        'initializing-controller': {
+            icon: '⚙️',
+            style: {
+                background: 'rgba(128,128,128,0)',
+                color: '#666666',
+            },
+        },
+        'initializing-scene': {
+            icon: '🎬',
+            style: {
+                background: 'rgba(128,128,128,0)',
+                color: '#666666',
+            },
+        },
+        'animation-frame': {
+            icon: '🎞️',
+            style: {
+                background: 'rgba(100,149,237,0)',
+                color: '#4169E1'
+            }
+        },
+        'animation-frame-cleanup': {
+            icon: '🗑️',
+            style: {
+                background: 'rgba(255,69,0,0)',
+                color: '#FF4500'
+            }
+        },
+        'resize-started': {
+            icon: '📏',
+            style: {
+                background: 'rgba(255,165,0,0)',
+                color: '#FFA500'
+            }
+        },
+        'resize-completed': {
+            icon: '✅',
+            style: {
+                background: 'rgba(34,139,34,0)',
+                color: '#228B22'
+            }
+        }
     };
     static styleConfig = {
         base: {
@@ -473,12 +515,12 @@ export class Logger {
     static formatGroupHeader(name, type, states, functionName, styles) {
         const { header: headerStyle } = this.getStyles(this.getComponentColor(name), type, styles, states);
 
-        const functionInfo = functionName ? ` [${functionName}]` : '';
+        const functionInfo = functionName ? ` [${functionName}()]` : '';
         const icon = this.messageTypes[type]?.icon ? `${this.messageTypes[type].icon} ` : '';
         const stateIcons = this.formatStateIcons(states);
 
         return {
-            text: `%c${icon}[${name}]${stateIcons}${functionInfo}`,
+            text: `${stateIcons} %c${icon}[${name}] → ${functionInfo}`,
             style: headerStyle
         };
     }
@@ -523,7 +565,7 @@ export class Logger {
         const header = this.formatGroupHeader(name, type, states, functionName, styles);
         const trackType = track;
 
-        console.group(header.text, header.style);
+        console.groupCollapsed(header.text, header.style);
         this.logMessage(message, textStyle);
         this.logElementInfo(element);
         this.logDOMElement(element);
@@ -685,7 +727,6 @@ export class Logger {
     }
 
     static log(name, ...args) {
-
         if (!this.isLoggerEnabled(name)) return;
         this.formatMessage(name, ...args);
     }
