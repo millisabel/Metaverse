@@ -1,3 +1,12 @@
+/* eslint-disable */
+// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/ban-types */
+// This is a JavaScript file, not TypeScript
 // logger.js
 
 /**
@@ -49,8 +58,26 @@
  *   styles: { messageTextColor: '#35af27',
  *             headerBackground: '#af274b', }
  * });
+ *
+ * // With function name and track type
+ * logger.log('Animation started', element, {
+ *   type: 'info',
+ *   conditions: ['running'],
+ *   functionName: 'startAnimation',
+ *   trackType: 'animation'
+ * });
+ *
+ * // With multiple track types
+ * logger.log('Element state changed', element, {
+ *   type: 'warning',
+ *   conditions: ['visible', 'running'],
+ *   trackType: ['animation', 'scroll']
+ * });
+ * ```
+ *
  * Logging Control:
  *
+ * ```javascript
  * import { Logger } from './utils/logger';
  *
  * // Global control
@@ -60,9 +87,11 @@
  * // Component-specific control
  * Logger.enableLoggerFor('MyComponent');
  * Logger.disableLoggerFor('MyComponent');
+ * ```
  *
  * Style Caching:
  *
+ * ```javascript
  * // Caching styles for performance optimization
  * const logger = createLogger('MyComponent');
  *
@@ -83,6 +112,7 @@
  * // Cache management
  * Logger.clearStyleCache();      // Clearing the style cache
  * Logger.getStyleCacheSize();    // Getting the size of the cache
+ * ```
  *
  * Features:
  * - Automatic caching of generated styles
@@ -103,70 +133,69 @@ export class Logger {
         info: {
             icon: '',
             style: {
-                background: 'transparent'
-            }
+                background: 'transparent',
+                color: '#666666',
+            },
         },
         success: {
             icon: '✅',
             style: {
-                background: '#E5FFE5',
-                color: '#008000'
-            }
+                background: '#08c108',
+                color: '#08c108',
+            },
         },
         warning: {
             icon: '⚠️',
             style: {
-                background: '#FFF4E5',
-                color: '#FFA500'
-            }
+                background: '#edda0b',
+                color: '#FFA500',
+            },
         },
         error: {
             icon: '❌',
             style: {
-                background: '#FFE5E5',
-                color: '#FF0000'
-            }
+                background: '#d61313',
+                color: '#d61313',
+            },
         },
         debug: {
             icon: '🔍',
             style: {
-                background: '#F5F5F5',
-                color: '#666666'
-            }
-        }
+                background: 'rgba(5,5,5,0.2)',
+                color: '#666666',
+            },
+        },
     };
-
     static elementStates = {
         visible: {
-            icon: '👁️',
+            icon: '💡',
             style: {
-                background: 'rgba(126,10,93,0.5)',
-                color: '#666666'
-            }
+                background: 'rgba(31,126,10,0.5)',
+                color: '#666666',
+            },
         },
         hidden: {
-            icon: '🔒',
+            icon: '👻',
             style: {
-                background: 'rgba(91,21,177,0.5)',
-                color: '#666666'
-            }
+                background: 'rgba(91,21,177,0.1)',
+                color: '#666666',
+            },
         },
         running: {
             icon: '▶️',
             style: {
                 background: 'rgba(10,112,175,0.5)',
-                color: '#666666'
-            }
+                color: '#666666',
+            },
         },
         paused: {
             icon: '⏸️',
             style: {
-                background: 'rgba(164,234,134,0.5)',
-                color: '#666666'
-            }
-        }
+                background: 'rgba(195,130,11,0.2)',
+                color: '#666666',
+            },
+        },
     };
-
     static styleConfig = {
         base: {
             padding: '6px 12px',
@@ -176,6 +205,7 @@ export class Logger {
         header: {
             fontWeight: 'bold',
             borderBottom: '1px solid #666666',
+            background: 'transparent',
         },
         text: {
             color: '#666666',
@@ -188,7 +218,12 @@ export class Logger {
         group: {
             padding: '6px 12px',
             fontSize: '12px',
-        }
+        },
+    };
+    static TrackType = {
+        ANIMATION: 'animation',
+        SCROLL: 'scroll',
+        RESIZE: 'resize',
     };
 
     static enableGlobalLogging() {
@@ -228,6 +263,7 @@ export class Logger {
         return this.enabledLoggers.has(name);
     }
 
+
     static generateRandomColor() {
         const hue = Math.floor(Math.random() * 360);
         const saturation = Math.floor(Math.random() * 30) + 70;
@@ -245,15 +281,7 @@ export class Logger {
     }
 
     static generateStyle(options = {}) {
-        const cacheKey = JSON.stringify({
-            type: options.type || 'base',
-            background: options.background,
-            color: options.color,
-            borderBottom: options.borderBottom,
-            fontWeight: options.fontWeight,
-            customStyles: options.customStyles,
-            variant: options.variant
-        });
+        const cacheKey = JSON.stringify(options);
 
         if (this.styleCache.has(cacheKey)) {
             return this.styleCache.get(cacheKey);
@@ -266,59 +294,61 @@ export class Logger {
             borderBottom,
             fontWeight,
             customStyles = {},
-            variant = 'default'
         } = options;
 
-        const baseStyles = this.styleConfig[type] || {};
-        const styles = {
-            ...this.styleConfig.base,
-            ...baseStyles,
-            ...(background && { background }),
-            ...(color && { color }),
-            ...(borderBottom && { borderBottom }),
-            ...(fontWeight && { fontWeight }),
-            ...customStyles
-        };
+        const styles = {};
+
+        // 1. Base styles
+        Object.assign(styles, this.styleConfig.base);
+
+        // 2. Type styles
+        if (type && this.styleConfig[type]) {
+            Object.assign(styles, this.styleConfig[type]);
+        }
+
+        // 3. User styles
+        Object.assign(styles, customStyles);
+
+        // 4. Explicitly passed styles with undefined check
+        if (background !== undefined) styles.background = background;
+        if (color !== undefined) styles.color = color;
+        if (borderBottom !== undefined) styles.borderBottom = borderBottom;
+        if (fontWeight !== undefined) styles.fontWeight = fontWeight;
 
         const generatedStyle = Object.entries(styles)
             .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value}`)
             .join(';');
 
         this.styleCache.set(cacheKey, generatedStyle);
-
         return generatedStyle;
     }
 
-    static getStyles(componentColor, type, styles) {
+    static getStyles(componentColor, type, styles, states = []) {
+
+        const messageTypeStyle = type && type !== 'info' ? this.messageTypes[type]?.style : null;
+        const stateStyle = states.length > 0 ? this.elementStates[states[0]]?.style : null;
+
+        const background = styles.headerBackground ||
+            (messageTypeStyle && messageTypeStyle.background) ||
+            (stateStyle && stateStyle.background) ||
+            this.styleConfig.header.background;
+
         return {
             header: this.generateStyle({
                 type: 'header',
-                background: styles?.headerBackground ||
-                    this.messageTypes[type]?.style.background ||
-                    this.styleConfig.header.background ||
-                    'transparent',
-                color: componentColor,
+                background: background,
+                color: styles.messageTextColor ??
+                    componentColor,
                 borderBottom: `1px solid ${componentColor}`,
+                fontWeight: 'bold'
             }),
             text: this.generateStyle({
                 type: 'text',
-                color: styles?.messageTextColor || this.styleConfig.text.color,
+                color: styles.messageTextColor ??
+                    messageTypeStyle?.color ??
+                    this.styleConfig.text.color
             })
         };
-    }
-
-    static getGroupHeaderStyles(states, type, componentColor, styles) {
-        const backgroundColor = states.length > 0 && type !== 'info'
-            ? this.messageTypes[type]?.style.background
-            : (states.length > 0 ? this.elementStates[states[0]]?.style.background : 'transparent');
-
-        return this.generateStyle({
-            type: 'group',
-            background: styles?.headerBackground || backgroundColor,
-            color: componentColor,
-            fontWeight: 'bold',
-            borderBottom: `1px solid ${componentColor}`,
-        });
     }
 
     static clearStyleCache() {
@@ -329,14 +359,50 @@ export class Logger {
         return this.styleCache.size;
     }
 
+    static formatStateIcons(states) {
+        if (states.length === 0) return '';
+        return ' ' + states.map(state =>
+            this.elementStates[state]?.icon || ''
+        ).join(' ');
+    }
+
+
+    static parseArgs(args) {
+        let message = '';
+        let type = 'info';
+        let element = null;
+        let states = [];
+        let styles = {};
+        let functionName = null;
+        let trackType = null;
+
+        args.forEach(arg => {
+            if (typeof arg === 'string') {
+                message = arg;
+            } else if (arg instanceof HTMLElement) {
+                element = arg;
+            } else if (typeof arg === 'object' && arg !== null) {
+                if (arg.conditions) states = Array.isArray(arg.conditions) ? arg.conditions : [arg.conditions];
+                if (arg.type) type = arg.type;
+                if (arg.message) message = arg.message;
+                if (arg.element) element = arg.element;
+                if (arg.styles) styles = arg.styles;
+                if (arg.trackType) trackType = arg.trackType;
+                if (arg.functionName) functionName = arg.functionName;
+            }
+        });
+
+        return { message, type, element, states, styles, trackType, functionName };
+    }
+
     static parseElementInfo(element) {
         if (!element) return null;
 
         return {
-            tag: element.tagName?.toLowerCase() || 'unknown',
-            classes: Array.from(element.classList || []).join(' ') || 'no-classes',
             id: element.id  || 'unknown',
-            parent: this.getParentInfo(element)
+            tag: element.tagName?.toLowerCase() || 'unknown',
+            parent: this.getParentInfo(element),
+            classes: Array.from(element.classList || []).join(' ') || 'no-classes',
         };
     }
 
@@ -372,47 +438,116 @@ export class Logger {
         const id = directParent.id ? `#${directParent.id}` : '';
         const className = directParent.className?.baseVal || directParent.className || '';
         const firstClass = className.toString().split(' ')[0];
-
         return `${tag}${id}${firstClass ? `.${firstClass}` : ''}`;
     }
 
-    static formatStateIcons(states) {
-        if (states.length === 0) return '';
-        return ' ' + states.map(state =>
-            this.elementStates[state]?.icon || ''
-        ).join(' ');
+
+    static checkTrackTypes(element, trackType) {
+        if (!element || !trackType) return;
+
+        const isAnimation = Array.isArray(trackType)
+            ? trackType.includes('animation')
+            : trackType === 'animation';
+
+        const isScroll = Array.isArray(trackType)
+            ? trackType.includes('scroll')
+            : trackType === 'scroll';
+
+        const isResize = Array.isArray(trackType)
+            ? trackType.includes('resize')
+            : trackType === 'resize';
+
+        if (isAnimation) {
+            this.logElementAnimations(element);
+        }
+
+        if (isScroll) {
+            this.logScrollInfo(element);
+        }
+        if (isResize) {
+            this.logResizeInfo(element);
+        }
     }
 
-    static parseArgs(args) {
-        let message = '';
-        let type = 'info';
-        let element = null;
-        let states = [];
-        let styles = {};
 
-        args.forEach(arg => {
-            if (typeof arg === 'string') {
-                message = arg;
-            } else if (arg instanceof HTMLElement) {
-                element = arg;
-            } else if (typeof arg === 'object' && arg !== null) {
-                if (arg.conditions) states = Array.isArray(arg.conditions) ? arg.conditions : [arg.conditions];
-                if (arg.type) type = arg.type;
-                if (arg.message) message = arg.message;
-                if (arg.element) element = arg.element;
-                if (arg.styles) styles = arg.styles;
-            }
-        });
+    static formatGroupHeader(name, type, states, functionName, styles) {
+        const { header: headerStyle } = this.getStyles(this.getComponentColor(name), type, styles, states);
 
-        return { message, type, element, states, styles };
+        const functionInfo = functionName ? ` [${functionName}]` : '';
+        const icon = this.messageTypes[type]?.icon ? `${this.messageTypes[type].icon} ` : '';
+        const stateIcons = this.formatStateIcons(states);
+
+        return {
+            text: `%c${icon}[${name}]${stateIcons}${functionInfo}`,
+            style: headerStyle
+        };
     }
 
-    static logSimpleMessage(name, message, type, headerStyle, textStyle) {
+    static formatSimpleMessage(name, message, headerStyle, textStyle) {
+
         console.log(
-            `%c${this.messageTypes[type].icon} [${name}]%c\n ${message}`,
+            `%c[${name}]%c\n ${message}`,
             headerStyle,
             textStyle
         );
+    }
+
+    static formatMessage(name, ...args) {
+
+        const componentColor = this.getComponentColor(name);
+        const { message, type, element, states, styles, trackType, functionName } = this.parseArgs(args);
+        const { header: headerStyle, text: textStyle } = this.getStyles(componentColor, type, styles, states);
+
+        if (args.length === 1 && typeof args[0] === 'string') {
+            this.formatSimpleMessage(name, message, headerStyle, textStyle);
+            return;
+        }
+        this.formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, trackType);
+    }
+
+    static formatElementDetails(elementInfo) {
+        return {
+            tag: elementInfo.tag,
+            id: elementInfo.id,
+            classes: elementInfo.classes,
+            parent: elementInfo.parent,
+        };
+    }
+    
+    static formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, track) {
+        const functionInfo = functionName ? ` [${functionName}]` : '';
+        const icon = this.messageTypes[type]?.icon ? `${this.messageTypes[type].icon} ` : '';
+        const stateIcons = this.formatStateIcons(states);
+        const headerText = `%c${icon}[${name}]${stateIcons}${functionInfo}`;
+
+        const header = this.formatGroupHeader(name, type, states, functionName, styles);
+        const trackType = track;
+
+        console.group(header.text, header.style);
+        this.logMessage(message, textStyle);
+        this.logElementInfo(element);
+        this.logDOMElement(element);
+        this.checkTrackTypes(element, trackType);
+        this.logStates(states);
+        console.groupEnd();
+    }
+
+    static formatAnimationInfo(style) {
+        if (!style) return null;
+
+        return {
+            name: style.animationName,
+            duration: style.animationDuration,
+            delay: style.animationDelay,
+            timing: style.animationTimingFunction,
+            state: style.animationPlayState
+        };
+    }
+
+
+    static logMessage(message, textStyle) {
+        if (!message) return;
+        console.log(`\n%c${message}`, textStyle);
     }
 
     static logElementInfo(element) {
@@ -420,74 +555,433 @@ export class Logger {
 
         const elementInfo = this.parseElementInfo(element);
         console.log(
-            '%cElement Info:\n',
-            this.generateStyle({
-                type: 'elementInfo'
-            }),
-            {
-                tag: elementInfo.tag,
-                id: elementInfo.id,
-                classes: elementInfo.classes,
-                parent: elementInfo.parent,
-            }
+            '%cElement Info:',
+            this.generateStyle({ type: 'elementInfo' }),
+            this.formatElementDetails(elementInfo)
         );
+    }
+
+    static logDOMElement(element) {
+        if (!element) return;
 
         console.log(
-            '%cDOM element:\n',
-            this.generateStyle({
-                type: 'elementInfo'
-            }),
+            '%cDOM element:',
+            this.generateStyle({ type: 'elementInfo' }),
             element
         );
     }
 
-    static logDetailedMessage(name, message, type, element, states, headerStyle, textStyle) {
-        const stateIcons = this.formatStateIcons(states);
-        const groupHeaderStyles = this.getGroupHeaderStyles(states, type, this.getComponentColor(name));
+    static logAnimationDetails(elementType, style) {
+        if (!style) return;
 
-        console.group(
-            `%c${this.messageTypes[type].icon}  ${name} ${stateIcons}`,
-            groupHeaderStyles
+        console.log(
+            `%c${elementType}:`,
+            this.generateStyle({ type: 'elementInfo' }),
+            this.formatAnimationInfo(style)
         );
+    }
 
-        if (message) {
-            console.log(`%c${message}`, textStyle);
+    static logElementAnimations(element) {
+        if (!element) return;
+
+        const mainStyle = window.getComputedStyle(element);
+        const hasMainAnimation = mainStyle.animationName !== 'none';
+
+        const beforeStyle = window.getComputedStyle(element, '::before');
+        const hasBeforeAnimation = beforeStyle.content !== 'none' && beforeStyle.animationName !== 'none';
+
+        const afterStyle = window.getComputedStyle(element, '::after');
+        const hasAfterAnimation = afterStyle.content !== 'none' && afterStyle.animationName !== 'none';
+
+        if (hasMainAnimation || hasBeforeAnimation || hasAfterAnimation) {
+            console.group('%cAnimations:', this.generateStyle({ type: 'elementInfo' }));
+
+            if (hasMainAnimation) {
+                this.logAnimationDetails('Main element', mainStyle);
+            }
+
+            if (hasBeforeAnimation) {
+                this.logAnimationDetails('::before', beforeStyle);
+            }
+
+            if (hasAfterAnimation) {
+                this.logAnimationDetails('::after', afterStyle);
+            }
+
+            console.groupEnd();
         }
+    }
 
-        this.logElementInfo(element);
+    static logScrollInfo(element) {
+        if (!element) return;
 
-        if (states.length > 0) {
-            console.log('%cStates:\n', 'color: #666666; font-style: italic; border-bottom: 1px dotted #666666;', states);
-        }
+        // const rect = element.getBoundingClientRect();
+        const scrollInfo = {
+            scroll: {
+                top: window.scrollY,
+                left: window.scrollX
+            },
+            // position: {
+            //     top: rect.top + window.scrollY,
+            //     left: rect.left + window.scrollX
+            // },
+            // viewport: {
+            //     top: rect.top,
+            //     left: rect.left
+            // }
+        };
 
+        console.group('%cScroll Info:', this.generateStyle({ type: 'elementInfo' }));
+        console.log('Window scroll:', scrollInfo.scroll);
+        // console.log('Element absolute position:', scrollInfo.position);
+        // console.log('Element viewport position:', scrollInfo.viewport);
         console.groupEnd();
     }
 
-    static formatMessage(name, ...args) {
-        const componentColor = this.getComponentColor(name);
-        const { message, type, element, states, styles } = this.parseArgs(args);
-        const { header: headerStyle, text: textStyle } = this.getStyles(componentColor, type, styles);
+    static logResizeInfo(element) {
+        if (!element) return;
 
-        if (!element && states.length === 0) {
-            this.logSimpleMessage(name, message, type, headerStyle, textStyle);
-            return;
-        }
+        const rect = element.getBoundingClientRect();
+        // const styles = window.getComputedStyle(element);
+        const resizeInfo = {
+            size: {
+                width: rect.width,
+                height: rect.height
+            },
+            // computed: {
+            //     width: styles.width,
+            //     height: styles.height,
+            //     maxWidth: styles.maxWidth,
+            //     maxHeight: styles.maxHeight,
+            //     minWidth: styles.minWidth,
+            //     minHeight: styles.minHeight
+            // },
+            window: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            }
+        };
 
-        if (!element && states.length === 0) {
-            console.log(
-                `%c${this.messageTypes[type].icon} [${name}]%c ${message}`,
-                headerStyle,
-                textStyle
-            );
-            return;
-        }
+        console.group('%cResize Info:', this.generateStyle({ type: 'elementInfo' }));
+        console.log('Element size:', resizeInfo.size);
+        // console.log('Computed styles:', resizeInfo.computed);
+        console.log('Window size:', resizeInfo.window);
+        console.groupEnd();
+    }
 
-        this.logDetailedMessage(name, message, type, element, states, headerStyle, textStyle);
+    static logStates(states) {
+        if (states.length === 0) return;
+
+        console.log(
+            '%cStates:',
+            this.generateStyle({
+                type: 'elementInfo',
+                customStyles: {
+                    fontStyle: 'italic'
+                }
+            }),
+            states
+        );
     }
 
     static log(name, ...args) {
+
         if (!this.isLoggerEnabled(name)) return;
         this.formatMessage(name, ...args);
+    }
+
+    static test() {
+        // Create a test element with animation
+        const testElement = document.createElement('div');
+        testElement.id = 'test-element';
+        testElement.style.animation = 'fade 1s ease-in-out';
+        testElement.className = 'test-class animation';
+
+        // New element only with main element animation
+        const testElementMain = document.createElement('div');
+        testElementMain.id = 'test-element-main';
+        testElementMain.className = 'test-class-main';
+
+        // New element with only pseudo element animation
+        const testElementPseudo = document.createElement('div');
+        testElementPseudo.id = 'test-element-pseudo';
+        testElementPseudo.className = 'test-class-pseudo';
+
+        // Test element for scroll and resize
+        const testElementScroll = document.createElement('div');
+        testElementScroll.id = 'test-element-scroll';
+        testElementScroll.className = 'test-class-scroll';
+
+
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+        /* Styles for the first element with all animations */
+        @keyframes fade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        #test-element {
+            animation: fade 1s ease-in-out;
+            position: relative;
+            width: 100px;
+            height: 100px;
+            background: #ccc;
+        }
+        #test-element::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: red;
+            animation: slideIn 1.5s ease-in-out;
+        }
+        #test-element::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            background: blue;
+            animation: scaleUp 2s ease-in-out;
+        }
+
+        /* Styles for the element with only the main animation */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #test-element-main {
+            animation: rotate 2s linear infinite;
+            width: 100px;
+            height: 100px;
+            background: #ffcccc;
+        }
+
+        /* Styles for the element with only pseudo element animation */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        #test-element-pseudo {
+            width: 100px;
+            height: 100px;
+            background: #ccffcc;
+        }
+        #test-element-pseudo::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: green;
+            animation: bounce 1s ease-in-out infinite;
+        }
+    `;
+
+        const scrollStyles = document.createElement('style');
+        scrollStyles.textContent = `
+    #test-element-scroll {
+        width: 200px;
+        height: 200px;
+        background: #eee;
+        overflow: auto;
+        position: relative;
+        margin: 20px;
+    }
+    
+    #test-element-scroll::before {
+        content: '';
+        display: block;
+        height: 400px;
+        width: 400px;
+        background: linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%);
+        background-size: 20px 20px;
+    }
+`;
+
+        document.head.appendChild(styleSheet);
+        document.body.appendChild(testElement);
+        document.body.appendChild(testElementMain);
+        document.body.appendChild(testElementPseudo);
+        document.head.appendChild(scrollStyles);
+        document.body.appendChild(testElementScroll);
+
+        const logger = createLogger('TestLogger');
+
+        // Test message
+        console.log('************************************');
+        console.log('Message')
+        console.log('----------------------------------');
+        logger.log('Base test simple message');
+
+        // Test all types
+        console.log('************************************');
+        console.log('Message and type message')
+        console.log('----------------------------------');
+        for (const type of Object.keys(this.messageTypes)) {
+            logger.log(`Test type ${type}`, {type: `${type}`});
+        }
+
+        // Test state without element, only with passed state
+        console.log('************************************');
+        console.log('Test state without element, only with passed state')
+        console.log('----------------------------------');
+        Object.keys(this.elementStates).forEach(state => {
+            logger.log(`Test state. Type:  ${state}`,  {
+                conditions: [state]
+            });
+        });
+
+        // Test state with passed element
+        console.log('************************************');
+        console.log('Test state with passed element')
+        console.log('----------------------------------');
+        Object.keys(this.elementStates).forEach(state => {
+            logger.log(`Test state. Type:  ${state}`, testElement, {
+                conditions: [state]
+            });
+        });
+
+        // Test with element and styles
+        console.log('************************************');
+        console.log('Test with element and styles')
+        console.log('----------------------------------');
+        logger.log('Test element with styles', testElement, {
+            styles: {
+                messageTextColor: '#fb042a',
+                headerBackground: '#af274b'
+            },
+            conditions: ['visible', 'running'],
+        });
+
+        // Test with trackType
+        console.log('************************************');
+        console.log('Test with trackType')
+        console.log('----------------------------------');
+        logger.log('Test with trackType', testElement, {
+            type: 'success',
+            conditions: ['visible', 'running'],
+            trackType: 'animation'
+        });
+
+        // Test with all parameters
+        console.log('************************************');
+        console.log('Test with all parameters')
+        console.log('----------------------------------');
+        logger.log('All parameters', testElement, {
+            type: 'warning',
+            conditions: ['visible', 'running'],
+            styles: {
+                messageTextColor: '#35af27',
+                headerBackground: '#af274b',
+            },
+            functionName: 'testFunction',
+            trackType: 'animation'
+        });
+
+        // Test animations with pseudo elements
+        console.log('************************************');
+        console.log('Test animations with pseudo elements');
+        console.log('----------------------------------');
+        logger.log('Check animations', testElement, {
+            type: 'info',
+            trackType: 'animation'
+        });
+
+        // Test element only with main animation
+        console.log('************************************');
+        console.log('Test element only with main animation');
+        console.log('----------------------------------');
+        logger.log('Element with main animation', testElementMain, {
+            type: 'info',
+            trackType: 'animation'
+        });
+
+        // Test element only with pseudo element animation
+        console.log('************************************');
+        console.log('Test element only with pseudo element animation');
+        console.log('----------------------------------');
+        logger.log('Element with pseudo element animation', testElementPseudo, {
+            type: 'info',
+            trackType: 'animation'
+        });
+
+        // Test for scroll
+        console.log('************************************');
+        console.log('Test scroll tracking');
+        console.log('----------------------------------');
+
+// Save link to function-handler
+        const scrollHandler = (event) => {
+            logger.log('Scroll event', event.target, {
+                type: 'info',
+                trackType: 'scroll'
+            });
+        };
+
+// Add listener with saved function
+        testElementScroll.addEventListener('scroll', scrollHandler);
+
+        logger.log('Initial scroll state', testElementScroll, {
+            type: 'info',
+            trackType: 'scroll'
+        });
+
+// Test for resize
+        console.log('************************************');
+        console.log('Test resize tracking');
+        console.log('----------------------------------');
+
+// Create ResizeObserver for tracking size changes
+        const resizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                logger.log('Size changed', entry.target, {
+                    type: 'info',
+                    trackType: 'resize'
+                });
+            }
+        });
+
+        resizeObserver.observe(testElementScroll);
+
+        logger.log('Initial resize state', testElementScroll, {
+            type: 'info',
+            trackType: 'resize'
+        });
+
+// Test combined tracking
+        console.log('************************************');
+        console.log('Test combined tracking');
+        console.log('----------------------------------');
+        logger.log('Tracking started', testElementScroll, {
+            type: 'info',
+            trackType: ['scroll', 'resize']
+        });
+
+// Cleanup after 20 seconds
+        setTimeout(() => {
+            // Remove listener with correct parameters
+            resizeObserver.disconnect();
+            testElementScroll.removeEventListener('scroll', scrollHandler);
+
+            // Remove elements
+            document.body.removeChild(testElement);
+            document.body.removeChild(testElementMain);
+            document.body.removeChild(testElementPseudo);
+            document.body.removeChild(testElementScroll);
+            document.head.removeChild(styleSheet);
+            document.head.removeChild(scrollStyles);
+        }, 20000);
     }
 }
 
