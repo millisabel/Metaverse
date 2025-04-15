@@ -135,14 +135,6 @@ export class AnimationObserverCSS {
         if (!this.initialized) return;
         element.style.animationPlayState = 'running';
         element.setAttribute('data-animation-paused', 'false');
-
-        // this.logger.log('3',element,
-        //     {
-        //         conditions: [element.style.animationPlayState],
-        //         trackType: [ 'animation'],
-        //         functionName: 'startAnimation',
-        //     }
-        // );
     }
 
     pauseAnimation(element) {
