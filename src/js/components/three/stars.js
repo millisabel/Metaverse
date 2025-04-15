@@ -5,8 +5,51 @@ import { createStarTexture } from '../../utils/textureUtils';
 import {createLogger} from "../../utils/logger";
 
 export class Stars extends AnimationController {
-    constructor(container) {
+    constructor(container, options = {}) {
         super(container);
+
+        this.options = {
+            count: window.innerWidth < 768 ? 2500 : 5000,
+            colors: [0xFFFFFF],
+            size: {
+                min: 0.5,
+                max: 1.5,
+                attenuation: true,
+                multiplier: window.innerWidth < 768 ? 1.5 : 2
+            },
+            depth: {
+                range: window.innerWidth < 768 ? 500 : 1000,
+                z: [-300, -100]
+            },
+            movement: {
+                enabled: true,
+                probability: 0.15,
+                speed: 0.003,
+                amplitude: { x: 0.05, y: 0.05, z: 0.02 }
+            },
+            flicker: {
+                fast: {
+                    probability: 0.3,
+                    speed: { min: 0.05, max: 0.15 },
+                    amplitude: { min: 0.5, max: 1.0 }
+                },
+                slow: {
+                    speed: 0.005,
+                    amplitude: 0.2
+                }
+            },
+            camera: {
+                rotation: false,
+                speed: { x: 0.00002, y: 0.00002 }
+            },
+            material: {
+                opacity: 1,
+                transparent: true,
+                blending: THREE.NormalBlending
+            },
+            ...options
+        };
+
         this.scene = null;
         this.camera = null;
         this.renderer = null;
@@ -19,7 +62,8 @@ export class Stars extends AnimationController {
 
         this.name = 'Stars';
         this.logger = createLogger(this.name);
-        this.logger.log('Controller initialization', {
+
+        this.logger.log({
             conditions: ['initializing-controller'],
         });
     }
@@ -29,7 +73,7 @@ export class Stars extends AnimationController {
 
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
-            functionName: 'update'
+            functionName: 'initScene'
         });
 
         this.scene = new THREE.Scene();
@@ -39,70 +83,161 @@ export class Stars extends AnimationController {
             alpha: true,
             powerPreference: "high-performance"
         });
+
+
+        this.setupScene();
+        this.createStars();
+        this.isInitialized = true;
         
-        updateRendererSize(this.renderer, this.container, this.camera);
+        // updateRendererSize(this.renderer, this.container, this.camera);
+        //
+        // this.container.appendChild(this.renderer.domElement);
+        //
+        // createCanvas(this.renderer, { zIndex: '2' });
+        //
+        // this.camera.position.z = 5;
         
-        this.container.appendChild(this.renderer.domElement);
-        
-        createCanvas(this.renderer, { zIndex: '2' });
-        
-        this.camera.position.z = 5;
-        
-        const isMobile = window.innerWidth < 768;
-        const starCount = isMobile ? 2500 : 5000;
-        const depthRange = isMobile ? 500 : 1000;
-        const starColors = [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF];
-        
-        const starsGeometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(starCount * 3);
-        const colors = new Float32Array(starCount * 3);
-        const sizes = new Float32Array(starCount);
-        this.phases = new Float32Array(starCount);
-        this.isMoving = new Float32Array(starCount);
-        this.movePhases = new Float32Array(starCount);
-        this.flickerSpeeds = new Float32Array(starCount);
-        this.flickerAmplitudes = new Float32Array(starCount);
-        
-        for (let i = 0; i < starCount; i++) {
-            positions[i * 3] = (Math.random() - 0.5) * depthRange;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * depthRange;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * depthRange;
-            
-            const color = starColors[Math.floor(Math.random() * starColors.length)];
+        // const isMobile = window.innerWidth < 768;
+        // const starCount = isMobile ? 2500 : 5000;
+        // const depthRange = isMobile ? 500 : 1000;
+        // const starColors = [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF];
+        //
+        // const starsGeometry = new THREE.BufferGeometry();
+        // const positions = new Float32Array(starCount * 3);
+        // const colors = new Float32Array(starCount * 3);
+        // const sizes = new Float32Array(starCount);
+        // this.phases = new Float32Array(starCount);
+        // this.isMoving = new Float32Array(starCount);
+        // this.movePhases = new Float32Array(starCount);
+        // this.flickerSpeeds = new Float32Array(starCount);
+        // this.flickerAmplitudes = new Float32Array(starCount);
+        //
+        // for (let i = 0; i < starCount; i++) {
+        //     positions[i * 3] = (Math.random() - 0.5) * depthRange;
+        //     positions[i * 3 + 1] = (Math.random() - 0.5) * depthRange;
+        //     positions[i * 3 + 2] = (Math.random() - 0.5) * depthRange;
+        //
+        //     const color = starColors[Math.floor(Math.random() * starColors.length)];
+        //     colors[i * 3] = (color >> 16 & 255) / 255;
+        //     colors[i * 3 + 1] = (color >> 8 & 255) / 255;
+        //     colors[i * 3 + 2] = (color & 255) / 255;
+        //
+        //     sizes[i] = Math.random() * 3 + 1;
+        //     this.phases[i] = Math.random() * Math.PI * 2;
+        //     this.isMoving[i] = Math.random() < 0.15 ? 1 : 0;
+        //     this.movePhases[i] = Math.random() * Math.PI * 2;
+        //
+        //     if (Math.random() < 0.3) {
+        //         this.flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
+        //         this.flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
+        //     } else {
+        //         this.flickerSpeeds[i] = 0.005;
+        //         this.flickerAmplitudes[i] = 0.2;
+        //     }
+        // }
+        //
+        // starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        // starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        // starsGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        //
+        // const starsMaterial = new THREE.PointsMaterial({
+        //     vertexColors: true,
+        //     sizeAttenuation: true,
+        //     size: isMobile ? 1.5 : 2,
+        //     transparent: true,
+        //     opacity: 1,
+        //     map: createStarTexture()
+        // });
+        //
+        // this.stars = new THREE.Points(starsGeometry, starsMaterial);
+        // this.scene.add(this.stars);
+        // this.isInitialized = true;
+    }
+
+    initStarAttributes(positions, colors, sizes) {
+        for (let i = 0; i < this.options.count; i++) {
+            // Позиции
+            positions[i * 3] = (Math.random() - 0.5) * this.options.depth.range;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * this.options.depth.range;
+            positions[i * 3 + 2] = this.options.depth.z[0] + Math.random() * (this.options.depth.z[1] - this.options.depth.z[0]);
+
+            // Цвета
+            const color = this.options.colors[Math.floor(Math.random() * this.options.colors.length)];
             colors[i * 3] = (color >> 16 & 255) / 255;
             colors[i * 3 + 1] = (color >> 8 & 255) / 255;
             colors[i * 3 + 2] = (color & 255) / 255;
-            
-            sizes[i] = Math.random() * 3 + 1;
+
+            // Размеры
+            sizes[i] = this.randomRange(this.options.size.min, this.options.size.max);
+
+            // Параметры анимации
             this.phases[i] = Math.random() * Math.PI * 2;
-            this.isMoving[i] = Math.random() < 0.15 ? 1 : 0;
+            this.isMoving[i] = Math.random() < this.options.movement.probability ? 1 : 0;
             this.movePhases[i] = Math.random() * Math.PI * 2;
-            
-            if (Math.random() < 0.3) {
-                this.flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
-                this.flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
+
+            if (Math.random() < this.options.flicker.fast.probability) {
+                this.flickerSpeeds[i] = this.randomRange(
+                    this.options.flicker.fast.speed.min,
+                    this.options.flicker.fast.speed.max
+                );
+                this.flickerAmplitudes[i] = this.randomRange(
+                    this.options.flicker.fast.amplitude.min,
+                    this.options.flicker.fast.amplitude.max
+                );
             } else {
-                this.flickerSpeeds[i] = 0.005;
-                this.flickerAmplitudes[i] = 0.2;
+                this.flickerSpeeds[i] = this.options.flicker.slow.speed;
+                this.flickerAmplitudes[i] = this.options.flicker.slow.amplitude;
             }
         }
-        
-        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        starsGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-        
-        const starsMaterial = new THREE.PointsMaterial({
+    }
+
+    setupGeometry(geometry, positions, colors, sizes) {
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    }
+
+    createStarPoints(geometry) {
+        const material = new THREE.PointsMaterial({
             vertexColors: true,
-            sizeAttenuation: true,
-            size: isMobile ? 1.5 : 2,
-            transparent: true,
-            opacity: 1,
+            sizeAttenuation: this.options.size?.attenuation ?? true,
+            size: this.options.size?.multiplier ?? 2,
+            transparent: this.options.material?.transparent ?? true,
+            opacity: this.options.material?.opacity ?? 1,
+            blending: this.options.material?.blending ?? THREE.NormalBlending,
             map: createStarTexture()
         });
-        
-        this.stars = new THREE.Points(starsGeometry, starsMaterial);
+
+        this.stars = new THREE.Points(geometry, material);
         this.scene.add(this.stars);
-        this.isInitialized = true;
+    }
+
+    randomRange(min, max) {
+        return min + Math.random() * (max - min);
+    }
+
+    setupScene() {
+        updateRendererSize(this.renderer, this.container, this.camera);
+        this.container.appendChild(this.renderer.domElement);
+        createCanvas(this.renderer, { zIndex: '2' });
+        this.camera.position.z = 5;
+    }
+
+    createStars() {
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(this.options.count * 3);
+        const colors = new Float32Array(this.options.count * 3);
+        const sizes = new Float32Array(this.options.count);
+
+        this.phases = new Float32Array(this.options.count);
+        this.isMoving = new Float32Array(this.options.count);
+        this.movePhases = new Float32Array(this.options.count);
+        this.flickerSpeeds = new Float32Array(this.options.count);
+        this.flickerAmplitudes = new Float32Array(this.options.count);
+
+        this.initStarAttributes(positions, colors, sizes);
+        this.setupGeometry(geometry, positions, colors, sizes);
+        this.createStarPoints(geometry);
     }
 
     update() {
