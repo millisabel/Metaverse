@@ -5,6 +5,7 @@ import { createCanvas, updateRendererSize } from '../../utils/canvasUtils';
 import constellationsData from '../../data/constellations.json';
 import { createStarTexture } from '../../utils/textureUtils';
 import {createLogger} from "../../utils/logger";
+import { ContainerManager } from '../../utils/containerManager';
 
 class Star {
     constructor(position, texture) {
@@ -522,4 +523,17 @@ export class Constellation extends AnimationController {
             this.renderer.render(this.scene, this.camera);
         }
     }
+}
+
+export function initConstellation() {
+    const aboutSection = document.getElementById('about');
+    if (!aboutSection) {
+        console.warn('About section not found');
+        return;
+    }
+
+    const constellationManager = new ContainerManager(aboutSection, { zIndex: '1' });
+    const constellationContainer = constellationManager.create();
+
+    return new Constellation(constellationContainer);
 } 

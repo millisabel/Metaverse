@@ -1,13 +1,12 @@
 // Utils
 import { Logger } from './utils/logger';
-import { ContainerManager } from './utils/containerManager';
 
 // Observer CSS
 // import AnimationObserverCSS from './utils/animationObserver_CSS';
 
 // 3D components
 import { initHeroBackground } from './components/three/heroBackground';
-import { Constellation } from './components/three/constellation';
+import { initConstellation } from './components/three/constellation';
 // import { Glow } from './components/three/glow';
 import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
@@ -22,9 +21,6 @@ import { initMoreButtons } from './controllers/moreButton';
 import { initNavbar } from './components/common/navbar';
 import { initSlider } from './components/common/slider';
 import initModal from './components/common/modal';
-
-
-
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
@@ -44,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize 3D components
     initHeroBackground();
+    initConstellation();
     initRoadmap();
     initDynamics3D();
     initSocialCards();
@@ -56,15 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update copyright year
     document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-    // Initialize constellation in the about section
-    const aboutSection = document.getElementById('about');
-    if (aboutSection) {
-        const constellationManager = new ContainerManager(aboutSection, { zIndex: '1' });
-        const constellationContainer = constellationManager.create();
-
-        new Constellation(constellationContainer);
-    }
 });
 
 
