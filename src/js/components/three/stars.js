@@ -88,89 +88,25 @@ export class Stars extends AnimationController {
         this.setupScene();
         this.createStars();
         this.isInitialized = true;
-        
-        // updateRendererSize(this.renderer, this.container, this.camera);
-        //
-        // this.container.appendChild(this.renderer.domElement);
-        //
-        // createCanvas(this.renderer, { zIndex: '2' });
-        //
-        // this.camera.position.z = 5;
-        
-        // const isMobile = window.innerWidth < 768;
-        // const starCount = isMobile ? 2500 : 5000;
-        // const depthRange = isMobile ? 500 : 1000;
-        // const starColors = [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF];
-        //
-        // const starsGeometry = new THREE.BufferGeometry();
-        // const positions = new Float32Array(starCount * 3);
-        // const colors = new Float32Array(starCount * 3);
-        // const sizes = new Float32Array(starCount);
-        // this.phases = new Float32Array(starCount);
-        // this.isMoving = new Float32Array(starCount);
-        // this.movePhases = new Float32Array(starCount);
-        // this.flickerSpeeds = new Float32Array(starCount);
-        // this.flickerAmplitudes = new Float32Array(starCount);
-        //
-        // for (let i = 0; i < starCount; i++) {
-        //     positions[i * 3] = (Math.random() - 0.5) * depthRange;
-        //     positions[i * 3 + 1] = (Math.random() - 0.5) * depthRange;
-        //     positions[i * 3 + 2] = (Math.random() - 0.5) * depthRange;
-        //
-        //     const color = starColors[Math.floor(Math.random() * starColors.length)];
-        //     colors[i * 3] = (color >> 16 & 255) / 255;
-        //     colors[i * 3 + 1] = (color >> 8 & 255) / 255;
-        //     colors[i * 3 + 2] = (color & 255) / 255;
-        //
-        //     sizes[i] = Math.random() * 3 + 1;
-        //     this.phases[i] = Math.random() * Math.PI * 2;
-        //     this.isMoving[i] = Math.random() < 0.15 ? 1 : 0;
-        //     this.movePhases[i] = Math.random() * Math.PI * 2;
-        //
-        //     if (Math.random() < 0.3) {
-        //         this.flickerSpeeds[i] = 0.05 + Math.random() * 0.1;
-        //         this.flickerAmplitudes[i] = 0.5 + Math.random() * 0.5;
-        //     } else {
-        //         this.flickerSpeeds[i] = 0.005;
-        //         this.flickerAmplitudes[i] = 0.2;
-        //     }
-        // }
-        //
-        // starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        // starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        // starsGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-        //
-        // const starsMaterial = new THREE.PointsMaterial({
-        //     vertexColors: true,
-        //     sizeAttenuation: true,
-        //     size: isMobile ? 1.5 : 2,
-        //     transparent: true,
-        //     opacity: 1,
-        //     map: createStarTexture()
-        // });
-        //
-        // this.stars = new THREE.Points(starsGeometry, starsMaterial);
-        // this.scene.add(this.stars);
-        // this.isInitialized = true;
     }
 
     initStarAttributes(positions, colors, sizes) {
         for (let i = 0; i < this.options.count; i++) {
-            // Позиции
+            // Positions
             positions[i * 3] = (Math.random() - 0.5) * this.options.depth.range;
             positions[i * 3 + 1] = (Math.random() - 0.5) * this.options.depth.range;
             positions[i * 3 + 2] = this.options.depth.z[0] + Math.random() * (this.options.depth.z[1] - this.options.depth.z[0]);
 
-            // Цвета
+            // Colors
             const color = this.options.colors[Math.floor(Math.random() * this.options.colors.length)];
             colors[i * 3] = (color >> 16 & 255) / 255;
             colors[i * 3 + 1] = (color >> 8 & 255) / 255;
             colors[i * 3 + 2] = (color & 255) / 255;
 
-            // Размеры
+            // Sizes
             sizes[i] = this.randomRange(this.options.size.min, this.options.size.max);
 
-            // Параметры анимации
+            // Animation parameters
             this.phases[i] = Math.random() * Math.PI * 2;
             this.isMoving[i] = Math.random() < this.options.movement.probability ? 1 : 0;
             this.movePhases[i] = Math.random() * Math.PI * 2;
