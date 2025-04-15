@@ -17,11 +17,11 @@ import AnimationObserverCSS from './utils/animationObserver_CSS';
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
-    // Logger.disableLoggerFor('Constellation');
-    // Logger.disableLoggerFor('Stars');
-    // Logger.disableLoggerFor('GalacticCloud');
-    // Logger.disableLoggerFor('Glow');
-    // Logger.enableLoggerFor('AnimationObserverCSS');
+    Logger.disableLoggerFor('Constellation');
+    Logger.disableLoggerFor('Stars');
+    Logger.disableLoggerFor('GalacticCloud');
+    Logger.disableLoggerFor('Glow');
+    Logger.enableLoggerFor('AnimationObserverCSS');
     Logger.disableLoggerFor('AnimationObserverCSS');
 } else {
     Logger.disableGlobalLogging();
