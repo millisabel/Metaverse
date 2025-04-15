@@ -617,17 +617,18 @@ export class Logger {
     }
 
 
-    static formatGroupHeader(name, type, states, functionName, styles, classNames = []) {
-        const { header: headerStyle } = this.getStyles(this.getComponentColor(name), type, styles, states);
+    static formatGroupHeader(name, type, states, functionName, styles, classNames = [], element) {
+        const { header: headerStyle} = this.getStyles(this.getComponentColor(name), type, styles, states);
 
         const functionInfo = functionName ? ` [${functionName}()]` : '';
         const icon = this.messageTypes[type]?.icon ? `${this.messageTypes[type].icon} ` : '';
         const stateIcons = this.formatStateIcons(states);
         const foundClasses = classNames?.length ? ` 🎯[${classNames.join(', ')}]` : '';
+        const classesInfo = element?.classList?.length ? `\nclasses: [.${Array.from(element.classList).join(', .')}]` : '';
 
         return {
-            text: `%c${icon} ${stateIcons} ${foundClasses}[${name}] → ${functionInfo}`,
-            style: headerStyle
+            text: `%c${icon} ${stateIcons} ${foundClasses}[${name}] → ${functionInfo} ${classesInfo}`,
+            style: headerStyle,
         };
     }
 
@@ -663,7 +664,7 @@ export class Logger {
     }
 
     static formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, track, classNames = []) {
-        const header = this.formatGroupHeader(name, type, states, functionName, styles, classNames);
+        const header = this.formatGroupHeader(name, type, states, functionName, styles, classNames, element);
 
         console.groupCollapsed(header.text, header.style);
         this.logMessage(message, textStyle);
