@@ -19,7 +19,7 @@ export class HeroBackground {
         const starsManager = new ContainerManager(this.container, { zIndex: '2' });
         const starsContainer = starsManager.create();
         new Stars(starsContainer, {
-            count: window.innerWidth < 768 ? 2000 : 4000,
+            count: window.innerWidth < 768 ? 1000 : 4000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {
                 min: 1,

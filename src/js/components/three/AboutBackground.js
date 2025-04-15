@@ -21,9 +21,9 @@ export class AboutBackground {
             colors: [0xFFFFFF],
             size: {
                 min: 0.05,
-                max: 0.08,
+                max: 1,
                 attenuation: true,
-                multiplier: window.innerWidth < 768 ? 0.5 : 1.5
+                multiplier: 1.5
             },
             depth: {
                 range: window.innerWidth < 768 ? 500 : 1000,
