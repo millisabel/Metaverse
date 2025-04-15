@@ -30,9 +30,9 @@ class ConstellationGroup {
 
         // Parameters for rotation
         this.rotationSpeed = {
-            x: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
-            y: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
-            z: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1)
+            x: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
+            y: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
+            z: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1)
         };
         this.targetRotationSpeed = { ...this.rotationSpeed };
         this.rotationChangeTime = 15 + Math.random() * 15;
@@ -100,9 +100,9 @@ class ConstellationGroup {
         
         if (this.rotationTimer >= this.rotationChangeTime) {
             this.targetRotationSpeed = {
-                x: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
-                y: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1),
-                z: (0.0001 + Math.random() * 0.0001) * (Math.random() > 0.5 ? 1 : -1)
+                x: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
+                y: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
+                z: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1)
             };
             this.rotationTimer = 0;
             this.rotationTransitionProgress = 0;

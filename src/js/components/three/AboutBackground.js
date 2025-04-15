@@ -27,7 +27,7 @@ export class AboutBackground {
             },
             depth: {
                 range: window.innerWidth < 768 ? 500 : 1000,
-                z: [-300, -100]
+                z: [-500, -200]
             },
             movement: {
                 enabled: true,

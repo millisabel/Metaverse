@@ -1,6 +1,6 @@
 import { ContainerManager } from '../../utils/containerManager';
-import { GalacticCloud } from '../three/galactic';
-import { Stars } from '../three/stars';
+import { GalacticCloud } from './galactic';
+import { Stars } from './stars';
 
 export class HeroBackground {
 
@@ -32,7 +32,7 @@ export class HeroBackground {
             },
             movement: {
                 enabled: true,
-                probability: 0.15,
+                probability: 0.5,
                 speed: 0.003
             },
             camera: {
