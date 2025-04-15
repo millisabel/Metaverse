@@ -3,13 +3,12 @@ import { Logger } from './utils/logger';
 import { ContainerManager } from './utils/containerManager';
 
 // Observer CSS
-import AnimationObserverCSS from './utils/animationObserver_CSS';
+// import AnimationObserverCSS from './utils/animationObserver_CSS';
 
 // 3D components
-import { Stars } from './components/three/stars';
-import { GalacticCloud } from './components/three/galactic';
-import { Glow } from './components/three/glow';
+import { initHeroBackground } from './components/three/heroBackground';
 import { Constellation } from './components/three/constellation';
+import { Glow } from './components/three/glow';
 import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
 
@@ -29,23 +28,27 @@ import initModal from './components/common/modal';
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
-    Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
+    Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Glow');
-    Logger.disableLoggerFor('AnimationObserverCSS');
     Logger.disableLoggerFor('Roadmap');
+    Logger.disableLoggerFor('AnimationObserverCSS');
 } else {
     Logger.disableGlobalLogging();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Create a logger instance
+    // const observer = new AnimationObserverCSS();
 
-    // Initialize components
+    // Initialize 3D components
+    initHeroBackground();
     initRoadmap();
     initDynamics3D();
     initSocialCards();
 
+    // Initialize UI components
     initNavbar();
     initModal();
     initSlider();
@@ -54,23 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update copyright year
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-    // Initialize galactic background
-    const homeSection = document.getElementById('hero');
-    if (homeSection) {
-        // Create container for galactic background
-        const galacticManager = new ContainerManager(homeSection, { zIndex: '1' });
-        const galacticContainer = galacticManager.create();
-
-        // Initialize galactic background
-        new GalacticCloud(galacticContainer);
-
-        // Create container for stars
-        const starsManager = new ContainerManager(homeSection, { zIndex: '2' });
-        const starsContainer = starsManager.create();
-
-        // Initialize stars
-        new Stars(starsContainer);
-    }
 
     const roadMapSection = document.getElementById('roadmap');
     const isMobile = window.innerWidth <= 768;
