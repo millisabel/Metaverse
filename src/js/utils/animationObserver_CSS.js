@@ -46,7 +46,6 @@ export class AnimationObserverCSS {
 
         styles.forEach((style, index) => {
             if (this.hasAnimation(style)) {
-                const pseudoElement = index === 0 ? '' : index === 1 ? ':before' : ':after';
 
                 const animationData = {
                     element,
@@ -81,20 +80,17 @@ export class AnimationObserverCSS {
                         element.style.willChange = 'auto';
                     }
 
-                    // Then log the actual state
                     const isPaused = element.getAttribute('data-animation-paused') === 'true';
 
-                    // this.logger.log('2');
                     this.logger.log(element,
                         {
                             conditions: [
-                                isVisible ? 'visible' : 'hidden',
-                                isPaused ? 'paused' : 'running'],
+                                 isVisible ? 'visible' : 'hidden',
+                                 isPaused ? 'paused' : 'running'],
                             trackType: [ 'animation'],
                             functionName: 'setupIntersectionObserver',
                         }
                     );
-
                 });
             },
             {
@@ -102,37 +98,6 @@ export class AnimationObserverCSS {
                 rootMargin: '50px'
             }
         );
-    }
-
-    getParentSections(element) {
-        // Сначала проверяем наличие секции
-        let section = element.closest('section');
-        if (section) {
-            let sectionInfo;
-            if (section.id) {
-                sectionInfo = `section#${section.id}`;
-            } else {
-                sectionInfo = section.dataset.section || 'section';
-            }
-            return `Root: ${sectionInfo}`;
-        }
-
-        // Если секции нет, ищем ближайшего родителя
-        let parent = element.parentElement;
-        if (parent) {
-            if (parent.id) {
-                return `Parent: ${parent.tagName.toLowerCase()}#${parent.id}`;
-            } else {
-                const className = parent.className?.baseVal || parent.className || '';
-                if (className) {
-                    const firstClass = className.toString().split(' ')[0];
-                    return `Parent: ${parent.tagName.toLowerCase()}.${firstClass}`;
-                }
-                return `Parent: ${parent.tagName.toLowerCase()}`;
-            }
-        }
-
-        return 'no parent';
     }
 
     setupMutationObserver() {
@@ -170,6 +135,14 @@ export class AnimationObserverCSS {
         if (!this.initialized) return;
         element.style.animationPlayState = 'running';
         element.setAttribute('data-animation-paused', 'false');
+
+        // this.logger.log('3',element,
+        //     {
+        //         conditions: [element.style.animationPlayState],
+        //         trackType: [ 'animation'],
+        //         functionName: 'startAnimation',
+        //     }
+        // );
     }
 
     pauseAnimation(element) {
