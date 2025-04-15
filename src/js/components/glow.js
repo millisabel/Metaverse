@@ -8,7 +8,9 @@ export class Glow extends AnimationController {
         super(parent);
         this.name = 'Glow';
         this.logger = createLogger(this.name);
-        this.logger.log('Initializing controller');
+        this.logger.log('Controller initialization', {
+            conditions: ['initializing-controller'],
+        });
         
         const isMobile = window.innerWidth <= 768;
 
@@ -51,6 +53,11 @@ export class Glow extends AnimationController {
             return;
         }
 
+        this.logger.log('Scene initialization', {
+            conditions: ['initializing-scene'],
+            functionName: 'initScene'
+        });
+
         try {
             // Create scene
             this.scene = new THREE.Scene();
@@ -81,7 +88,6 @@ export class Glow extends AnimationController {
             this.render();
             
             this.isInitialized = true;
-            this.logger.log('Scene initialized successfully');
         } catch (error) {
             this.logger.log(`Error during scene initialization: ${error.message}`, 'error');
             this.cleanup();
@@ -196,9 +202,14 @@ export class Glow extends AnimationController {
             return;
         }
 
-        const time = this.clock.getElapsedTime();
-        const rect = this.container.getBoundingClientRect();
-        const aspect = rect.width / rect.height;
+        if (!this.animationFrameId) {
+            this.logger.log('Animation started', {
+                conditions: ['running'],
+                functionName: 'animate'
+            });
+        }
+
+        const { time, aspect, isMobile } = this._getTimeAndAspect();
 
         this.glows.forEach(glow => {
             const mesh = glow.mesh;
@@ -229,7 +240,7 @@ export class Glow extends AnimationController {
         });
 
         this.render();
-        super.animate();
+        this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
     render() {
@@ -286,5 +297,40 @@ export class Glow extends AnimationController {
 
     getRandomValue(min, max) {
         return Math.random() * (max - min) + min;
+    }
+
+    update() {
+        if (!this.isVisible || !this.scene || !this.camera || !this.isInitialized) {
+            return;
+        }
+
+        const time = this.clock.getElapsedTime();
+        const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
+
+        this.glows.forEach(glow => {
+            const mesh = glow.mesh;
+            const timeOffset = time * glow.speed * 0.5;
+
+            // Update position
+            mesh.position.x += Math.sin(timeOffset) * glow.direction.x * 0.002;
+            mesh.position.y += Math.cos(timeOffset) * glow.direction.y * 0.002;
+            mesh.position.z = Math.sin(time * glow.speed * 0.3) * 0.2;
+            mesh.rotation.z += glow.speed * 0.0002;
+
+            // Check boundaries
+            if (Math.abs(mesh.position.x) > aspect) {
+                glow.direction.x *= -1;
+                mesh.position.x = Math.sign(mesh.position.x) * aspect;
+            }
+            if (Math.abs(mesh.position.y) > 1) {
+                glow.direction.y *= -1;
+                mesh.position.y = Math.sign(mesh.position.y);
+            }
+
+            mesh.material.uniforms.time.value = time;
+        });
+
+        this.render();
     }
 }
