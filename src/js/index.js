@@ -1,4 +1,6 @@
 // Import components
+import { Logger } from './utils/logger';
+
 import { initNavbar } from './components/navbar';
 import { initSlider } from './components/slider';
 import { initRoadmap } from './components/roadmap';
@@ -11,9 +13,23 @@ import { ContainerManager } from './utils/containerManager';
 import initModal from './components/modal';
 import { Constellation } from './components/constellation';
 import { Glow } from './components/glow';
+import AnimationObserverCSS from './utils/animationObserver_CSS';
 
-// Initialize components when DOM is loaded
+if (process.env.NODE_ENV === 'development') {
+    Logger.enableGlobalLogging();
+    // Logger.disableLoggerFor('Constellation');
+    // Logger.disableLoggerFor('Stars');
+    // Logger.disableLoggerFor('GalacticCloud');
+    // Logger.disableLoggerFor('Glow');
+    // Logger.enableLoggerFor('AnimationObserverCSS');
+    Logger.disableLoggerFor('AnimationObserverCSS');
+} else {
+    Logger.disableGlobalLogging();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Create a logger instance
+    const observer = new AnimationObserverCSS();
 
     // Initialize components
     initNavbar();
@@ -67,4 +83,5 @@ document.addEventListener('DOMContentLoaded', () => {
         new Constellation(constellationContainer);
     }
 });
+
 
