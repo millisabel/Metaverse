@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { AnimationController } from '../utils/animationController_3D';
-import {createCanvas, updateRendererSize} from "../utils/canvasUtils";
-import { createStarTexture } from '../utils/textureUtils';
-import {createLogger} from "../utils/logger";
+import { AnimationController } from '../../utils/animationController_3D';
+import {createCanvas, updateRendererSize} from "../../utils/canvasUtils";
+import { createStarTexture } from '../../utils/textureUtils';
+import {createLogger} from "../../utils/logger";
 
 export class Stars extends AnimationController {
     constructor(container) {
