@@ -157,7 +157,7 @@ class ConstellationGroup {
         });
     }
 
-    updateRotation(time) {
+    updateRotation() {
         this.rotationTimer += 0.016;
         this.rotationTransitionProgress += 0.01;
         
@@ -382,7 +382,7 @@ class BackgroundStars {
         this.group.add(this.points);
     }
 
-    update(time) {
+    update() {
         const positions = this.points.geometry.attributes.position.array;
         const sizes = this.points.geometry.attributes.size.array;
         
@@ -480,26 +480,6 @@ export class Constellation extends AnimationController {
         this.isInitialized = true;
     }
 
-    // animate() {
-    //     if (!this.isVisible || !this.scene || !this.camera) return;
-    //
-    //     super.animate();
-    //
-    //     // Update animation through frame
-    //     if (this.frame % 2 === 0) {
-    //         const time = Date.now() * 0.001;
-    //
-    //         this.backgroundStars.update(time);
-    //
-    //         this.constellations.forEach((constellation, index) => {
-    //             constellation.update(time, this.constellations.filter(c => c !== constellation));
-    //         });
-    //     }
-    //
-    //     this.frame++;
-    //     this.renderer.render(this.scene, this.camera);
-    // }
-
     cleanup() {
         this.constellations = [];
         this.backgroundStars = null;
@@ -511,7 +491,7 @@ export class Constellation extends AnimationController {
             return;
         }
 
-        // Логируем только при первом вызове update
+        // Log only when update is called for the first time
         if (!this.animationFrameId) {
             this.logger.log('Starting update cycle', {
                 conditions: ['running'],
@@ -520,7 +500,7 @@ export class Constellation extends AnimationController {
             });
         }
 
-        // Оптимизация - обновляем каждый второй кадр
+        // Optimization - update every second frame
         if (this.frame % 2 === 0) {
             const time = Date.now() * 0.001;
 
