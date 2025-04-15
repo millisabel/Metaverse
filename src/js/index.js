@@ -1,19 +1,20 @@
 // Import components
 import { Logger } from './utils/logger';
 
+import { Stars } from './components/three/stars';
+import { GalacticCloud } from './components/three/galactic';
+import { Glow } from './components/three/glow';
+
 import { initNavbar } from './components/navbar';
 import { initSlider } from './components/slider';
 import { initRoadmap } from './components/roadmap';
 import { initDynamics3D } from './components/dynamics3d';
 import { initSocialCards } from './components/socialCards';
-import { initAllAnimations } from './utils/animationObserver';
-import { GalacticCloud } from './components/galactic';
-import { Stars } from './components/stars';
 import { ContainerManager } from './utils/containerManager';
 import initModal from './components/modal';
 import { Constellation } from './components/constellation';
-import { Glow } from './components/glow';
 import AnimationObserverCSS from './utils/animationObserver_CSS';
+import { initMoreButtons } from './components/moreButton';
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
@@ -21,8 +22,8 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
-    Logger.enableLoggerFor('AnimationObserverCSS');
     Logger.disableLoggerFor('AnimationObserverCSS');
+    Logger.disableLoggerFor('Roadmap');
 } else {
     Logger.disableGlobalLogging();
 }
@@ -38,9 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRoadmap();
     initDynamics3D();
     initSocialCards();
-
-    // Initialize all animations
-    const animationObservers = initAllAnimations();
+    initMoreButtons(document.querySelector('.roadmap'));
     
     // Update copyright year
     document.getElementById('currentYear').textContent = new Date().getFullYear();
