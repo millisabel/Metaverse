@@ -22,6 +22,83 @@
  * - DOM element inspection
  * - Grouped logging
  * - Global and per-component logging control
+ * - Automatic session management
+ * - Class-based conditional logging
+ *
+ * Usage Examples:
+ *
+ * 1. Basic logging with Logger.log():
+ * ```javascript
+ * import { Logger } from './utils/logger';
+ * 
+ * // Simple message
+ * Logger.log('ComponentName', 'Hello world');
+ * 
+ * // With message type
+ * Logger.log('ComponentName', 'Operation successful', { type: 'success' });
+ * 
+ * // With DOM element and states
+ * Logger.log('ComponentName', 'Element updated', element, {
+ *   type: 'info',
+ *   conditions: ['visible', 'running'],
+ *   functionName: 'updateElement',
+ *   trackType: 'animation'
+ * });
+ * 
+ * // With custom styles
+ * Logger.log('ComponentName', 'Styled message', {
+ *   styles: {
+ *     messageTextColor: '#35af27',
+ *     headerBackground: '#af274b'
+ *   }
+ * });
+ * ```
+ *
+ * 2. Conditional logging with Logger.logIfClassExists():
+ * ```javascript
+ * import { Logger } from './utils/logger';
+ * 
+ * // Log only if element has specific class
+ * Logger.logIfClassExists(element, {
+ *   classNames: ['open-modal', 'active'],
+ *   type: 'info',
+ *   conditions: ['visible'],
+ *   functionName: 'handleModal',
+ *   trackType: 'animation'
+ * });
+ * 
+ * // With custom message
+ * Logger.logIfClassExists('Modal state changed', element, {
+ *   classNames: ['modal'],
+ *   type: 'warning',
+ *   conditions: ['hidden'],
+ *   functionName: 'closeModal'
+ * });
+ * ```
+ *
+ * Available Message Types:
+ * - info: Basic information
+ * - success: Successful operations
+ * - warning: Warning messages
+ * - error: Error messages
+ * - debug: Debug information
+ * - initializing-controller: Controller initialization
+ * - initializing-scene: Scene initialization
+ * - animation-frame: Animation frame updates
+ * - animation-frame-cleanup: Animation cleanup
+ * - resize-started: Resize operation start
+ * - resize-completed: Resize operation completion
+ *
+ * Available States:
+ * - visible: Element is visible
+ * - hidden: Element is hidden
+ * - running: Animation is running
+ * - paused: Animation is paused
+ *
+ * Available Track Types:
+ * - animation: Animation-related events
+ * - scroll: Scroll-related events
+ * - resize: Resize-related events
  *
  * Basic Usage:
  * ```javascript
@@ -268,6 +345,13 @@ export class Logger {
         RESIZE: 'resize',
     };
 
+    static debounceTimeout = 1000; // пауза 1 секунда
+    static lastLogTime = 0;
+    static isLoggingActive = false;
+    static logSessionCounter = 0;
+
+    static currentColorIndex = 0;
+
     static enableGlobalLogging() {
         this.globalLoggingEnabled = true;
         this.enabledLoggers.clear();
@@ -307,11 +391,29 @@ export class Logger {
 
 
     static generateRandomColor() {
-        const hue = Math.floor(Math.random() * 360);
-        const saturation = Math.floor(Math.random() * 30) + 70;
-        const lightness = Math.floor(Math.random() * 20) + 45;
+        const colors = [
+            '#FF3B30', // красный
+            '#007AFF', // синий
+            '#34C759', // зеленый
+            '#5856D6', // фиолетовый
+            '#FF9500', // оранжевый
+            '#00C7BE', // бирюзовый
+            '#AF52DE', // пурпурный
+            '#FFCC00', // желтый
+            '#FF2D55', // розовый
+            '#5AC8FA', // голубой
+            '#4A6FA5', // индиго
+            '#C86D3C', // коричневый
+            '#28CD41', // изумрудный
+            '#E6356F', // малиновый
+            '#4B78FF', // ярко-синий
+            '#FF6B6B', // коралловый
+        ];
 
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        const color = colors[this.currentColorIndex];
+        this.currentColorIndex = (this.currentColorIndex + 1) % colors.length;
+
+        return color;
     }
 
     static getComponentColor(name) {
@@ -417,6 +519,7 @@ export class Logger {
         let styles = {};
         let functionName = null;
         let trackType = null;
+        let classNames = [];
 
         args.forEach(arg => {
             if (typeof arg === 'string') {
@@ -431,10 +534,12 @@ export class Logger {
                 if (arg.styles) styles = arg.styles;
                 if (arg.trackType) trackType = arg.trackType;
                 if (arg.functionName) functionName = arg.functionName;
+                if (arg.classNames) classNames = Array.isArray(arg.classNames) ? arg.classNames : [arg.classNames];
+
             }
         });
 
-        return { message, type, element, states, styles, trackType, functionName };
+        return { message, type, element, states, styles, trackType, functionName, classNames };
     }
 
     static parseElementInfo(element) {
@@ -512,15 +617,16 @@ export class Logger {
     }
 
 
-    static formatGroupHeader(name, type, states, functionName, styles) {
+    static formatGroupHeader(name, type, states, functionName, styles, classNames = []) {
         const { header: headerStyle } = this.getStyles(this.getComponentColor(name), type, styles, states);
 
         const functionInfo = functionName ? ` [${functionName}()]` : '';
         const icon = this.messageTypes[type]?.icon ? `${this.messageTypes[type].icon} ` : '';
         const stateIcons = this.formatStateIcons(states);
+        const foundClasses = classNames?.length ? ` 🎯[${classNames.join(', ')}]` : '';
 
         return {
-            text: `${stateIcons} %c${icon}[${name}] → ${functionInfo}`,
+            text: `%c${icon} ${stateIcons} ${foundClasses}[${name}] → ${functionInfo}`,
             style: headerStyle
         };
     }
@@ -537,14 +643,14 @@ export class Logger {
     static formatMessage(name, ...args) {
 
         const componentColor = this.getComponentColor(name);
-        const { message, type, element, states, styles, trackType, functionName } = this.parseArgs(args);
+        const { message, type, element, states, styles, trackType, functionName, classNames } = this.parseArgs(args);
         const { header: headerStyle, text: textStyle } = this.getStyles(componentColor, type, styles, states);
 
         if (args.length === 1 && typeof args[0] === 'string') {
             this.formatSimpleMessage(name, message, headerStyle, textStyle);
             return;
         }
-        this.formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, trackType);
+        this.formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, trackType, classNames);
     }
 
     static formatElementDetails(elementInfo) {
@@ -555,21 +661,15 @@ export class Logger {
             parent: elementInfo.parent,
         };
     }
-    
-    static formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, track) {
-        const functionInfo = functionName ? ` [${functionName}]` : '';
-        const icon = this.messageTypes[type]?.icon ? `${this.messageTypes[type].icon} ` : '';
-        const stateIcons = this.formatStateIcons(states);
-        const headerText = `%c${icon}[${name}]${stateIcons}${functionInfo}`;
 
-        const header = this.formatGroupHeader(name, type, states, functionName, styles);
-        const trackType = track;
+    static formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, track, classNames = []) {
+        const header = this.formatGroupHeader(name, type, states, functionName, styles, classNames);
 
         console.groupCollapsed(header.text, header.style);
         this.logMessage(message, textStyle);
         this.logElementInfo(element);
         this.logDOMElement(element);
-        this.checkTrackTypes(element, trackType);
+        this.checkTrackTypes(element, track); 
         this.logStates(states);
         console.groupEnd();
     }
@@ -726,8 +826,76 @@ export class Logger {
         );
     }
 
+
+    static checkLogSession() {
+        const currentTime = Date.now();
+
+        if (this.isLoggingActive && (currentTime - this.lastLogTime > this.debounceTimeout)) {
+            this.endCurrentSession();
+        }
+
+        if (!this.isLoggingActive) {
+            this.startNewSession();
+        }
+
+        this.lastLogTime = currentTime;
+        this.isLoggingActive = true;
+    }
+
+    static startNewSession() {
+        this.logSessionCounter++;
+        console.log(`\n${'='.repeat(50)}`);
+        console.log(`New logging session #${this.logSessionCounter}`);
+        console.log(`${'='.repeat(50)}\n`);
+    }
+
+    static endCurrentSession() {
+        // console.log(`\n${'='.repeat(50)}`);
+        // console.log(`✨ End of logging session #${this.logSessionCounter}`);
+        // console.log(`${'='.repeat(50)}\n`);
+        this.isLoggingActive = false;
+    }
+
+
+    static logIfClassExists(messageOrElement, elementOrOptions = null, optionsOrNull = null) {
+        const element = messageOrElement instanceof Element ? messageOrElement : elementOrOptions;
+        const options = messageOrElement instanceof Element ? elementOrOptions || {} : optionsOrNull || {};
+        const message = messageOrElement instanceof Element ? '' : messageOrElement;
+
+        if (!element || !(element instanceof Element) || !options.classNames?.length) {
+            return;
+        }
+
+        try {
+            const stack = new Error().stack;
+
+            const callerMatch = stack.split('\n')[2]?.match(/at\s+(\w+)\./);
+            const callerName = callerMatch ? callerMatch[1] : 'UnknownCaller';
+
+            const hasClass = options.classNames.some(className => element.classList.contains(className));
+            if (hasClass) {
+                this.log(callerName, message || '', element, options);
+            }
+        } catch (error) {
+            console.warn('Error checking element classes:', error);
+        }
+    }
+
     static log(name, ...args) {
         if (!this.isLoggerEnabled(name)) return;
+
+        const stackTrace = new Error().stack;
+
+        if (!stackTrace.includes('logIfClassExists')) {
+            args = args.map(arg => {
+                if (arg && typeof arg === 'object' && !arg.nodeType && Array.isArray(arg.classNames) && arg.classNames.length > 0) {
+                    return { ...arg, classNames: [] };
+                }
+                return arg;
+            });
+        }
+
+        this.checkLogSession();
         this.formatMessage(name, ...args);
     }
 
