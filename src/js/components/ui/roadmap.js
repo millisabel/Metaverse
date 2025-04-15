@@ -1,7 +1,14 @@
 import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
+import {Glow} from "../three/glow";
 
 export class Roadmap {
+    static GLOW_COLORS = ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'];
+    static BREAKPOINTS = {
+        mobile: 768,
+        tablet: 1099
+    };
+
     constructor(container) {
         this.container = container;
         this.observer = null;
@@ -31,8 +38,19 @@ export class Roadmap {
         this.init();
     }
 
+    getGlowCount() {
+        const isMobile = window.innerWidth <= Roadmap.BREAKPOINTS.mobile;
+        const isTablet = window.innerWidth <= Roadmap.BREAKPOINTS.tablet;
+        return isMobile ? 5 : isTablet ? 8 : 10;
+    }
+
     init() {
-        if (this.initialized) return;
+        if (!this.container || this.initialized) return;
+
+        new Glow(this.container, {
+            count: this.getGlowCount(),
+            colors: Roadmap.GLOW_COLORS
+        });
 
         this.createConnectionLines();
         this.setupResizeHandler();
