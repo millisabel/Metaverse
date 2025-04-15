@@ -21,12 +21,13 @@ import { initMoreButtons } from './controllers/moreButton';
 import { initNavbar } from './components/common/navbar';
 import { initSlider } from './components/common/slider';
 import initModal from './components/common/modal';
+import {initAboutBackground} from "./components/three/AboutBackground";
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
-    Logger.disableLoggerFor('Stars');
+    // Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
-    Logger.disableLoggerFor('Constellation');
+    // Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('AnimationObserverCSS');
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize 3D components
     initHeroBackground();
-    initConstellation();
+    initAboutBackground();
     initRoadmap();
     initDynamics3D();
     initSocialCards();

@@ -3,7 +3,6 @@ import { GalacticCloud } from '../three/galactic';
 import { Stars } from '../three/stars';
 
 export class HeroBackground {
-    static NAME = 'HeroBackground';
 
     constructor() {
         this.container = document.getElementById('hero');
@@ -13,15 +12,38 @@ export class HeroBackground {
     init() {
         if (!this.container || this.initialized) return;
 
-        // Галактический фон
         const galacticManager = new ContainerManager(this.container, { zIndex: '1' });
         const galacticContainer = galacticManager.create();
         new GalacticCloud(galacticContainer);
 
-        // Звезды
         const starsManager = new ContainerManager(this.container, { zIndex: '2' });
         const starsContainer = starsManager.create();
-        new Stars(starsContainer);
+        new Stars(starsContainer, {
+            count: window.innerWidth < 768 ? 2500 : 5000,
+            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
+            size: {
+                min: 1,
+                max: 4,
+                multiplier: window.innerWidth < 768 ? 2 : 2.5
+            },
+            depth: {
+                range: window.innerWidth < 768 ? 500 : 1000,
+                z: [-1000, 1000]
+            },
+            movement: {
+                enabled: true,
+                probability: 0.15,
+                speed: 0.003
+            },
+            camera: {
+                rotation: true,
+                speed: { x: 0.00002, y: 0.00002 }
+            },
+            material: {
+                opacity: 1,
+                transparent: true,
+            }
+        });
 
         this.initialized = true;
     }
