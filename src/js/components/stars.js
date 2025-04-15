@@ -19,12 +19,19 @@ export class Stars extends AnimationController {
 
         this.name = 'Stars';
         this.logger = createLogger(this.name);
-        this.logger.log('Initializing controller');
+        this.logger.log('Controller initialization', {
+            conditions: ['initializing-controller'],
+            functionName: 'update'
+        });
     }
 
     initScene() {
         if (this.isInitialized) return;
-        this.logger.log(`Initializing scene`);
+
+        this.logger.log('Scene initialization', {
+            conditions: ['initializing-scene'],
+            functionName: 'update'
+        });
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -98,11 +105,25 @@ export class Stars extends AnimationController {
         this.scene.add(this.stars);
         this.isInitialized = true;
     }
-    
-    animate() {
-        if (!this.isVisible || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) return;
-        
-        super.animate();
+
+    update() {
+
+        if (!this.isVisible || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) {
+            if (this.animationFrameId) {
+                this.logger.log('Animation stopped', {
+                    conditions: ['paused'],
+                    functionName: 'update'
+                });
+            }
+            return;
+        }
+
+        if (!this.animationFrameId) {
+            this.logger.log('Animation started', {
+                conditions: ['running'],
+                functionName: 'update'
+            });
+        }
         
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
