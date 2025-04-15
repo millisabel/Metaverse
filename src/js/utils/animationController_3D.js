@@ -16,7 +16,6 @@ export class AnimationController {
 
         this.name = 'AnimationController';
         this.logger = createLogger(this.name);
-        this.logger.log('Initializing controller');
 
         this.init();
     }
@@ -27,7 +26,10 @@ export class AnimationController {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     this.isVisible = true;
-                    this.logger.log(`Object is visible`);
+                    this.logger.log(`AnimationController: Object is visible`, {
+                        conditions: ['visible'],
+                        functionName: 'AnimationController: init'
+                    });
                     if (!this.isInitialized) {
                         this.initScene();
                     }
@@ -36,7 +38,11 @@ export class AnimationController {
                     }
                 } else {
                     this.isVisible = false;
-                    this.logger.log(`Object is not visible`);
+                    this.logger.log(`Object is not visible`, {
+                        conditions: ['hidden'],
+                        functionName: 'AnimationController: init'
+                        }
+                    );
                     this.stopAnimation();
                 }
             });
@@ -51,14 +57,20 @@ export class AnimationController {
         window.addEventListener('resize', () => {
             if (!this.isResizing) {
                 this.isResizing = true;
-                this.logger.log(`Resize started`);
+                this.logger.log({
+                    conditions: ['resize-started'],
+                    functionName: 'AnimationController: init'
+                });
                 this.stopAnimation();
             }
 
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
                 this.isResizing = false;
-                this.logger.log(`Resize completed`);
+                this.logger.log( {
+                    conditions: ['resize-completed'],
+                    functionName: 'AnimationController: init'
+                });
                 if (this.isVisible) {
                     this.onResize();
                     // Add additional delay before starting animation
@@ -74,17 +86,25 @@ export class AnimationController {
 
     canAnimate() {
         if (!this.isVisible) {
-            this.logger.log('Object is not visible', 'debug');
+            this.logger.log('Object is hidden',  {
+                conditions: ['hidden'],
+                functionName: 'AnimationController: canAnimate'
+            });
             return false;
         }
 
         if (this.isResizing) {
-            this.logger.log('Object is resizing', 'debug');
+            this.logger.log('Object is resizing', {
+                functionName: 'AnimationController: canAnimate',
+                trackType: ['scroll'],
+            });
             return false;
         }
 
         if (!this.isInitialized) {
-            this.logger.log('Object is not initialized', 'debug');
+            this.logger.log('Object is not initialized', {
+                functionName: 'AnimationController: canAnimate'
+            });
             return false;
         }
 
@@ -99,20 +119,23 @@ export class AnimationController {
             return;
         }
 
-        if (!this.animationFrameId) {
-            this.logger.log('Starting animation');
-        }
-
+        this.update();
         this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
     stopAnimation() {
         if (this.animationFrameId) {
             const id = this.animationFrameId;
-            this.logger.log(`Stopping animation - frame ID: ${this.animationFrameId}`);
+            this.logger.log(`Stopping animation - frame ID: ${this.animationFrameId}`, {
+                conditions: ['paused'],
+                functionName: 'AnimationController: stopAnimation'
+            });
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
-            this.logger.log(`Animation frame ID ${id} is ${this.animationFrameId}`);
+            this.logger.log(`Animation frame ID ${id} is ${this.animationFrameId}`, {
+                conditions: ['animation-frame-cleanup'],
+                functionName: 'AnimationController: stopAnimation'
+            });
         }
     }
 
@@ -172,5 +195,19 @@ export class AnimationController {
 
     onResize() {
         throw new Error('onResize must be implemented by subclass');
+    }
+
+    _getTimeAndAspect() {
+        const rect = this.container.getBoundingClientRect();
+        return {
+            time: performance.now() * 0.0001,
+            aspect: rect.width / rect.height,
+            isMobile: rect.width < 768
+        };
+    }
+
+    update() {
+        // Base method update, which will be overridden in child classes
+        throw new Error('update must be implemented by subclass');
     }
 } 
