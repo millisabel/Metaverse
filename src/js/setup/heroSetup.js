@@ -1,8 +1,8 @@
-import { ContainerManager } from '../../utils/containerManager';
-import { GalacticCloud } from './galactic';
-import { Stars } from './stars';
+import { ContainerManager } from '../utils/containerManager';
+import { GalacticCloud } from '../components/three/galactic';
+import { Stars } from '../components/three/stars';
 
-export class HeroBackground {
+export class HeroSetup {
 
     constructor() {
         this.container = document.getElementById('hero');
@@ -55,7 +55,7 @@ export class HeroBackground {
     }
 }
 
-export function initHeroBackground() {
-    const heroBackground = new HeroBackground();
+export function initHero() {
+    const heroBackground = new HeroSetup();
     heroBackground.init();
 }
