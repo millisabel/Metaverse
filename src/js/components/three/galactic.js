@@ -3,8 +3,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-import { AnimationController } from '../../utils/animationController_3D';
-import { createCanvas, updateRendererSize } from '../../utils/canvasUtils';
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils';
 import {createLogger} from "../../utils/logger";    
 
 export class GalacticCloud extends AnimationController {

@@ -2,11 +2,11 @@ import * as THREE from 'three';
 
 import constellationsData from '../../data/constellations.json';
 
-import { AnimationController } from '../../utils/animationController_3D';
-import { createCanvas, updateRendererSize } from '../../utils/canvasUtils';
-import { createStarTexture } from '../../utils/textureUtils';
-import {createLogger} from "../../utils/logger";
-import { ContainerManager } from '../../utils/containerManager';
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils';
+import { createStarTexture } from '../../utilsThreeD/textureUtils';
+import { createLogger } from "../../utils/logger";
+import { ThreeDContainerManager } from '../../utilsThreeD/ThreeDContainerManager';
 
 class ConstellationGroup {
     constructor(data, starTexture) {
@@ -277,9 +277,10 @@ export class Constellation extends AnimationController {
 
         this.name = 'Constellation';
         this.logger = createLogger(this.name);
-        this.logger.log('Controller initialization', {
-            conditions: ['initializing-controller'],
-        });
+
+        // Константы для компонента Constellation
+        this.CONTAINER_TYPE = 'ABOUT_CONSTELLATION';
+        this.Z_INDEX = '2';
     }
 
     onResize() {
@@ -373,7 +374,10 @@ export function initConstellation() {
         return;
     }
 
-    const constellationManager = new ContainerManager(aboutSection, { zIndex: '1' });
+    const constellationManager = new ThreeDContainerManager(aboutSection, { 
+        type: 'ABOUT_CONSTELLATION',
+        zIndex: '2'
+    });
     const constellationContainer = constellationManager.create();
 
     return new Constellation(constellationContainer);

@@ -1,42 +1,56 @@
 import { createLogger } from '../utils/logger';
-import {Glow} from "../components/three/glow";
-import {Roadmap} from "../components/ui/roadmap";
-import {MoreButton} from "../controllers/moreButton";
-import {getColors} from "../utils/utils";
+
+import { Glow } from "../components/three/glow";
+import { Roadmap } from "../components/ui/roadmap";
+
+import { MoreButton } from "../controllers/moreButton";
+import { getColors, isMobile } from "../utils/utils";
+import { ThreeDContainerManager } from "../utilsThreeD/ThreeDContainerManager";
 
 export class RoadmapSetup {
-
-
-    constructor(container) {
-        this.container = container;
+    constructor() {
+        this.container = document.getElementById('roadmap');
         this.initialized = false;
         
         this.name = 'RoadmapSetup';
         this.logger = createLogger(this.name);
 
-        this.init();
+        this.CONTAINER_TYPES = {
+            ROADMAP: 'ROADMAP',
+            GLOW: 'GLOW'
+        };
+
+        this.Z_INDEX = {
+            ROADMAP: '0',
+            GLOW: '1'
+        };
     }
 
     init() {
         if (!this.container || this.initialized) return;
 
         this.logger.log({
-            conditions: 'start',
+            conditions: 'init',
             functionName: 'init'
         });
-        
-        const isMobile = window.innerWidth <= 768;
 
-        new Glow(this.container, {
-            count: isMobile ? 3 : 10,
+        // create glow 
+        const glowManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.GLOW,
+            zIndex: this.Z_INDEX.GLOW
+        });
+        const glowContainer = glowManager.create();
+        
+        new Glow(glowContainer, {
+            count: isMobile() ? 3 : 10,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             size: {
-                min: isMobile ? 0.2 : 0.5,
-                max: isMobile ? 1.5 : 2
+                min: isMobile() ? 0.2 : 0.5,
+                max: isMobile() ? 1.5 : 2
             },
             speed: {
-                min: isMobile ? 0.05 : 0.0002,
-                max: isMobile ? 0.1 : 0.0005
+                min: isMobile() ? 0.05 : 0.0002,
+                max: isMobile() ? 0.1 : 0.0005
             },
             opacity: {
                 min: 0.05,
@@ -49,10 +63,10 @@ export class RoadmapSetup {
             pulse: {
                 min: 0.02,
                 max: 1.0
-            },
-            zIndex: '0',
+            }
         });
 
+        // initialize roadmap
         new Roadmap(this.container, {
             colors: getColors(this.container, '.roadmap-quarter'),
             dots: {
@@ -64,6 +78,7 @@ export class RoadmapSetup {
             },
         });
 
+        // initialize more button
         new MoreButton(this.container, {
             buttonSelector: '.more-btn',
             hiddenElementsSelector: '.hidden-items',
@@ -74,18 +89,25 @@ export class RoadmapSetup {
         this.initialized = true;
 
         this.logger.log({
-            conditions: 'initializing-controller',
+            type: 'success',
             functionName: 'init'
         });
     }
+
+    cleanup() {
+        if (!this.initialized) return;
+        
+        const glowManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.GLOW
+        });
+        
+        glowManager.cleanup();
+        
+        this.initialized = false;
+    }
 }
 
-export function initRoadmapSetup(classNameContainer) {
-    const container = document.querySelector(classNameContainer);
-    if (!container) {
-        console.warn('Roadmap container not found');
-        return;
-    }
-
-    return new RoadmapSetup(container);
+export function initRoadmap() {
+    const sectionRoadmap = new RoadmapSetup();
+    sectionRoadmap.init();
 } 

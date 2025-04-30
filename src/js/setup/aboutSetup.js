@@ -1,20 +1,44 @@
 import * as THREE from 'three';
 
-import { ContainerManager } from '../utils/containerManager';
+import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
 import { Stars } from '../components/three/stars';
 import { Constellation } from '../components/three/constellation';
+
+import { createLogger } from '../utils/logger';
 
 export class AboutSetup {
     constructor() {
         this.container = document.getElementById('about');
         this.initialized = false;
+        
+        this.name = 'AboutSetup';
+        this.logger = createLogger(this.name);
+
+        this.CONTAINER_TYPES = {
+            STARS: 'STARS',
+            CONSTELLATION: 'CONSTELLATION'
+        };
+
+        this.Z_INDEX = {
+            BACKGROUND: '0',
+            STARS: '1',
+            CONSTELLATION: '2',
+        };
     }
 
     init() {
         if (!this.container || this.initialized) return;
 
-        const starsManager = new ContainerManager(this.container, { zIndex: '0' });
+        this.logger.log({
+            conditions: 'init',
+            functionName: 'init'
+        });
 
+        // create stars 
+        const starsManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.STARS,
+            zIndex: this.Z_INDEX.STARS
+        });
         const starsContainer = starsManager.create();
         new Stars(starsContainer, {
             count: window.innerWidth < 768 ? 2000 : 4000,
@@ -51,15 +75,40 @@ export class AboutSetup {
             }
         });
 
-        const constellationManager = new ContainerManager(this.container, { zIndex: '2' });
+        // create constellation 
+        const constellationManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.CONSTELLATION,
+            zIndex: this.Z_INDEX.CONSTELLATION
+        });
         const constellationContainer = constellationManager.create();
         new Constellation(constellationContainer);
 
         this.initialized = true;
+
+        this.logger.log({
+            type: 'success',
+            functionName: 'init'
+        });
+    }
+
+    cleanup() {
+        if (!this.initialized) return;
+        
+        const starsManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.STARS
+        });
+        const constellationManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.CONSTELLATION
+        });
+        
+        starsManager.cleanup();
+        constellationManager.cleanup();
+        
+        this.initialized = false;
     }
 }
 
 export function initAbout() {
-    const aboutBackground = new AboutSetup();
-    aboutBackground.init();
+    const sectionAbout = new AboutSetup();
+    sectionAbout.init();
 }

@@ -7,7 +7,7 @@ import { Logger } from './utils/logger';
 // Setup
 import { initHero } from './setup/heroSetup';
 import { initAbout } from "./setup/aboutSetup";
-import { initRoadmapSetup } from './setup/roadmapSetup';
+import { initRoadmap } from './setup/roadmapSetup';
 
 // Common components
 import { initNavbar } from './components/common/navbar';
@@ -20,12 +20,15 @@ import { initSocialCards } from './components/three/socialCards';
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
-    Logger.disableLoggerFor('Stars');
-    Logger.disableLoggerFor('GalacticCloud');
-    Logger.disableLoggerFor('Constellation');
+    // Logger.disableLoggerFor('Utils');
+    // Logger.disableLoggerFor('HeroSetup');
+    // Logger.disableLoggerFor('AboutSetup');
+    // Logger.disableLoggerFor('RoadmapSetup');
+    // Logger.disableLoggerFor('AnimationObserverCSS');
+    // Logger.disableLoggerFor('Stars');
+    // Logger.disableLoggerFor('GalacticCloud');
+    // Logger.disableLoggerFor('Constellation');
     // Logger.disableLoggerFor('Glow');
-    // Logger.disableLoggerFor('Roadmap');
-    Logger.disableLoggerFor('AnimationObserverCSS');
 } else {
     Logger.disableGlobalLogging();
 }
@@ -37,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize 3D components
     initHero();
     initAbout();
-    initRoadmapSetup('.roadmap');
+    initRoadmap();
 
     initDynamics3D();
     initSocialCards();

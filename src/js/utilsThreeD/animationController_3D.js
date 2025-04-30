@@ -1,4 +1,4 @@
-import {createLogger} from "./logger";
+import {createLogger} from "../utils/logger";
 
 /**
  * Basic class for managing the animation of 3D objects

@@ -327,7 +327,28 @@ export class Logger {
                 background: 'rgba(34,139,34,0)',
                 color: '#228B22'
             }
-        }
+        },
+        'creating-container': {
+            icon: '🔧',
+            style: {
+                background: 'rgba(128,128,128,0)',
+                color: '#666666',
+            },
+        },
+        'cleaning-up': {
+            icon: '🗑️',
+            style: {
+                background: 'rgba(255,69,0,0)',
+                color: '#FF4500'
+            }
+        },
+        'init': {
+            icon: '⚙️',
+            style: {
+                background: 'rgba(34,139,34,0)',
+                color: '#228B22'
+            }
+        },
     };
     static styleConfig = {
         base: {

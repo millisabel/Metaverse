@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { AnimationController } from '../../utils/animationController_3D';
-import {createCanvas, updateRendererSize} from "../../utils/canvasUtils";
-import { createStarTexture } from '../../utils/textureUtils';
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import {createCanvas, updateRendererSize} from "../../utilsThreeD/canvasUtils";
+import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import {createLogger} from "../../utils/logger";
 
 export class Stars extends AnimationController {
@@ -53,6 +53,7 @@ export class Stars extends AnimationController {
         this.scene = null;
         this.camera = null;
         this.renderer = null;
+        
         this.stars = null;
         this.phases = null;
         this.isMoving = null;

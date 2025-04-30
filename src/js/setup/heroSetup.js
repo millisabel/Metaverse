@@ -1,33 +1,61 @@
-import { ContainerManager } from '../utils/containerManager';
+import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
 import { GalacticCloud } from '../components/three/galactic';
 import { Stars } from '../components/three/stars';
+import { createLogger } from '../utils/logger';
+import { isMobile } from '../utils/utils';
 
 export class HeroSetup {
-
     constructor() {
         this.container = document.getElementById('hero');
         this.initialized = false;
+        
+        this.name = 'HeroSetup';
+        this.logger = createLogger(this.name);
+
+        this.CONTAINER_TYPES = {
+            STARS: 'STARS',
+            GALACTIC: 'GALACTIC'
+        };
+
+        this.Z_INDEX = {
+            BACKGROUND: '0',
+            STARS: '2',
+            GALACTIC: '1'
+        };
     }
 
     init() {
         if (!this.container || this.initialized) return;
 
-        const galacticManager = new ContainerManager(this.container, { zIndex: '1' });
+        this.logger.log({
+            conditions: 'init',
+            functionName: 'init'
+        });
+
+        // create galactic 
+        const galacticManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.GALACTIC,
+            zIndex: this.Z_INDEX.GALACTIC
+        });
         const galacticContainer = galacticManager.create();
         new GalacticCloud(galacticContainer);
 
-        const starsManager = new ContainerManager(this.container, { zIndex: '2' });
+        // create stars 
+        const starsManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.STARS,
+            zIndex: this.Z_INDEX.STARS
+        });
         const starsContainer = starsManager.create();
         new Stars(starsContainer, {
-            count: window.innerWidth < 768 ? 1000 : 4000,
+            count: isMobile() ? 1000 : 4000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {
                 min: 1,
                 max: 3.5,
-                multiplier: window.innerWidth < 768 ? 2 : 2.2 
+                multiplier: isMobile() ? 2 : 2.2 
             },
             depth: {
-                range: window.innerWidth < 768 ? 300 : 800, 
+                range: isMobile() ? 300 : 800, 
                 z: [300, -400] 
             },
             movement: {
@@ -52,10 +80,31 @@ export class HeroSetup {
         });
 
         this.initialized = true;
+
+        this.logger.log({
+            type: 'success',
+            functionName: 'init'
+        });
+    }
+
+    cleanup() {
+        if (!this.initialized) return;
+        
+        const galacticManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.GALACTIC
+        });
+        const starsManager = new ThreeDContainerManager(this.container, { 
+            type: this.CONTAINER_TYPES.STARS
+        });
+        
+        galacticManager.cleanup();
+        starsManager.cleanup();
+        
+        this.initialized = false;
     }
 }
 
 export function initHero() {
-    const heroBackground = new HeroSetup();
-    heroBackground.init();
+    const sectionHero = new HeroSetup();
+    sectionHero.init();
 }

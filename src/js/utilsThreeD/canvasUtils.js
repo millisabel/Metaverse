@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+
 
 export const createCanvas = (renderer, options = {}) => {
     const { zIndex = '0' } = options;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { AnimationController } from '../../utils/animationController_3D';
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
 
-import { createCanvas, updateRendererSize } from '../../utils/canvasUtils';
+import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils';
 import { createLogger } from "../../utils/logger";
 
 export class Glow extends AnimationController {
