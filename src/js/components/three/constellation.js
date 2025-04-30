@@ -7,6 +7,7 @@ import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils'
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
 import { ThreeDContainerManager } from '../../utilsThreeD/ThreeDContainerManager';
+import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
 
 class ConstellationGroup {
     constructor(data, starTexture) {
@@ -267,55 +268,47 @@ class ConstellationGroup {
 
 export class Constellation extends AnimationController {
     constructor(container) {
-        super(container);
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
+        super(container, {
+            camera: {
+                fov: 75,
+                near: 0.1,
+                far: 1000,
+                position: { x: 0, y: 0, z: 0 },
+                lookAt: { x: 0, y: 0, z: -1 },
+                rotation: false,
+                speed: { x: 0, y: 0 }
+            },
+            renderer: {
+                antialias: true,
+                alpha: true,
+                powerPreference: 'high-performance'
+            }
+        });
         this.constellations = [];
         this.backgroundStars = null;
         this.frame = 0;
-
         this.name = 'Constellation';
         this.logger = createLogger(this.name);
-
-        // Константы для компонента Constellation
         this.CONTAINER_TYPE = 'ABOUT_CONSTELLATION';
         this.Z_INDEX = '2';
     }
 
-    onResize() {
-        updateRendererSize(this.renderer, this.container, this.camera, {
-            clearColor: { color: 0x000000, alpha: 0 },
-            composer: this.composer
-        });
-    }
-
-    initScene() {
-        if (this.isInitialized) return;
+    setupScene() {
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
-            functionName: 'initScene'
+            functionName: 'setupScene'
         });
 
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true,
-            powerPreference: "high-performance"
+        // Добавляем свет через утилиту
+        addDefaultLights(this.scene, {
+            ambientColor: 0xffffff,
+            ambientIntensity: 0.7,
+            pointColor: 0xffffff,
+            pointIntensity: 1.5,
+            pointPosition: { x: 0, y: 10, z: 10 }
         });
-
-        updateRendererSize(this.renderer, this.container, this.camera);
-
-        this.container.appendChild(this.renderer.domElement);
-
-        createCanvas(this.renderer, { zIndex: '2' });
-
-        this.camera.position.set(0, 0, 0);
-        this.camera.lookAt(0, 0, -1);
 
         const starTexture = createStarTexture();
-
         constellationsData.forEach((data) => {
             const constellationGroup = new ConstellationGroup(data, starTexture);
             this.scene.add(constellationGroup.group);
@@ -324,14 +317,12 @@ export class Constellation extends AnimationController {
 
         // Add fog for depth effect
         this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
-
-        this.isInitialized = true;
     }
 
     cleanup() {
         this.constellations = [];
         this.backgroundStars = null;
-        super.cleanup(this.renderer, this.scene);
+        super.cleanup();
     }
 
     update() {
@@ -339,7 +330,6 @@ export class Constellation extends AnimationController {
             return;
         }
 
-        // Log only when update is called for the first time
         if (!this.animationFrameId) {
             this.logger.log('Starting update cycle', {
                 conditions: ['running'],
@@ -348,19 +338,15 @@ export class Constellation extends AnimationController {
             });
         }
 
-        // Optimization - update every second frame
         if (this.frame % 2 === 0) {
             const time = Date.now() * 0.001;
-
             if (this.constellations) {
                 this.constellations.forEach(constellation => {
                     constellation.update(time, this.constellations.filter(c => c !== constellation));
                 });
             }
         }
-
         this.frame++;
-
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }
