@@ -52,12 +52,12 @@ export class AboutSetup extends BaseSetup {
             },
             movement: {
                 enabled: true,
-                probability: 0.3,
-                speed: 0.0003,
+                probability: 0.2,
+                speed: 0.0002,
                 amplitude: {
-                    x: 0.02,
-                    y: 0.02,
-                    z: 0.02
+                    x: 0.01,
+                    y: 0.01,
+                    z: 0.01
                 }
             },
             camera: {
