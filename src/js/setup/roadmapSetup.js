@@ -22,7 +22,7 @@ export class RoadmapSetup {
 
         this.Z_INDEX = {
             ROADMAP: '0',
-            GLOW: '1'
+            GLOW: '-1',
         };
     }
 
@@ -46,24 +46,30 @@ export class RoadmapSetup {
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             size: {
                 min: isMobile() ? 0.2 : 0.5,
-                max: isMobile() ? 1.5 : 2
+                max: isMobile() ? 1.5 : 3
             },
             speed: {
-                min: isMobile() ? 0.05 : 0.0002,
-                max: isMobile() ? 0.1 : 0.0005
+                min: isMobile() ? 0.1 : 0.5,
+                max: isMobile() ? 0.2 : 1.0
             },
             opacity: {
-                min: 0.05,
-                max: 0.2
+                min: 0.1,
+                max: 0.3
             },
             scale: {
-                min: 0.5,
-                max: 2
+                min: 0.9,
+                max: 1.2
             },
             pulse: {
-                min: 0.02,
-                max: 1.0
-            }
+                min: 0.1,
+                max: 0.3
+            },
+            range: {
+                x: 1,
+                y: 0.9,
+                z: 0.3
+            },
+            zIndex: this.Z_INDEX.GLOW
         });
 
         // initialize roadmap
@@ -77,6 +83,7 @@ export class RoadmapSetup {
                 maxDuration: 4,
             },
         });
+        this.container.style.zIndex = this.Z_INDEX.ROADMAP;
 
         // initialize more button
         new MoreButton(this.container, {

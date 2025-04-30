@@ -1,101 +1,106 @@
 import * as THREE from 'three';
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
-
-import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils';
 import { createLogger } from "../../utils/logger";
+import { getRandomValue } from "../../utils/utils";
 
 export class Glow extends AnimationController {
-    constructor(parent, options = {}) {
-        super(parent);
-        this.name = 'Glow';
-        this.logger = createLogger(this.name);
-        this.logger.log('Controller initialization', {
-            conditions: ['initializing-controller'],
+    constructor(container, options = {}) {
+        super(container, {
+            camera: {
+                fov: 45,
+                near: 0.1,
+                far: 2000,
+                position: { x: 0, y: 0, z: 3 },
+                lookAt: { x: 0, y: 0, z: 0 },
+                rotation: false,
+                speed: { x: 0, y: 0 }
+            },
+            renderer: {
+                antialias: true,
+                alpha: true,
+                powerPreference: 'high-performance'
+            }
         });
-        
+
         this.options = {
-            count: 5,
-            colors: ['#ffffff', '#f0f0f0', '#e0e0e0'],
+            count: options.count || 5,
+            colors: options.colors || ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             size: {
-                min: 0.5,
-                max: 2,
+                min: options.size?.min || 0.2,
+                max: options.size?.max || 0.8,
             },
             speed: {
-                min: 0.05,
-                max: 0.1,
+                min: options.speed?.min || 0.05,
+                max: options.speed?.max || 0.1,
             },
             opacity: {
-                min: 0.05,
-                max: 0.15,
+                min: options.opacity?.min || 0.1,
+                max: options.opacity?.max || 0.2,
             },
             scale: {
-                min: 0.5,
-                max: 1.2,
+                min: options.scale?.min || 0.5,
+                max: options.scale?.max || 1.2,
             },
             pulse: {
-                min: 0.02,
-                max: 1.0,
+                min: options.pulse?.min || 0.02,
+                max: options.pulse?.max || 1.0,
             },
-            zIndex: '1',
-            ...options
+            range: {
+                x: options.range?.x || 0.8,
+                y: options.range?.y || 0.8,
+                z: options.range?.z || 0.5
+            },
+            zIndex: options.zIndex || '1'
         };
 
         this.glows = [];
         this.clock = new THREE.Clock();
-        this.isInitialized = false;
+        this.name = 'Glow';
+        this.logger = createLogger(this.name);
+        
+        this.roadmapQuarters = document.querySelectorAll('.roadmap-quarter');
+        this.quarterColors = Array.from(this.roadmapQuarters).map(quarter => {
+            const computedStyle = window.getComputedStyle(quarter);
+            return computedStyle.getPropertyValue('--roamap-color');
+        });
+        
+        this.logger.log('Controller initialization', {
+            conditions: ['initializing-controller'],
+            options: this.options
+        });
     }
 
-    initScene() {
-        if (this.isInitialized) {
-            this.logger.log('Scene already initialized', 'warn');
-            return;
-        }
-
+    setupScene() {
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
-            functionName: 'initScene'
+            functionName: 'setupScene'
         });
 
-        try {
-            this.scene = new THREE.Scene();
-            
-            const rect = this.container.getBoundingClientRect();
-            const aspect = rect.width / rect.height;
-            this.camera = new THREE.OrthographicCamera(
-                -aspect, aspect, 1, -1, 0.1, 1000
-            );
-            this.camera.position.z = 1;
-
-            this.renderer = new THREE.WebGLRenderer({
-                antialias: true,
-                alpha: true
-            });
-            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            
-            const canvas = createCanvas(this.renderer, { zIndex: this.options.zIndex });
-            this.container.appendChild(canvas);
-
-            this.createGlows();
-            
-            this.render();
-            
-            this.isInitialized = true;
-        } catch (error) {
-            this.logger.log(`Error during scene initialization: ${error.message}`, 'error');
-            this.cleanup();
-        }
+        this.createGlows();
     }
 
     createGlows() {
         const segments = 32;
         const geometry = new THREE.CircleGeometry(0.5, segments);
+
+        const colors = [];
+        const colorCount = this.options.colors.length;
+        for (let i = 0; i < this.options.count; i++) {
+            const colorIndex = i % colorCount;
+            colors.push(new THREE.Color(this.options.colors[colorIndex]));
+        }
+        
+        for (let i = colors.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [colors[i], colors[j]] = [colors[j], colors[i]];
+        }
         
         for (let i = 0; i < this.options.count; i++) {
-            const size = this.getRandomValue(this.options.size.min, this.options.size.max);
-            const color = new THREE.Color(this.options.colors[Math.floor(Math.random() * this.options.colors.length)]);
-            const opacity = this.getRandomValue(this.options.opacity.min, this.options.opacity.max);
-            const pulseSpeed = this.getRandomValue(this.options.pulse.min, this.options.pulse.max);
-            const scale = this.getRandomValue(this.options.scale.min, this.options.scale.max);
+            const size = getRandomValue(this.options.size.min, this.options.size.max);
+            const color = colors[i];
+            const opacity = getRandomValue(this.options.opacity.min, this.options.opacity.max);
+            const pulseSpeed = getRandomValue(this.options.pulse.min, this.options.pulse.max);
+            const scale = getRandomValue(this.options.scale.min, this.options.scale.max);
             
             const material = new THREE.ShaderMaterial({
                 uniforms: {
@@ -106,17 +111,16 @@ export class Glow extends AnimationController {
                     pulseSpeed: { value: pulseSpeed }
                 },
                 vertexShader: `
-                        uniform float time;
-    uniform float scale;
-    uniform float pulseSpeed;
-    varying vec2 vUv;
-    varying float vPulse;
+                    uniform float time;
+                    uniform float scale;
+                    uniform float pulseSpeed;
+                    varying vec2 vUv;
+                    varying float vPulse;
 
-    void main() {
-        vUv = uv;
-        // Более выраженная пульсация
-        vPulse = scale * (0.7 + 0.3 * sin(time * pulseSpeed));
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    void main() {
+                        vUv = uv;
+                        vPulse = scale * (0.7 + 0.3 * sin(time * pulseSpeed));
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                     }
                 `,
                 fragmentShader: `
@@ -129,12 +133,10 @@ export class Glow extends AnimationController {
                         vec2 center = vec2(0.5, 0.5);
                         float dist = distance(vUv, center);
                         
-                        // Create a more natural glow effect
                         float glow = smoothstep(0.5, 0.0, dist);
                         float falloff = 1.0 - smoothstep(0.0, 0.5, dist);
                         float intensity = glow * falloff;
                         
-                        // Add some noise for more organic look
                         float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
                         intensity *= 0.95 + 0.05 * noise;
                         
@@ -148,119 +150,205 @@ export class Glow extends AnimationController {
             });
 
             const mesh = new THREE.Mesh(geometry, material);
+            this.scene.add(mesh);
             
-            this.setRandomPosition(mesh, size);
-            
-            this.glows.push({
+            this.glows[i] = {
                 mesh,
-                speed: this.getRandomValue(this.options.speed.min, this.options.speed.max),
-                direction: new THREE.Vector2(
-                    Math.random() * 2 - 1,
-                    Math.random() * 2 - 1
-                ).normalize(),
+                speed: getRandomValue(this.options.speed.min, this.options.speed.max),
                 size,
                 opacity,
                 pulseSpeed,
-                scale
-            });
+                scale,
+                color: color.getHexString(),
+                originalColor: color.clone(),
+                initialAngle: 0,
+                waveFrequency: getRandomValue(0.2, 0.5),
+                waveAmplitude: getRandomValue(0.3, 0.6),
+                pathChangeInterval: getRandomValue(3, 7),
+                lastPathChange: 0,
+                currentPath: {
+                    x: Math.random() * 2 - 1,
+                    y: Math.random() * 2 - 1
+                }
+            };
+            
+            this.setRandomPosition(mesh, size, i);
 
-            this.scene.add(mesh);
+            this.logger.log(`Glow ${i + 1} created`, {
+                custom: {
+                    position: `x: ${mesh.position.x.toFixed(2)}, y: ${mesh.position.y.toFixed(2)}, z: ${mesh.position.z.toFixed(2)}`,
+                    color: color.getHexString(),
+                    size: size.toFixed(2),
+                    opacity: opacity.toFixed(2),
+                    scale: scale.toFixed(2),
+                    pulseSpeed: pulseSpeed.toFixed(2)
+                },
+                conditions: ['glow-created']
+            });
         }
     }
 
-    setRandomPosition(mesh, size) {
+    setRandomPosition(mesh, size, index) {
         const rect = this.container.getBoundingClientRect();
         const aspect = rect.width / rect.height;
         
-        mesh.position.x = (Math.random() * 2 - 1) * aspect;
-        mesh.position.y = Math.random() * 2 - 1;
-        mesh.position.z = Math.random() * 2 - 1;
+        const xRange = aspect * this.options.range.x;
+        const yRange = this.options.range.y;
+        const zRange = this.options.range.z;
+        
+        const sectors = this.options.count;
+        const sectorIndex = index % sectors;
+        const angleStep = (Math.PI * 2) / sectors;
+        
+        const centerAngle = sectorIndex * angleStep + angleStep / 2;
+        
+        const angleOffset = (Math.random() - 0.5) * angleStep * 0.8;
+        const angle = centerAngle + angleOffset;
+        
+        const minRadius = Math.min(xRange, yRange) * 0.3;
+        const maxRadius = Math.min(xRange, yRange) * 0.9;
+        const radius = minRadius + (maxRadius - minRadius) * (index % 2 === 0 ? 0.7 : 0.3);
+        
+        mesh.position.x = Math.cos(angle) * radius;
+        mesh.position.y = Math.sin(angle) * radius;
+        mesh.position.z = (Math.random() * 2 - 1) * zRange * 0.5;
         
         mesh.scale.set(size, size, 1);
+        mesh.rotation.z = 0;
         
-        mesh.rotation.z = Math.random() * Math.PI * 2;
+        this.glows[index] = {
+            mesh,
+            speed: getRandomValue(this.options.speed.min, this.options.speed.max),
+            size,
+            opacity: getRandomValue(this.options.opacity.min, this.options.opacity.max),
+            pulseSpeed: getRandomValue(this.options.pulse.min, this.options.pulse.max),
+            scale: getRandomValue(this.options.scale.min, this.options.scale.max),
+            color: mesh.material.uniforms.color.value.getHexString(),
+            originalColor: mesh.material.uniforms.color.value.clone(),
+            initialAngle: angle,
+            waveFrequency: getRandomValue(0.2, 0.5),
+            waveAmplitude: getRandomValue(0.3, 0.6),
+            pathChangeInterval: getRandomValue(3, 7),
+            lastPathChange: 0,
+            currentPath: {
+                x: Math.random() * 2 - 1,
+                y: Math.random() * 2 - 1
+            }
+        };
+        
+        this.logger.log(`Glow ${index + 1} positioned`, {
+            custom: {
+                sector: sectorIndex,
+                angle: angle.toFixed(2),
+                radius: radius.toFixed(2),
+                position: `x: ${mesh.position.x.toFixed(2)}, y: ${mesh.position.y.toFixed(2)}, z: ${mesh.position.z.toFixed(2)}`
+            },
+            conditions: ['glow-positioned']
+        });
     }
 
-    animate() {
-        if (!this.isVisible || !this.scene || !this.camera || !this.isInitialized) {
-            if (this.animationFrameId) {
-                this.stopAnimation();
-            }
-            return;
-        }
+    update() {
+        if (!this.canAnimate() || !this.glows.length) return;
 
-        if (!this.animationFrameId) {
-            this.logger.log('Animation started', {
-                conditions: ['running'],
-                functionName: 'animate'
-            });
-        }
+        const time = this.clock.getElapsedTime();
+        const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
 
-        const { time, aspect, isMobile } = this._getTimeAndAspect();
-
-        this.glows.forEach(glow => {
+        this.glows.forEach((glow, index) => {
             const mesh = glow.mesh;
             const timeOffset = time * glow.speed;
-            
-            // Создаем более сложное движение с использованием нескольких волн
-            const wave1 = Math.sin(timeOffset * 0.5) * 0.3;
-            const wave2 = Math.cos(timeOffset * 0.3) * 0.2;
-            const wave3 = Math.sin(timeOffset * 0.7) * 0.1;
-            
-            // Обновляем позицию с учетом всех волн
-            mesh.position.x += (wave1 + wave2) * glow.direction.x * 0.002;
-            mesh.position.y += (wave2 + wave3) * glow.direction.y * 0.002;
-            
-            // Добавляем движение по Z с разной частотой
-            mesh.position.z = Math.sin(timeOffset * 0.4) * 0.2 + Math.cos(timeOffset * 0.2) * 0.1;
-            
-            // Добавляем вращение с разной скоростью
-            mesh.rotation.x += glow.speed * 0.0001;
-            mesh.rotation.y += glow.speed * 0.00015;
-            mesh.rotation.z += glow.speed * 0.0002;
-            
-            // Проверяем границы и меняем направление
-            if (Math.abs(mesh.position.x) > aspect) {
-                glow.direction.x *= -1;
-                mesh.position.x = Math.sign(mesh.position.x) * aspect;
+
+            if (time - glow.lastPathChange > glow.pathChangeInterval) {
+                glow.currentPath = {
+                    x: Math.random() * 2 - 1,
+                    y: Math.random() * 2 - 1
+                };
+                glow.lastPathChange = time;
+                glow.waveFrequency = getRandomValue(0.2, 0.5);
+                glow.waveAmplitude = getRandomValue(0.3, 0.6);
             }
-            if (Math.abs(mesh.position.y) > 1) {
-                glow.direction.y *= -1;
-                mesh.position.y = Math.sign(mesh.position.y);
+
+            const waveX = Math.sin(timeOffset * glow.waveFrequency) * glow.waveAmplitude;
+            const waveY = Math.cos(timeOffset * glow.waveFrequency * 1.2) * glow.waveAmplitude;
+            
+            const additionalWaveX = Math.sin(timeOffset * 0.3) * 0.2;
+            const additionalWaveY = Math.cos(timeOffset * 0.4) * 0.2;
+
+            mesh.position.x += (waveX + additionalWaveX) * glow.currentPath.x * 0.003;
+            mesh.position.y += (waveY + additionalWaveY) * glow.currentPath.y * 0.003;
+            
+            mesh.position.z = Math.sin(timeOffset * glow.waveFrequency * 0.5) * 0.2;
+            
+            mesh.rotation.x = 0;
+            mesh.rotation.y = 0;
+            mesh.rotation.z = 0;
+
+            const xRange = aspect * this.options.range.x;
+            const yRange = this.options.range.y;
+            
+            if (Math.abs(mesh.position.x) > xRange) {
+                mesh.position.x = Math.sign(mesh.position.x) * xRange;
+                glow.currentPath.x *= -1;
+                glow.waveFrequency = getRandomValue(0.2, 0.5);
             }
             
-            // Обновляем время для материала
+            if (Math.abs(mesh.position.y) > yRange) {
+                mesh.position.y = Math.sign(mesh.position.y) * yRange;
+                glow.currentPath.y *= -1;
+                glow.waveFrequency = getRandomValue(0.2, 0.5);
+            }
+
+            const meshScreenPos = this.getScreenPosition(mesh);
+            let isIntersecting = false;
+            let targetColor = null;
+            
+            this.roadmapQuarters.forEach((quarter, quarterIndex) => {
+                const quarterRect = quarter.getBoundingClientRect();
+                const containerRect = this.container.getBoundingClientRect();
+                
+                const x = meshScreenPos.x - containerRect.left;
+                const y = meshScreenPos.y - containerRect.top;
+                
+                if (x >= quarterRect.left - containerRect.left && 
+                    x <= quarterRect.right - containerRect.left &&
+                    y >= quarterRect.top - containerRect.top && 
+                    y <= quarterRect.bottom - containerRect.top) {
+                    
+                    targetColor = new THREE.Color(this.quarterColors[quarterIndex]);
+                    isIntersecting = true;
+                }
+            });
+            
+            if (!isIntersecting) {
+                targetColor = glow.originalColor;
+            }
+
+            if (targetColor) {
+                const currentColor = mesh.material.uniforms.color.value;
+                const lerpFactor = 0.01;
+                currentColor.lerp(targetColor, lerpFactor);
+                mesh.material.uniforms.color.value = currentColor;
+            }
+
             mesh.material.uniforms.time.value = time;
         });
 
-        this.render();
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
+        this.renderer.render(this.scene, this.camera);
     }
 
-    render() {
-        if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-        }
-    }
-
-    onResize() {
-        if (!this.renderer || !this.camera) return;
-
-        const rect = this.container.getBoundingClientRect();
-        const aspect = rect.width / rect.height;
-        updateRendererSize(this.renderer, this.container, this.camera);
+    getScreenPosition(mesh) {
+        const vector = new THREE.Vector3();
+        vector.setFromMatrixPosition(mesh.matrixWorld);
+        vector.project(this.camera);
         
-        // Update camera aspect ratio
-        this.camera.left = -aspect;
-        this.camera.right = aspect;
-        this.camera.top = 1;
-        this.camera.bottom = -1;
-        this.camera.updateProjectionMatrix();
+        const rect = this.container.getBoundingClientRect();
+        const x = (vector.x * 0.5 + 0.5) * rect.width;
+        const y = -(vector.y * 0.5 - 0.5) * rect.height;
+        
+        return { x, y };
     }
 
     cleanup() {
-        this.logger.log('Starting cleanup');
-        
         if (this.glows) {
             this.glows.forEach(glow => {
                 if (glow.mesh) {
@@ -272,59 +360,6 @@ export class Glow extends AnimationController {
             this.glows = [];
         }
 
-        if (this.renderer) {
-            this.renderer.dispose();
-            if (this.renderer.domElement && this.renderer.domElement.parentNode) {
-                this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
-            }
-        }
-
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
-        this.isInitialized = false;
-
         super.cleanup();
-        
-        this.logger.log('Cleanup completed');
-    }
-
-    getRandomValue(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-    update() {
-        if (!this.isVisible || !this.scene || !this.camera || !this.isInitialized) {
-            return;
-        }
-
-        const time = this.clock.getElapsedTime();
-        const rect = this.container.getBoundingClientRect();
-        const aspect = rect.width / rect.height;
-
-        this.glows.forEach(glow => {
-            const mesh = glow.mesh;
-            const timeOffset = time * glow.speed * 0.5;
-
-            // Update position
-            mesh.position.x += Math.sin(timeOffset) * glow.direction.x * 0.002;
-            mesh.position.y += Math.cos(timeOffset) * glow.direction.y * 0.002;
-            mesh.position.z = Math.sin(time * glow.speed * 0.3) * 0.2;
-            mesh.rotation.z += glow.speed * 0.0002;
-
-            // Check boundaries
-            if (Math.abs(mesh.position.x) > aspect) {
-                glow.direction.x *= -1;
-                mesh.position.x = Math.sign(mesh.position.x) * aspect;
-            }
-            if (Math.abs(mesh.position.y) > 1) {
-                glow.direction.y *= -1;
-                mesh.position.y = Math.sign(mesh.position.y);
-            }
-
-            mesh.material.uniforms.time.value = time;
-        });
-
-        this.render();
     }
 }

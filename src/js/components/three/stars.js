@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
-import { randomRange, gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
+import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
+import { getRandomValue } from '../../utils/utils';
 
 export class Stars extends AnimationController {
     constructor(container, options = {}) {
@@ -101,7 +102,7 @@ export class Stars extends AnimationController {
             colors[i * 3 + 2] = (color & 255) / 255;
 
             // Sizes
-            sizes[i] = randomRange(this.starsOptions.size.min, this.starsOptions.size.max);
+            sizes[i] = getRandomValue(this.starsOptions.size.min, this.starsOptions.size.max);
 
             // Animation parameters
             this.phases[i] = Math.random() * Math.PI * 2;
@@ -109,11 +110,11 @@ export class Stars extends AnimationController {
             this.movePhases[i] = Math.random() * Math.PI * 2;
 
             if (Math.random() < this.starsOptions.flicker.fast.probability) {
-                this.flickerSpeeds[i] = randomRange(
+                this.flickerSpeeds[i] = getRandomValue(
                     this.starsOptions.flicker.fast.speed.min,
                     this.starsOptions.flicker.fast.speed.max
                 );
-                this.flickerAmplitudes[i] = randomRange(
+                this.flickerAmplitudes[i] = getRandomValue(
                     this.starsOptions.flicker.fast.amplitude.min,
                     this.starsOptions.flicker.fast.amplitude.max
                 );
@@ -186,7 +187,7 @@ export class Stars extends AnimationController {
             
             this.phases[index] += this.flickerSpeeds[index];
             const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
-            sizes[index] = brightness * randomRange(this.starsOptions.size.min, this.starsOptions.size.max);
+            sizes[index] = brightness * getRandomValue(this.starsOptions.size.min, this.starsOptions.size.max);
             
             if (this.isMoving[index] === 1) {
                 this.movePhases[index] += this.starsOptions.movement.speed;

@@ -19,7 +19,7 @@ import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
 
 if (process.env.NODE_ENV === 'development') {
-    Logger.enableGlobalLogging();
+    Logger.enableGlobalLogging(false);
     Logger.disableLoggerFor('HeroSetup');
     Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('CameraController');
