@@ -10,7 +10,7 @@ export class HeroSetup extends BaseSetup {
                 position: { z: -40 },
                 lookAt: { x: 0, y: 0, z: 0 },
                 rotation: true,
-                speed: { x: 0.00003, y: 0.00003 }
+                speed: { x: 0.00001, y: 0.00001 }
             }
         });
         
@@ -57,18 +57,18 @@ export class HeroSetup extends BaseSetup {
             },
             movement: {
                 enabled: true,
-                probability: 0.3,
-                speed: 0.0035,
+                probability: 0.15,
+                speed: 0.0015,
                 amplitude: {
-                    x: 0.02,
-                    y: 0.02,
-                    z: 0.02
+                    x: 0.01,
+                    y: 0.01,
+                    z: 0.01
                 }
             },
             camera: {
                 rotation: true,
-                position: { z: -40 }, 
-                speed: { x: 0.00003, y: 0.00003 }
+                position: { z: -50 }, 
+                speed: { x: 0.00001, y: 0.00001 }
             },
             material: {
                 opacity: 1,
