@@ -6,17 +6,17 @@ import { Logger } from './utils/logger';
 
 // 3D components
 import { initHeroBackground } from './components/three/heroBackground';
-import {initAboutBackground} from "./components/three/AboutBackground";
 import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
+
+// Setup
+import {initAbout} from "./setup/aboutSetup";
+import { initRoadmapSetup } from './setup/roadmapSetup';
 
 // Common components
 import { initNavbar } from './components/common/navbar';
 import { initSlider } from './components/common/slider';
 import initModal from './components/common/modal';
-
-// Setup
-import { initRoadmapSetup } from './setup/roadmapSetup';
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize 3D components
     initHeroBackground();
-    initAboutBackground();
+    initAbout();
     initRoadmapSetup('.roadmap');
     initDynamics3D();
     initSocialCards();

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
-import { ContainerManager } from '../../utils/containerManager';
-import { Stars } from './stars';
-import { Constellation } from './constellation';
+import { ContainerManager } from '../utils/containerManager';
+import { Stars } from '../components/three/stars';
+import { Constellation } from '../components/three/constellation';
 
-export class AboutBackground {
+export class AboutSetup {
     constructor() {
         this.container = document.getElementById('about');
         this.initialized = false;
@@ -13,8 +13,8 @@ export class AboutBackground {
     init() {
         if (!this.container || this.initialized) return;
 
-        // Stars background
         const starsManager = new ContainerManager(this.container, { zIndex: '0' });
+
         const starsContainer = starsManager.create();
         new Stars(starsContainer, {
             count: window.innerWidth < 768 ? 2000 : 4000,
@@ -51,7 +51,6 @@ export class AboutBackground {
             }
         });
 
-        // Constellations
         const constellationManager = new ContainerManager(this.container, { zIndex: '2' });
         const constellationContainer = constellationManager.create();
         new Constellation(constellationContainer);
@@ -60,7 +59,7 @@ export class AboutBackground {
     }
 }
 
-export function initAboutBackground() {
-    const aboutBackground = new AboutBackground();
+export function initAbout() {
+    const aboutBackground = new AboutSetup();
     aboutBackground.init();
 }
