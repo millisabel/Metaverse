@@ -1,15 +1,8 @@
 import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
-import {Glow} from "../three/glow";
 
 export class Roadmap {
-    static GLOW_COLORS = ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'];
-    static BREAKPOINTS = {
-        mobile: 768,
-        tablet: 1099
-    };
-
-    constructor(container) {
+    constructor(container, options = {}) {
         this.container = container;
         this.observer = null;
         this.initialized = false;
@@ -17,19 +10,24 @@ export class Roadmap {
         this.name = 'Roadmap';
         this.logger = createLogger(this.name);
 
-        this.COLORS = [
-            '#c344ff',
-            'rgba(255, 68, 124, 1)',
-            'rgba(68, 255, 199, 1)'
-        ];
+        this.options = {
+            colors: options.colors || ['rgba(255, 68, 124, 1)', 'rgba(68, 255, 199, 1)'],
+            dots: {
+                count: options.dots?.count || 10,
+                minSize: options.dots?.minSize || 1,
+                maxSize: options.dots?.maxSize || 4,
+                minDuration: options.dots?.minDuration || 3,
+                maxDuration: options.dots?.maxDuration || 5
+            },
+        };
 
         this.ANIMATION_CONFIG = {
             dots: {
-                count: 8,
-                minSize: 2,
-                maxSize: 5,
-                minDuration: 3,
-                maxDuration: 5
+                count: this.options.dots.count,
+                minSize: this.options.dots.minSize,
+                maxSize: this.options.dots.maxSize,
+                minDuration: this.options.dots.minDuration,
+                maxDuration: this.options.dots.maxDuration
             },
             curvature: 0.5,
             resizeDelay: 250
@@ -38,71 +36,45 @@ export class Roadmap {
         this.init();
     }
 
-    getGlowCount() {
-        const isMobile = window.innerWidth <= Roadmap.BREAKPOINTS.mobile;
-        const isTablet = window.innerWidth <= Roadmap.BREAKPOINTS.tablet;
-        return isMobile ? 5 : isTablet ? 8 : 10;
-    }
-
     init() {
         if (!this.container || this.initialized) return;
-
-        new Glow(this.container, {
-            count: this.getGlowCount(),
-            colors: Roadmap.GLOW_COLORS
-        });
-
-        this.createConnectionLines();
-        this.setupResizeHandler();
-        this.setupAnimations();
-        this.initialized = true;
 
         this.logger.log({
             conditions: 'initializing-controller',
             functionName: 'init'
         });
-    }
 
-    setupAnimations() {
-        // Добавляем анимации для точек
-        const dots = this.container.querySelectorAll('.connection-lines circle');
-        dots.forEach(dot => {
-            dot.setAttribute('data-aos', 'dot-animation');
-            // Убираем дублирующую анимацию, так как она уже задана в SVG
-            dot.style.animation = 'none';
+        // Используем ResizeObserver для отслеживания изменений размеров
+        const resizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                if (entry.target === this.container) {
+                    setTimeout(() => {
+                        this.createConnectionLines();
+                    }, this.ANIMATION_CONFIG.resizeDelay);
+                }
+            }
         });
 
-        // Добавляем анимации для линий
-        const paths = this.container.querySelectorAll('.connection-lines path');
-        paths.forEach(path => {
-            path.setAttribute('data-aos', 'path-animation');
-            path.style.animation = 'pathDraw 1s ease-in-out forwards';
-        });
+        // Начинаем наблюдение за контейнером
+        resizeObserver.observe(this.container);
 
-        // Добавляем анимации для кругов
-        const circles = this.container.querySelectorAll('.roadmap-circle');
-        circles.forEach(circle => {
-            circle.setAttribute('data-aos', 'circle-animation');
-            circle.style.animation = 'circlePulse 2s ease-in-out infinite';
-        });
+        // Сохраняем observer для последующей очистки
+        this.observer = resizeObserver;
 
-        // Добавляем анимации для контента
-        const items = this.container.querySelectorAll('.roadmap-item');
-        items.forEach((item, index) => {
-            item.setAttribute('data-aos', 'item-animation');
-            item.style.animation = `itemFadeIn 0.5s ease-out ${index * 0.2}s forwards`;
-        });
+        this.setupResizeHandler();
+        this.initialized = true;
 
-        this.logger.log('Animations setup completed', {
-            type: 'initializing-scene',
-            functionName: 'setupAnimations',
-            trackType: 'animation'
+        this.logger.log('Roadmap initialized', {
+            colors: this.options.colors,
+            conditions: ['initializing-controller'],
+            trackType: ['animation'],
+            functionName: 'init'
         });
     }
 
     createConnectionLines() {
         const timeline = this.container.querySelector('.roadmap-timeline');
-        const circles = this.container.querySelectorAll('.roadmap-circle');
+        const quarters = this.container.querySelectorAll('.roadmap-quarter');
 
         // Remove existing SVG if any
         const existingSvg = timeline.querySelector('.connection-lines');
@@ -117,36 +89,66 @@ export class Roadmap {
         svg.setAttribute('height', '100%');
 
         // Get coordinates of circles
-        const points = Array.from(circles).map(circle => {
-            const rect = circle.getBoundingClientRect();
+        const points = Array.from(quarters).map(quarter => {
+            const rect = quarter.getBoundingClientRect();
             const timelineRect = timeline.getBoundingClientRect();
+            
+            // Получаем индекс текущего элемента
+            const index = Array.from(quarters).indexOf(quarter);
+            
+            // Получаем computed стили для учета padding и других свойств
+            const styles = window.getComputedStyle(quarter);
+            const paddingLeft = parseFloat(styles.paddingLeft);
+            const paddingRight = parseFloat(styles.paddingRight);
+            const paddingTop = parseFloat(styles.paddingTop);
+            
+            // Определяем точки соединения в зависимости от индекса
+            let x, y;
+            
+            if (index % 2 === 0) {
+                // Для четных элементов (1 и 3) - правый верхний угол
+                x = rect.right - timelineRect.left - paddingRight;
+                y = rect.top - timelineRect.top + paddingTop;
+            } else {
+                // Для нечетных элементов (2 и 4) - левый верхний угол
+                x = rect.left - timelineRect.left + paddingLeft;
+                y = rect.top - timelineRect.top + paddingTop;
+            }
+            
+            return { x, y };
+        });
+
+        // Создаем кривые между точками
+        const connections = points.slice(0, -1).map((start, index) => {
+            const end = points[index + 1];
+            
+            // Высота арки зависит от расстояния между точками
+            const distance = Math.abs(end.x - start.x);
+            const arcHeight = Math.min(distance * 0.3, 150); // Максимальная высота 150px
+            
+            // Определяем контрольные точки в зависимости от направления
+            const controlPoint1 = {
+                x: start.x + (end.x - start.x) * 0.5,
+                y: start.y - arcHeight // Поднимаем контрольную точку вверх
+            };
+            
+            const controlPoint2 = {
+                x: end.x - (end.x - start.x) * 0.5,
+                y: end.y - arcHeight // Поднимаем контрольную точку вверх
+            };
+            
             return {
-                x: rect.left + rect.width / 2 - timelineRect.left,
-                y: rect.top + rect.height / 2 - timelineRect.top
+                start,
+                end,
+                controlPoint1,
+                controlPoint2
             };
         });
 
-        // Create connections
-        const connections = [
-            { from: 0, to: 1, reverse: false },
-            { from: 1, to: 2, reverse: true },
-            { from: 2, to: 3, reverse: false }
-        ];
-
         connections.forEach((conn, i) => {
-            const startPoint = {
-                x: conn.reverse ? points[conn.from].x - 20 : points[conn.from].x + 20,
-                y: points[conn.from].y
-            };
-            const endPoint = {
-                x: conn.reverse ? points[conn.to].x + 20 : points[conn.to].x - 20,
-                y: points[conn.to].y
-            };
-            
-            const path = this.createCurvedPath(startPoint, endPoint, conn.reverse);
+            const path = this.createCurvedPath(conn.start, conn.end, conn.controlPoint1, conn.controlPoint2);
             svg.appendChild(path);
-
-            const dots = this.createDots(path, this.COLORS[i]);
+            const dots = this.createDots(path, this.options.colors[i]);
             dots.forEach(dot => svg.appendChild(dot));
         });
 
@@ -159,33 +161,8 @@ export class Roadmap {
         });
     }
 
-    createCurvedPath(start, end, isReverse) {
+    createCurvedPath(start, end, controlPoint1, controlPoint2) {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        
-        const dx = end.x - start.x;
-        const dy = end.y - start.y;
-        
-        let controlPoint1, controlPoint2;
-        
-        if (isReverse) {
-            controlPoint1 = {
-                x: start.x + dx * this.ANIMATION_CONFIG.curvature,
-                y: start.y + Math.abs(dx) * 0.2
-            };
-            controlPoint2 = {
-                x: end.x - dx * this.ANIMATION_CONFIG.curvature,
-                y: end.y + Math.abs(dx) * 0.2
-            };
-        } else {
-            controlPoint1 = {
-                x: start.x + dx * this.ANIMATION_CONFIG.curvature,
-                y: start.y - Math.abs(dx) * 0.2
-            };
-            controlPoint2 = {
-                x: end.x - dx * this.ANIMATION_CONFIG.curvature,
-                y: end.y - Math.abs(dx) * 0.2
-            };
-        }
         
         const d = `M ${start.x},${start.y} C ${controlPoint1.x},${controlPoint1.y} ${controlPoint2.x},${controlPoint2.y} ${end.x},${end.y}`;
         
@@ -208,9 +185,6 @@ export class Roadmap {
             dot.style.filter = `blur(${size / 3}px)`;
             dot.style.opacity = '0.8';
 
-            // Добавляем атрибут для отслеживания анимации
-            dot.setAttribute('data-aos', 'dot-animation');
-
             const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
             const duration = minDuration + Math.random() * (maxDuration - minDuration);
             animate.setAttribute('dur', `${duration}s`);
@@ -228,6 +202,9 @@ export class Roadmap {
 
     setupResizeHandler() {
         let resizeTimeout;
+
+        this.animationObserver.setupResizeObserver();
+
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
@@ -237,7 +214,6 @@ export class Roadmap {
                 });
 
                 this.createConnectionLines();
-                this.setupAnimations();
 
                 this.logger.log('Resize completed', {
                     type: 'resize-completed',
@@ -245,6 +221,16 @@ export class Roadmap {
                 });
             }, this.ANIMATION_CONFIG.resizeDelay);
         });
+
+        this.animationObserver.handleResize = (element) => {
+            if (element === this.container) {
+                this.logger.log('Roadmap resized', {
+                    conditions: ['resize'],
+                    trackType: ['resize'],
+                    functionName: 'handleResize'
+                });
+            }
+        };
     }
 
     disconnect() {
@@ -258,8 +244,8 @@ export class Roadmap {
     }
 }
 
-export function initRoadmap() {
-    const container = document.querySelector('.roadmap');
+export function initRoadmap(className) {
+    const container = document.querySelector(className);
     if (!container) {
         console.warn('Roadmap container not found');
         return;

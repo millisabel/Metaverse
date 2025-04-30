@@ -1,12 +1,22 @@
-// Roadmap Section Styles
+// Roadmap 
 .roadmap {
-    --roadmap-circle-size: 300px;
+    --roadmap-circle-size: 100px;
+    --roamap-color-rgb: 255, 255, 255;
+    --roamap-color: rgb(var(--roamap-color-rgb));
+
+    --color-rgb-1: 122, 66, 244;
+    --color-rgb-2: 240, 10, 254;
+    --color-rgb-3: 70, 66, 244;
+    --color-rgb-4: 86, 255, 235;
+
 
     position: relative;
     overflow: hidden;
+
     min-height: 100vh;
     padding: 100px 0;
-    background: #000;
+
+    background: var(--bs-body-bg);
 
     &-header {
         display: flex;
@@ -18,20 +28,8 @@
 
         text-align: center;
 
-        h2 {
-            color: #fff;
-            font-size: 36px;
-        }
-
-        p {
+        &-subtitle {
             order: -1;
-
-            max-width: 600px;
-            margin: 0 auto;
-            margin-bottom: 20px;
-
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 16px;
         }
     }
 
@@ -40,7 +38,7 @@
 
         display: flex;
         flex-direction: column;
-        gap: calc(var(--roadmap-circle-size) / 3);
+        gap: var(--roadmap-circle-size);
 
         padding: 40px 0;
         
@@ -68,120 +66,133 @@
     &-quarter {
         position: relative;
         
-        padding: 60px;
+        padding: 20px 15px;
         border-radius: 20px;
 
         background: rgba(255, 255, 255, 0.05);
         filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
-        
-        &:nth-child(odd) {
-            .roadmap-circle {
-                right: calc(var(--roadmap-circle-size) / 3 * -1);
-                transform: translateY(-50%);
-            }
-
-            &::before {
-                left: 50%;
-            }
-        }
-        
-        &:nth-child(even) {
-            .roadmap-circle {
-                left: calc(var(--roadmap-circle-size) / 3 * -1);
-                transform: translateY(-50%);
-            }
-
-            &::before {
-                right: 50%;
-            }
-        }
 
         &::before {
+            --roamap-circle-gradient: radial-gradient(circle at center,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.8) 10%,
+                rgba(var(--roamap-color-rgb), 0.9) 20%,
+                rgba(var(--roamap-color-rgb), 0.7) 30%,
+                rgba(255, 255, 255, 0.6) 33%,
+                rgba(var(--roamap-color-rgb), 0.6) 36%,
+                rgba(var(--roamap-color-rgb), 0.5) 60%,
+                rgba(255, 255, 255, 0.4) 61%,
+                rgba(var(--roamap-color-rgb), 0.4) 62%,
+                rgba(var(--roamap-color-rgb), 0.3) 80%,
+                rgba(255, 255, 255, 0.1) 100%);
+    
             content: '';
+            display: block;
             position: absolute;
-            top: -50%;
-            z-index: -1;
-
-            width: 100%;
-            height: 100%;
-            border-radius: 20px;
-
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            top: 0;
+            transform: translateY(-50%);
+    
+            width: var(--roadmap-circle-size);
+            height: var(--roadmap-circle-size);
+            border-radius: 50%;
+            background: var(--roamap-circle-gradient);
+            box-shadow: 0 0 30px rgba(var(--roamap-color-rgb), 0.5),
+                       0 0 60px rgba(var(--roamap-color-rgb), 0.3),
+                       0 0 90px rgba(var(--roamap-color-rgb), 0.1);
+            filter: blur(2px);
             pointer-events: none;
+            will-change: transform, filter, box-shadow;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                       filter 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                       box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: circlePulse 4s ease-in-out infinite;
         }
 
-        &:nth-child(1)::before {
-            background-image: url('/src/assets/svg/circle/blur-q1.svg');
-        }
-
-        &:nth-child(2)::before {
-            background-image: url('/src/assets/svg/circle/blur-q2.svg');
-        }
-
-        &:nth-child(3)::before {
-            background-image: url('/src/assets/svg/circle/blur-q3.svg');
-        }
-
-        &:nth-child(4)::before {
-            background-image: url('/src/assets/svg/circle/blur-q4.svg');
-        }
-
-        &.roadmap-animate {
-            &::before {
-                opacity: 1;
-                animation: glowBlur 4s ease-in-out infinite;
-            }
-
-            &:nth-child(2)::before {
-                animation: glowBlur 6s ease-in-out infinite;
-            }
-
-            &:nth-child(3)::before {
-                animation: glowBlur 5s ease-in-out infinite;
-            }
-
-            &:nth-child(4)::before {
-                animation: glowBlur 7s ease-in-out infinite;
-            }
-        }
-
-        &:not(.roadmap-animate)::before {
-            animation: none;
-            opacity: 0;
-        }
-
-        h3 {
-            color: #fff;
-            font-size: 24px;
+        &-title {
             margin-bottom: 20px;
-            padding-left: 40px;
+
+            font-size: 24px;
+            color: #fff;
         }
 
-        ul {
+        &-list {
             list-style: none;
             padding: 0;
             margin: 0;
 
             li {
-                color: rgba(255, 255, 255, 0.7);
+                position: relative;
+
                 margin-bottom: 15px;
                 padding-left: 25px;
-                position: relative;
+                color: rgba(255, 255, 255, 0.7);
 
                 &:before {
                     content: '';
                     position: absolute;
                     left: 0;
                     top: 8px;
+
                     width: 8px;
                     height: 8px;
-                    background: #c344ff;
+
+                    background: var(--roamap-color);
+                    box-shadow: 0 0 10px var(--roamap-color), 0 0 20px var(--roamap-color), 0 0 30px var(--roamap-color);
                     border-radius: 50%;
                 }
+            }
+        }
+        
+        &:nth-child(odd) {
+            .roadmap-circle {
+                right: 0;
+                transform: translateY(-50%);
+            }
+        }
+        
+        &:nth-child(even) {
+            .roadmap-circle {
+                left: 0;
+                transform: translateY(-50%);
+            }
+        }
+
+        &--1 {
+            --roamap-color-rgb: var(--color-rgb-1);
+            --roamap-color: rgb(var(--roamap-color-rgb));
+        }
+
+        &--2 {
+            --roamap-color-rgb: var(--color-rgb-2);
+            --roamap-color: rgb(var(--roamap-color-rgb));
+        }
+
+        &--3 {
+            --roamap-color-rgb: var(--color-rgb-3);
+            --roamap-color: rgb(var(--roamap-color-rgb));
+        }
+
+        &--4 {
+            --roamap-color-rgb: var(--color-rgb-4);
+            --roamap-color: rgb(var(--roamap-color-rgb));
+        }
+
+        .more-btn {
+            position: relative;
+            z-index: 3;
+            
+            padding: 10px 0;
+            border: none;
+
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--roamap-color);
+
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            &:hover {
+                text-shadow: 0 0 10px var(--roamap-color);
             }
         }
 
@@ -192,127 +203,23 @@
                 display: block;
             }
         }
-
-        &:nth-child(1) {
-            li::before {
-                background: #c344ff;
-                box-shadow: 0 0 10px #c344ff, 0 0 20px #c344ff, 0 0 30px #c344ff;
-            }
-            .more-btn {
-                color: #c344ff;
-                &:hover {
-                    text-shadow: 0 0 10px #c344ff;
-                }
-            }
-        }
-
-        &:nth-child(2) {
-            li::before {
-                background: rgba(255, 68, 124, 1);
-                box-shadow: 0 0 10px rgba(255, 68, 124, 1), 0 0 20px rgba(255, 68, 124, 1), 0 0 30px rgba(255, 68, 124, 1);
-            }
-            .more-btn {
-                color: rgba(255, 68, 124, 1);
-                &:hover {
-                    text-shadow: 0 0 10px rgba(255, 68, 124, 1);
-                }
-            }
-        }
-
-        &:nth-child(3) {
-            li::before {
-                background: rgba(68, 255, 199, 1);
-                box-shadow: 0 0 10px rgba(68, 255, 199, 1), 0 0 20px rgba(68, 255, 199, 1), 0 0 30px rgba(68, 255, 199, 1);
-            }
-            .more-btn {
-                color: rgba(68, 255, 199, 1);
-                &:hover {
-                    text-shadow: 0 0 10px rgba(68, 255, 199, 1);
-                }
-            }
-        }
-
-        &:nth-child(4) {
-            li::before {
-                background: rgba(68, 255, 244, 1);
-                box-shadow: 0 0 10px rgba(68, 255, 244, 1), 0 0 20px rgba(68, 255, 244, 1), 0 0 30px rgba(68, 255, 244, 1);
-            }
-            .more-btn {
-                color: rgba(68, 255, 244, 1);
-                &:hover {
-                    text-shadow: 0 0 10px rgba(68, 255, 244, 1);
-                }
-            }
-        }
-
-        .more-btn {
-            position: relative;
-            background: none;
-            border: none;
-            padding: 10px 0;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 3;
-        }
-    }
-
-    &-circle {
-        position: absolute;
-        top: 0;
-        z-index: 2;
-
-        width: var(--roadmap-circle-size);
-        height: var(--roadmap-circle-size);
-        transform: translateY(-50%);
-        
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-
-        &-1 {
-            background-image: url('/src/assets/svg/circle/q-1.svg');
         }
 
         &-2 {
-            background-image: url('/src/assets/svg/circle/q-2.svg');
+            &::before {
+            animation-delay: 2s;
         }
 
         &-3 {
-            background-image: url('/src/assets/svg/circle/q-3.svg');
+            &::before {
+                animation-delay: 4s;
+            }
         }
 
         &-4 {
-            background-image: url('/src/assets/svg/circle/q-4.svg');
-        }
-
-        &.roadmap-animate {
-            opacity: 1;
-            
-            &.roadmap-circle-1 {
-                animation: pulse 5s ease-in-out infinite;
+            &::before {
+                animation-delay: 6s;
             }
-
-            &.roadmap-circle-2 {
-                animation: pulse 8s ease-in-out infinite;
-            }
-
-            &.roadmap-circle-3 {
-                animation: pulse 7s ease-in-out infinite;
-            }
-
-            &.roadmap-circle-4 {
-                animation: pulse 6s ease-in-out infinite;
-            }
-        }
-
-        &:not(.roadmap-animate) {
-            animation: none;
-            opacity: 0;
         }
     }
 
@@ -320,155 +227,55 @@
 
         padding: 80px 0;
 
-        &-header {
-            h2 {
-                font-size: 48px;
-            }
-
-            p {
-                font-size: 18px;
-            }
-        }
-
         &-timeline {
             gap: 20px;
         }
 
         &-quarter {
             padding: 30px;
-            margin-bottom: 60px;
 
-            h3 {
-                font-size: 20px;
+            &-title {
                 padding-left: 30px;
+
+                font-size: 20px;
             }
 
             &:nth-child(odd) {
-                .roadmap-circle {
+                &::before {
                     right: calc(var(--roadmap-circle-size) / 2 * -1);
                 }
             }
             
             &:nth-child(even) {
-                .roadmap-circle {
+                &::before {
                     left: calc(var(--roadmap-circle-size) / 2 * -1);
                 }
-            }
-        }
-
-        &-circle {
-            &-1, &-2, &-3, &-4 {
-                background-size: contain;
             }
         }
     }
 } 
 
-.connection-lines {
-    circle {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        
-        &.roadmap-animate {
-            opacity: 1;
-            animation: dotMove 3s linear infinite;
-        }
-
-        &:not(.roadmap-animate) {
-            animation: none;
-            opacity: 0;
-        }
-    }
-}
-
-// Animations for pulse circles
-@keyframes pulse {
+// .roadmap-circle
+@keyframes circlePulse {
     0% {
         transform: translateY(-50%) scale(1);
+        filter: blur(2px);
+        box-shadow: 0 0 30px rgba(var(--roamap-color-rgb), 0.5),
+                   0 0 60px rgba(var(--roamap-color-rgb), 0.3),
+                   0 0 90px rgba(var(--roamap-color-rgb), 0.1);
     }
     50% {
         transform: translateY(-50%) scale(1.1);
+        filter: blur(3px);
+        box-shadow: 0 0 40px rgba(var(--roamap-color-rgb), 0.6),
+                   0 0 80px rgba(var(--roamap-color-rgb), 0.4),
+                   0 0 120px rgba(var(--roamap-color-rgb), 0.2);
     }
     100% {
         transform: translateY(-50%) scale(1);
-    }
-}
-
-// Animates glow blur
-@keyframes glowBlur {
-    0% {
-        opacity: 0.5;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.15);
-    }
-    100% {
-        opacity: 0.3;
-        transform: scale(1);
-    }
-}
-
-// Animates dot move
-@keyframes dotMove {
-    0% {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-    20% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    80% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-}
-
-// Animates shadow float
-@keyframes shadowFloatLeft {
-    0% {
-        transform: translate(0, 0) rotate(-45deg) scale(1);
-    }
-    20% {
-        transform: translate(30vw, 20vh) rotate(-40deg) scale(2.3);
-    }
-    40% {
-        transform: translate(10vw, 40vh) rotate(-50deg) scale(3.9);
-    }
-    60% {
-        transform: translate(50vw, 60vh) rotate(-35deg) scale(2.5);
-    }
-    80% {
-        transform: translate(20vw, 80vh) rotate(-55deg) scale(1.8);
-    }
-    100% {
-        transform: translate(70vw, 100vh) rotate(-45deg) scale(1);
-    }
-}
-
-@keyframes shadowFloatRight {
-    0% {
-        transform: translate(0, 0) rotate(135deg) scale(1);
-    }
-    20% {
-        transform: translate(-60vw, -10vh) rotate(135deg) scale(1.9);
-    }
-    40% {
-        transform: translate(-25vw, -25vh) rotate(135deg) scale(2.8);
-    }
-    60% {
-        transform: translate(-70vw, -50vh) rotate(135deg) scale(3.9);
-    }
-    80% {
-        transform: translate(-15vw, -70vh) rotate(135deg) scale(2.2);
-    }
-    100% {
-        transform: translate(-60vw, -90vh) rotate(135deg) scale(1);
+        filter: blur(2px);
+        box-shadow: 0 0 30px rgba(var(--roamap-color-rgb), 0.5),
+                   0 0 60px rgba(var(--roamap-color-rgb), 0.3),
+                   0 0 90px rgba(var(--roamap-color-rgb), 0.1);
     }
 }

@@ -6,7 +6,7 @@
 <filter id="filter0_f_1_1598" x="0.184311" y="0.781967" width="618.197" height="616.424" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feGaussianBlur stdDeviation="113.83" result="effect1_foregroundBlur_1_1598"/>
+<feGaussianBlur stdDeviation="40" result="effect1_foregroundBlur_1_1598"/>
 </filter>
 </defs>
 </svg>

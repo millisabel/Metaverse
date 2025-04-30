@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { AnimationController } from '../../utils/animationController_3D';
 
 import { createCanvas, updateRendererSize } from '../../utils/canvasUtils';
-import {createLogger} from "../../utils/logger";
+import { createLogger } from "../../utils/logger";
 
 export class Glow extends AnimationController {
     constructor(parent, options = {}) {
@@ -13,31 +13,28 @@ export class Glow extends AnimationController {
             conditions: ['initializing-controller'],
         });
         
-        const isMobile = window.innerWidth <= 768;
-
-        // Default options
         this.options = {
-            count: isMobile ? 3 : 5,
+            count: 5,
             colors: ['#ffffff', '#f0f0f0', '#e0e0e0'],
             size: {
-                min: isMobile ? 0.2 : 0.5,
-                max: isMobile ? 1.5 : 2
+                min: 0.5,
+                max: 2,
             },
             speed: {
-                min: isMobile ? 0.05 : 0.0002,
-                max: isMobile ? 0.1 : 0.0005
+                min: 0.05,
+                max: 0.1,
             },
             opacity: {
                 min: 0.05,
-                max: 0.15
+                max: 0.15,
             },
             scale: {
                 min: 0.5,
-                max: 1.2
+                max: 1.2,
             },
             pulse: {
                 min: 0.02,
-                max: 1.0
+                max: 1.0,
             },
             zIndex: '1',
             ...options
@@ -60,10 +57,8 @@ export class Glow extends AnimationController {
         });
 
         try {
-            // Create scene
             this.scene = new THREE.Scene();
             
-            // Create camera
             const rect = this.container.getBoundingClientRect();
             const aspect = rect.width / rect.height;
             this.camera = new THREE.OrthographicCamera(
@@ -71,21 +66,17 @@ export class Glow extends AnimationController {
             );
             this.camera.position.z = 1;
 
-            // Create renderer
             this.renderer = new THREE.WebGLRenderer({
                 antialias: true,
                 alpha: true
             });
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             
-            // Create canvas and add to container
             const canvas = createCanvas(this.renderer, { zIndex: this.options.zIndex });
             this.container.appendChild(canvas);
 
-            // Create glows
             this.createGlows();
             
-            // Initial render
             this.render();
             
             this.isInitialized = true;
@@ -106,7 +97,6 @@ export class Glow extends AnimationController {
             const pulseSpeed = this.getRandomValue(this.options.pulse.min, this.options.pulse.max);
             const scale = this.getRandomValue(this.options.scale.min, this.options.scale.max);
             
-            // Create material with glow effect
             const material = new THREE.ShaderMaterial({
                 uniforms: {
                     color: { value: color },
@@ -159,10 +149,8 @@ export class Glow extends AnimationController {
 
             const mesh = new THREE.Mesh(geometry, material);
             
-            // Set initial position
             this.setRandomPosition(mesh, size);
             
-            // Store glow properties
             this.glows.push({
                 mesh,
                 speed: this.getRandomValue(this.options.speed.min, this.options.speed.max),
@@ -188,10 +176,8 @@ export class Glow extends AnimationController {
         mesh.position.y = Math.random() * 2 - 1;
         mesh.position.z = Math.random() * 2 - 1;
         
-        // Adjust scale based on aspect ratio for both axes
         mesh.scale.set(size, size, 1);
         
-        // Random rotation for more natural look
         mesh.rotation.z = Math.random() * Math.PI * 2;
     }
 
