@@ -1,18 +1,16 @@
 import { createLogger } from '../utils/logger';
 import {Glow} from "../components/three/glow";
 import {Roadmap} from "../components/ui/roadmap";
+import {MoreButton} from "../controllers/moreButton";
 import {getColors} from "../utils/utils";
 
 export class RoadmapSetup {
 
 
     constructor(container) {
-
-        this.classNameForColor = '.roadmap-quarter';
-
         this.container = container;
-        this.observer = null;
         this.initialized = false;
+        
         this.name = 'RoadmapSetup';
         this.logger = createLogger(this.name);
 
@@ -56,7 +54,7 @@ export class RoadmapSetup {
         });
 
         new Roadmap(this.container, {
-            colors: getColors(this.container, this.classNameForColor),
+            colors: getColors(this.container, '.roadmap-quarter'),
             dots: {
                 count: 5,
                 minSize: 1,
@@ -64,6 +62,13 @@ export class RoadmapSetup {
                 minDuration: 2,
                 maxDuration: 4,
             },
+        });
+
+        new MoreButton(this.container, {
+            buttonSelector: '.more-btn',
+            hiddenElementsSelector: '.hidden-items',
+            revealDelay: 40,
+            typingSpeed: 20
         });
 
         this.initialized = true;

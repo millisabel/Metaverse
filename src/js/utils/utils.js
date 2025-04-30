@@ -1,5 +1,6 @@
 import { createLogger } from './logger';
 
+//  getColors ===============================================
 /**
  * Get colors from element
  * @param {HTMLElement} container
@@ -61,4 +62,57 @@ export function getColors(container, selector, options = {}) {
     });
 
     return colors;
+}
+
+// typeText =================================================
+/**
+ * Creates typing effect with blinking cursor
+ * @param {HTMLElement} element 
+ * @param {string} text 
+ * @param {number} speed 
+ * @returns {Promise} 
+ */
+export function typeText(element, text, speed = 20) {
+    return new Promise((resolve) => {
+        let i = 0;
+        element.textContent = '';
+        element.style.position = 'relative';
+        
+        const cursor = document.createElement('span');
+        cursor.style.display = 'inline-block';
+        cursor.style.width = '2px';
+        cursor.style.height = '1em';
+        cursor.style.backgroundColor = 'currentColor';
+        cursor.style.animation = 'blink 0.7s infinite';
+        cursor.style.verticalAlign = 'middle';
+        cursor.style.marginLeft = '2px';
+        element.appendChild(cursor);
+        
+        const type = () => {
+            if (i < text.length) {
+                cursor.remove();
+                
+                element.textContent += text.charAt(i);
+                
+                element.appendChild(cursor);
+                
+                i++;
+                setTimeout(type, speed);
+            } else {
+                cursor.remove();
+                resolve();
+            }
+        };
+        
+        type();
+    });
+}
+
+// getRandomColor ============================================
+/**
+ * Generates a random color
+ * @returns {string} A random color in hex format
+ */
+export function getRandomColor() {
+    return '#' + Math.floor(Math.random()*16777215).toString(16);
 }

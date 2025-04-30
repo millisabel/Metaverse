@@ -10,9 +10,6 @@ import {initAboutBackground} from "./components/three/AboutBackground";
 import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
 
-// Controllers
-import { initMoreButtons } from './controllers/moreButton';
-
 // Common components
 import { initNavbar } from './components/common/navbar';
 import { initSlider } from './components/common/slider';
@@ -48,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavbar();
     initModal();
     initSlider();
-    initMoreButtons(document.querySelector('.roadmap'));
     
     // Update copyright year
     document.getElementById('currentYear').textContent = new Date().getFullYear();
