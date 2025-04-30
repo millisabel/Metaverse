@@ -41,12 +41,12 @@ export class RoadmapSetup extends BaseSetup {
                 max: isMobile() ? 1.5 : 3
             },
             speed: {
-                min: isMobile() ? 0.1 : 0.5,
-                max: isMobile() ? 0.2 : 1.0
+                min: isMobile() ? 0.1 : 0.2,
+                max: isMobile() ? 0.2 : 0.5
             },
             opacity: {
                 min: 0.1,
-                max: 0.3
+                max: 0.2
             },
             scale: {
                 min: 0.9,
