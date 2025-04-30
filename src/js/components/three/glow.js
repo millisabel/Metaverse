@@ -200,19 +200,26 @@ export class Glow extends AnimationController {
 
         this.glows.forEach(glow => {
             const mesh = glow.mesh;
-            const timeOffset = time * glow.speed * 0.5;
+            const timeOffset = time * glow.speed;
             
-            // Update position
-            mesh.position.x += Math.sin(timeOffset) * glow.direction.x * 0.002;
-            mesh.position.y += Math.cos(timeOffset) * glow.direction.y * 0.002;
+            // Создаем более сложное движение с использованием нескольких волн
+            const wave1 = Math.sin(timeOffset * 0.5) * 0.3;
+            const wave2 = Math.cos(timeOffset * 0.3) * 0.2;
+            const wave3 = Math.sin(timeOffset * 0.7) * 0.1;
             
-            // Add depth movement
-            mesh.position.z = Math.sin(time * glow.speed * 0.3) * 0.2;
+            // Обновляем позицию с учетом всех волн
+            mesh.position.x += (wave1 + wave2) * glow.direction.x * 0.002;
+            mesh.position.y += (wave2 + wave3) * glow.direction.y * 0.002;
             
-            // Add subtle rotation
+            // Добавляем движение по Z с разной частотой
+            mesh.position.z = Math.sin(timeOffset * 0.4) * 0.2 + Math.cos(timeOffset * 0.2) * 0.1;
+            
+            // Добавляем вращение с разной скоростью
+            mesh.rotation.x += glow.speed * 0.0001;
+            mesh.rotation.y += glow.speed * 0.00015;
             mesh.rotation.z += glow.speed * 0.0002;
             
-            // Check boundaries and bounce
+            // Проверяем границы и меняем направление
             if (Math.abs(mesh.position.x) > aspect) {
                 glow.direction.x *= -1;
                 mesh.position.x = Math.sign(mesh.position.x) * aspect;
@@ -222,7 +229,7 @@ export class Glow extends AnimationController {
                 mesh.position.y = Math.sign(mesh.position.y);
             }
             
-            // Update material time
+            // Обновляем время для материала
             mesh.material.uniforms.time.value = time;
         });
 
