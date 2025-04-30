@@ -20,7 +20,7 @@
  * - Message types with icons (info, success, warning, error, debug)
  * - Element state tracking (visible, hidden, running, paused)
  * - DOM element inspection
- * - Grouped logging
+ * - Grouped logging with collapsible/expandable output
  * - Global and per-component logging control
  * - Automatic session management
  * - Class-based conditional logging
@@ -74,6 +74,21 @@
  *   conditions: ['hidden'],
  *   functionName: 'closeModal'
  * });
+ * ```
+ *
+ * 3. Logging Format Control:
+ * ```javascript
+ * // Enable global logging with collapsed groups (default)
+ * Logger.enableGlobalLogging();
+ * // or
+ * Logger.enableGlobalLogging(true);
+ * 
+ * // Enable global logging with expanded groups
+ * Logger.enableGlobalLogging(false);
+ * 
+ * // Change logging format at runtime
+ * Logger.setCollapsedLogging(true);  // Collapse all groups
+ * Logger.setCollapsedLogging(false); // Expand all groups
  * ```
  *
  * Available Message Types:
@@ -157,9 +172,13 @@
  * ```javascript
  * import { Logger } from './utils/logger';
  *
- * // Global control
- * Logger.enableGlobalLogging();
- * Logger.disableGlobalLogging();
+ * // Global control with format
+ * Logger.enableGlobalLogging(false); // Expanded groups
+ * Logger.enableGlobalLogging(true);  // Collapsed groups (default)
+ *
+ * // Change format at runtime
+ * Logger.setCollapsedLogging(true);  // Collapse groups
+ * Logger.setCollapsedLogging(false); // Expand groups
  *
  * // Component-specific control
  * Logger.enableLoggerFor('MyComponent');
@@ -196,6 +215,7 @@
  * - Unique cache keys based on style parameters
  * - Methods for cache management (clearStyleCache, getStyleCacheSize)
  * - Optimization for frequent calls with the same styles
+ * - Configurable log group display (collapsed/expanded)
  * @module Logger */
 
 export class Logger {
@@ -203,6 +223,7 @@ export class Logger {
     static enabledLoggers = new Set();
     static disabledLoggers = new Set();
     static globalLoggingEnabled = false;
+    static isCollapsedLogging = true;
     static instances = new Map();
     static styleCache = new Map();
 
@@ -387,8 +408,9 @@ export class Logger {
 
     static currentColorIndex = 0;
 
-    static enableGlobalLogging() {
+    static enableGlobalLogging(collapsed = true) {
         this.globalLoggingEnabled = true;
+        this.isCollapsedLogging = collapsed;
         this.enabledLoggers.clear();
         this.disabledLoggers.clear();
 
@@ -424,6 +446,9 @@ export class Logger {
         return this.enabledLoggers.has(name);
     }
 
+    static setCollapsedLogging(collapsed) {
+        this.isCollapsedLogging = collapsed;
+    }
 
     static generateRandomColor() {
         const colors = [
@@ -555,6 +580,7 @@ export class Logger {
         let functionName = null;
         let trackType = null;
         let classNames = [];
+        let customData = null;
 
         args.forEach(arg => {
             if (typeof arg === 'string') {
@@ -570,11 +596,11 @@ export class Logger {
                 if (arg.trackType) trackType = arg.trackType;
                 if (arg.functionName) functionName = arg.functionName;
                 if (arg.classNames) classNames = Array.isArray(arg.classNames) ? arg.classNames : [arg.classNames];
-
+                if (arg.custom) customData = arg.custom;
             }
         });
 
-        return { message, type, element, states, styles, trackType, functionName, classNames };
+        return { message, type, element, states, styles, trackType, functionName, classNames, customData };
     }
 
     static parseElementInfo(element) {
@@ -677,16 +703,15 @@ export class Logger {
     }
 
     static formatMessage(name, ...args) {
-
         const componentColor = this.getComponentColor(name);
-        const { message, type, element, states, styles, trackType, functionName, classNames } = this.parseArgs(args);
+        const { message, type, element, states, styles, trackType, functionName, classNames, customData } = this.parseArgs(args);
         const { header: headerStyle, text: textStyle } = this.getStyles(componentColor, type, styles, states);
 
         if (args.length === 1 && typeof args[0] === 'string') {
             this.formatSimpleMessage(name, message, headerStyle, textStyle);
             return;
         }
-        this.formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, trackType, classNames);
+        this.formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, trackType, classNames, customData);
     }
 
     static formatElementDetails(elementInfo) {
@@ -698,11 +723,19 @@ export class Logger {
         };
     }
 
-    static formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, track, classNames = []) {
+    static formatDetailedMessage(name, message, type, element, states, headerStyle, textStyle, functionName, styles, track, classNames = [], customData = null) {
         const header = this.formatGroupHeader(name, type, states, functionName, styles, classNames, element);
 
-        console.groupCollapsed(header.text, header.style);
+        if (this.isCollapsedLogging) {
+            console.groupCollapsed(header.text, header.style);
+        } else {
+            console.group(header.text, header.style);
+        }
+        
         this.logMessage(message, textStyle);
+        if (customData) {
+            this.logCustomData(customData, textStyle);
+        }
         this.logElementInfo(element);
         this.logDOMElement(element);
         this.checkTrackTypes(element, track); 
@@ -862,6 +895,15 @@ export class Logger {
         );
     }
 
+    static logCustomData(data, textStyle) {
+        if (!data) return;
+
+        console.log(
+            '%cCustom Data:',
+            this.generateStyle({ type: 'elementInfo' }),
+            data
+        );
+    }
 
     static checkLogSession() {
         const currentTime = Date.now();
