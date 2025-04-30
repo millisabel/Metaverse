@@ -6,19 +6,19 @@ import { createLogger } from '../utils/logger';
  */
 export class ThreeDContainerManager {
     /**
-     * @param {HTMLElement} parent - Parent element
+     * @param {HTMLElement} parentContainer - Parent container
      * @param {Object} options - Container options
      * @param {string} options.type - Container type
      * @param {string} [options.zIndex] - z-index value
      */
-    constructor(parent, options = {}) {
+    constructor(parentContainer, options = {}) {
         if (!options.type) {
             throw new Error('Type is required for ThreeDContainerManager');
         }
 
-        this.parent = parent;
-        this.type = options.type;
-        this.zIndex = options.zIndex;
+        this.parentContainer = parentContainer;
+        this.options = options;
+        this.container = null;
         
         this.name = 'ThreeDContainerManager';
         this.logger = createLogger(this.name);
@@ -29,45 +29,54 @@ export class ThreeDContainerManager {
      * @returns {HTMLElement} Created container
      */
     create() {
-        this.logger.log('Creating 3D container', {
-            conditions: ['creating-container'],
-            type: this.type,
-            zIndex: this.zIndex,
-            functionName: 'create',
-        });
+        if (!this.parentContainer) {
+            this.logger.log('Parent container not found', 'error');
+            return null;
+        }
 
-        const container = document.createElement('div');
-        container.setAttribute('data-3d-type', this.type);
+        this.parentContainer.style.position = 'relative';
+
+        // Создаем контейнер для 3D сцены
+        this.container = document.createElement('div');
+        this.container.className = 'three-d-container';
         
-        const containerOptions = {
+        // Устанавливаем стили для контейнера
+        Object.assign(this.container.style, {
             position: 'absolute',
             top: '0',
             left: '0',
             width: '100%',
             height: '100%',
+            zIndex: this.options.zIndex || '0',
             overflow: 'hidden',
-            pointerEvents: 'none',
-            zIndex: this.zIndex
-        };
-        
-        Object.assign(container.style, containerOptions);
-        this.parent.insertBefore(container, this.parent.firstChild);
-        
-        return container;
+            pointerEvents: 'none'
+        });
+
+        // Добавляем контейнер в родительский элемент
+        this.parentContainer.appendChild(this.container);
+
+        this.logger.log('Container created', {
+            container: this.container,
+            containerSize: {
+                width: this.container.clientWidth,
+                height: this.container.clientHeight
+            },
+            parentSize: {
+                width: this.parentContainer.clientWidth,
+                height: this.parentContainer.clientHeight
+            }
+        });
+
+        return this.container;
     }
 
     /**
      * Cleans up the container
      */
     cleanup() {
-        this.logger.log('Cleaning up 3D container', {
-            conditions: ['cleaning-up'],
-            type: this.type
-        });
-
-        const container = this.parent.querySelector(`[data-3d-type="${this.type}"]`);
-        if (container) {
-            container.parentNode.removeChild(container);
+        if (this.container && this.container.parentNode) {
+            this.container.parentNode.removeChild(this.container);
+            this.container = null;
         }
     }
 } 

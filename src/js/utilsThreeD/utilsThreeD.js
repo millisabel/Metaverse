@@ -27,17 +27,6 @@ export function addDefaultLights(scene, {
     scene.add(pointLight);
 }
 
-// randomRange =================================================
-/**
- * Returns a random float in the given range [min, max)
- * @param {number} min - Minimum value (inclusive)
- * @param {number} max - Maximum value (exclusive)
- * @returns {number} Random float in range
- */
-export function randomRange(min, max) {
-    return min + Math.random() * (max - min);
-}
-
 // gaussianRandom =================================================
 /**
  * Returns a random number with normal (Gaussian) distribution
