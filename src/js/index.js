@@ -20,8 +20,11 @@ import { initSocialCards } from './components/three/socialCards';
 
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
-    Logger.disableLoggerFor('Utils');
     Logger.disableLoggerFor('HeroSetup');
+    Logger.disableLoggerFor('ThreeDContainerManager');
+    Logger.disableLoggerFor('CameraController');
+    Logger.disableLoggerFor('AnimationController_3D');
+    Logger.disableLoggerFor('Utils');
     Logger.disableLoggerFor('AboutSetup');
     Logger.disableLoggerFor('RoadmapSetup');
     Logger.disableLoggerFor('Roadmap');
@@ -30,8 +33,6 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Glow');
-    Logger.disableLoggerFor('AnimationController_3D');
-    Logger.disableLoggerFor('ThreeDContainerManager');
 } else {
     Logger.disableGlobalLogging();
 }

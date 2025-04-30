@@ -22,11 +22,6 @@ export class ThreeDContainerManager {
         
         this.name = 'ThreeDContainerManager';
         this.logger = createLogger(this.name);
-
-        this.logger.log('Creating 3D container', {
-            conditions: ['initializing-controller'],
-            functionName: 'constructor',
-        });
     }
 
     /**

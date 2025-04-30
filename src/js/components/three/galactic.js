@@ -4,15 +4,29 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
-import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils';
-import {createLogger} from "../../utils/logger";    
+import { createLogger } from "../../utils/logger";
+import { isMobile } from '../../utils/utils';
+import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
 
 export class GalacticCloud extends AnimationController {
     constructor(container) {
-        super(container);
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
+        super(container, {
+            camera: {
+                fov: 60,
+                near: 0.1,
+                far: 1000,
+                position: { x: 0, y: 5, z: 15 },
+                lookAt: { x: 0, y: 0, z: 0 },
+                rotation: true,
+                speed: { x: 0.0002, y: 0.0002 }
+            },
+            renderer: {
+                antialias: true,
+                alpha: true,
+                powerPreference: 'high-performance'
+            }
+        });
+
         this.galaxyCore = null;
         this.spiralArms = [];
         this.composer = null;
@@ -21,52 +35,36 @@ export class GalacticCloud extends AnimationController {
         this.logger = createLogger(this.name);
         this.logger.log('Controller initialization', {
             conditions: ['initializing-controller'],
+            functionName: 'constructor'
         });
     }
 
-    initScene() {
-        if (this.isInitialized) return;
-
+    setupScene() {
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
-            functionName: 'update'
+            functionName: 'setupScene'
         });
 
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(60, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({
-            alpha: true,
-            antialias: true,
-            powerPreference: "high-performance"
-        });
-
-        updateRendererSize(this.renderer, this.container, this.camera);
-        this.container.appendChild(this.renderer.domElement);
-
-        createCanvas(this.renderer, { zIndex: '1' });
-
-        // Adaptive camera setup for different devices
-        const isMobile = this.container.clientWidth < 768;
-        const radius = isMobile ? 20 : 15;
-        const height = isMobile ? -15 : 5;
-        const offsetX = isMobile ? 0 : -4;
+        const mobile = isMobile();
+        const radius = mobile ? 20 : 15;
+        const height = mobile ? -15 : 5;
+        const offsetX = mobile ? 0 : -4;
         
-        this.camera.position.set(offsetX, height, radius);
-        this.camera.lookAt(offsetX, 0, 0);
+        this.cameraController.setPosition({ x: offsetX, y: height, z: radius });
+        this.cameraController.setLookAt({ x: offsetX, y: 0, z: 0 });
 
-        // Add lighting
-        const ambientLight = new THREE.AmbientLight(0x9933ff, 0.5);
-        this.scene.add(ambientLight);
-
-        const pointLight = new THREE.PointLight(0xcc66ff, 2);
-        pointLight.position.set(offsetX, 2, 0);
-        this.scene.add(pointLight);
+        // Используем утилиту для добавления света
+        addDefaultLights(this.scene, {
+            ambientColor: 0x9933ff,
+            ambientIntensity: 0.5,
+            pointColor: 0xcc66ff,
+            pointIntensity: 2,
+            pointPosition: { x: offsetX, y: 2, z: 0 }
+        });
 
         this.createGalaxyCore();
         this.createSpiralArms();
         this.setupPostProcessing();
-        
-        this.isInitialized = true;
     }
 
     createGalaxyCore() {
@@ -131,8 +129,8 @@ export class GalacticCloud extends AnimationController {
         const galaxyTexture = textureLoader.load('./assets/images/galaxy-texture.png');
         
         // Adaptive plane size
-        const isMobile = this.container.clientWidth < 768;
-        const planeSize = isMobile ? 12 : 8; // Increase size on mobile
+        const mobile = isMobile();
+        const planeSize = mobile ? 12 : 8; // Increase size on mobile
         
         // Create main galaxy plane
         const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
@@ -176,8 +174,8 @@ export class GalacticCloud extends AnimationController {
         if (!this.isVisible || !this.scene || !this.camera) return;
 
         const time = performance.now() * 0.0001;
-        const isMobile = this.container.clientWidth < 768;
-        const offsetX = isMobile ? 0 : -4;
+        const mobile = isMobile();
+        const offsetX = mobile ? 0 : -4;
         
         // Complex pulsation with multiple waves
         const primaryWave = Math.sin(time * 0.5) * 0.15;
@@ -196,26 +194,22 @@ export class GalacticCloud extends AnimationController {
             this.spiralArms[0].scale.set(pulseFactor, pulseFactor, pulseFactor);
         }
 
-        // Slow camera rotation in horizontal plane
-        const baseRadius = isMobile ? 20 : 15;
-        
-        // Complex camera distance change
+        // Update camera position through cameraController
+        const baseRadius = mobile ? 20 : 15;
         const zoomPrimary = Math.sin(time * 0.3) * 2;
         const zoomSecondary = Math.sin(time * 0.1) * 1;
         const zoomMicro = Math.sin(time * 0.8) * 0.5;
         
         const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
+        const cameraAngle = -time * (mobile ? 0.15 : 0.2);
         
-        const cameraAngle = -time * (isMobile ? 0.15 : 0.2);
-        this.camera.position.x = offsetX + Math.sin(cameraAngle) * currentRadius;
-        this.camera.position.z = Math.cos(cameraAngle) * currentRadius;
+        this.cameraController.setPosition({
+            x: offsetX + Math.sin(cameraAngle) * currentRadius,
+            y: (mobile ? -15 : 5) + Math.sin(time * 0.4) * 0.5,
+            z: Math.cos(cameraAngle) * currentRadius
+        });
         
-        // Add small vertical movement for more dynamics
-        const baseHeight = isMobile ? -15 : 5;
-        const heightVariation = Math.sin(time * 0.4) * 0.5;
-        this.camera.position.y = baseHeight + heightVariation;
-        
-        this.camera.lookAt(0, 0, 0);
+        this.cameraController.setLookAt({ x: offsetX, y: 0, z: 0 });
 
         this.composer.render();
     }
@@ -225,7 +219,7 @@ export class GalacticCloud extends AnimationController {
 
         const width = this.container.clientWidth;
         const height = this.container.clientHeight;
-        const isMobile = width < 768;
+        const mobile = isMobile();
 
         // Update renderer sizes
         this.camera.aspect = width / height;
@@ -233,16 +227,17 @@ export class GalacticCloud extends AnimationController {
         this.renderer.setSize(width, height);
         this.composer.setSize(width, height);
 
-        // Update camera position
-        const radius = isMobile ? 20 : 15;
-        const cameraHeight = isMobile ? -15 : 5;
-        const offsetX = isMobile ? 0 : -4;
-        this.camera.position.set(offsetX, cameraHeight, radius);
-        this.camera.lookAt(offsetX, 0, 0);
+        // Update camera position through cameraController
+        const radius = mobile ? 20 : 15;
+        const cameraHeight = mobile ? -15 : 5;
+        const offsetX = mobile ? 0 : -4;
+        
+        this.cameraController.setPosition({ x: offsetX, y: cameraHeight, z: radius });
+        this.cameraController.setLookAt({ x: offsetX, y: 0, z: 0 });
 
         // Update galaxy size if needed
         if (this.spiralArms[0]) {
-            const planeSize = isMobile ? 12 : 8;
+            const planeSize = mobile ? 12 : 8;
             this.spiralArms[0].scale.set(planeSize/8, planeSize/8, planeSize/8);
         }
 
@@ -253,12 +248,32 @@ export class GalacticCloud extends AnimationController {
 
     cleanup() {
         this.logger.log(`Starting cleanup`);
-        super.cleanup(this.renderer, this.scene);
         
         if (this.composer) {
             this.composer.dispose();
             this.composer = null;
             this.logger.log(`Composer disposed`);
+        }
+
+        if (this.cameraController) {
+            this.cameraController.cleanup();
+        }
+
+        if (this.renderer) {
+            this.renderer.dispose();
+        }
+
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                if (object.geometry) object.geometry.dispose();
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
         }
 
         this.logger.log(`Cleanup completed`);

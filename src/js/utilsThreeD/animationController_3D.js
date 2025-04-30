@@ -1,11 +1,14 @@
 import {createLogger} from "../utils/logger";
+import * as THREE from 'three';
+import {createCanvas, updateRendererSize} from "../utilsThreeD/canvasUtils";
+import { CameraController } from './cameraController';
 
 /**
  * Basic class for managing the animation of 3D objects
  * Provides visibility control and resize handling
  */
 export class AnimationController {
-    constructor(container) {
+    constructor(container, options = {}) {
         this.container = container;
         this.isVisible = false;
         this.isInitialized = false;
@@ -14,8 +17,21 @@ export class AnimationController {
         this.observer = null;
         this.isResizing = false;
 
+        // Default options
+        this.options = {
+            renderer: {
+                antialias: true,
+                alpha: true,
+                powerPreference: 'high-performance'
+            },
+            ...options
+        };
+
         this.name = 'AnimationController';
         this.logger = createLogger(this.name);
+
+        // Initialize camera controller
+        this.cameraController = new CameraController(options.camera);
 
         this.init();
     }
@@ -84,6 +100,42 @@ export class AnimationController {
         });
     }
 
+    initScene() {
+        if (this.isInitialized) return;
+
+        this.logger.log('Scene initialization', {
+            conditions: ['initializing-scene'],
+            functionName: 'initScene'
+        });
+
+        // Create scene
+        this.scene = new THREE.Scene();
+
+        // Initialize camera
+        this.cameraController.init(this.container);
+        this.camera = this.cameraController.camera;
+
+        // Create renderer
+        this.renderer = new THREE.WebGLRenderer(this.options.renderer);
+        updateRendererSize(this.renderer, this.container, this.camera);
+        this.container.appendChild(this.renderer.domElement);
+        createCanvas(this.renderer, { zIndex: '2' });
+
+        // Call setupScene for additional configuration
+        this.setupScene();
+
+        this.isInitialized = true;
+    }
+
+    setupScene() {
+        // To be implemented by subclasses
+    }
+
+    onResize() {
+        this.cameraController.onResize(this.container);
+        updateRendererSize(this.renderer, this.container, this.camera);
+    }
+
     canAnimate() {
         if (!this.isVisible) {
             this.logger.log('Object is hidden',  {
@@ -142,7 +194,6 @@ export class AnimationController {
     cleanup(renderer, scene) {
         this.logger.log(`Starting cleanup`);
 
-
         if (renderer) {
             renderer.dispose();
             renderer.domElement.remove();
@@ -183,18 +234,15 @@ export class AnimationController {
             this.logger.log(`Resize timeout cleared`);
         }
 
+        if (this.cameraController) {
+            this.cameraController.cleanup();
+            this.cameraController = null;
+            this.logger.log(`Camera controller cleaned up`);
+        }
+
         this.isInitialized = false;
         this.isVisible = false;
-        this.logger.log(`this.logger.logCleanup completed`);
-    }
-
-    // Abstract methods to be implemented by subclasses
-    initScene() {
-        throw new Error('initScene must be implemented by subclass');
-    }
-
-    onResize() {
-        throw new Error('onResize must be implemented by subclass');
+        this.logger.log(`Cleanup completed`);
     }
 
     _getTimeAndAspect() {
