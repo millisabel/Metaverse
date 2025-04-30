@@ -1,19 +1,13 @@
+import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { Stars } from "../components/three/stars";
+import { Constellation } from '../components/three/constellation';
+import { isMobile } from "../utils/utils";
 import * as THREE from 'three';
 
-import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
-import { Stars } from '../components/three/stars';
-import { Constellation } from '../components/three/constellation';
-
-import { createLogger } from '../utils/logger';
-
-export class AboutSetup {
+export class AboutSetup extends BaseSetup {
     constructor() {
-        this.container = document.getElementById('about');
-        this.initialized = false;
+        super('about', 'AboutSetup');
         
-        this.name = 'AboutSetup';
-        this.logger = createLogger(this.name);
-
         this.CONTAINER_TYPES = {
             STARS: 'STARS',
             CONSTELLATION: 'CONSTELLATION'
@@ -22,26 +16,21 @@ export class AboutSetup {
         this.Z_INDEX = {
             BACKGROUND: '0',
             STARS: '1',
-            CONSTELLATION: '2',
+            CONSTELLATION: '2'
         };
     }
 
     init() {
-        if (!this.container || this.initialized) return;
-
-        this.logger.log({
-            conditions: 'init',
-            functionName: 'init'
-        });
+        if (!this.canInitialize()) return;
 
         // create stars 
-        const starsManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.STARS,
-            zIndex: this.Z_INDEX.STARS
-        });
-        const starsContainer = starsManager.create();
+        const starsContainer = this.createContainer(
+            this.CONTAINER_TYPES.STARS,
+            this.Z_INDEX.STARS
+        );
+
         new Stars(starsContainer, {
-            count: window.innerWidth < 768 ? 2000 : 4000,
+            count: isMobile() ? 2000 : 4000,
             colors: [0xFFFFFF],
             size: {
                 min: 0.05,
@@ -50,7 +39,7 @@ export class AboutSetup {
                 multiplier: 1.5
             },
             depth: {
-                range: window.innerWidth < 768 ? 500 : 1000,
+                range: isMobile() ? 500 : 1000,
                 z: [300, -400] 
             },
             movement: {
@@ -76,35 +65,21 @@ export class AboutSetup {
         });
 
         // create constellation 
-        const constellationManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.CONSTELLATION,
-            zIndex: this.Z_INDEX.CONSTELLATION
-        });
-        const constellationContainer = constellationManager.create();
+        const constellationContainer = this.createContainer(
+            this.CONTAINER_TYPES.CONSTELLATION,
+            this.Z_INDEX.CONSTELLATION
+        );
         new Constellation(constellationContainer);
 
-        this.initialized = true;
-
-        this.logger.log({
-            type: 'success',
-            functionName: 'init'
-        });
+        this.completeInitialization();
     }
 
     cleanup() {
-        if (!this.initialized) return;
+        if (!this.canCleanup()) return;
         
-        const starsManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.STARS
-        });
-        const constellationManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.CONSTELLATION
-        });
-        
-        starsManager.cleanup();
-        constellationManager.cleanup();
-        
-        this.initialized = false;
+        this.cleanupContainer(this.CONTAINER_TYPES.STARS);
+        this.cleanupContainer(this.CONTAINER_TYPES.CONSTELLATION);
+        this.completeCleanup();
     }
 }
 

@@ -1,20 +1,13 @@
-import { createLogger } from '../utils/logger';
-
+import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { Glow } from "../components/three/glow";
 import { Roadmap } from "../components/ui/roadmap";
-
 import { MoreButton } from "../controllers/moreButton";
 import { getColors, isMobile } from "../utils/utils";
-import { ThreeDContainerManager } from "../utilsThreeD/ThreeDContainerManager";
 
-export class RoadmapSetup {
+export class RoadmapSetup extends BaseSetup {
     constructor() {
-        this.container = document.getElementById('roadmap');
-        this.initialized = false;
+        super('roadmap', 'RoadmapSetup');
         
-        this.name = 'RoadmapSetup';
-        this.logger = createLogger(this.name);
-
         this.CONTAINER_TYPES = {
             ROADMAP: 'ROADMAP',
             GLOW: 'GLOW'
@@ -27,19 +20,13 @@ export class RoadmapSetup {
     }
 
     init() {
-        if (!this.container || this.initialized) return;
-
-        this.logger.log({
-            conditions: 'init',
-            functionName: 'init'
-        });
+        if (!this.canInitialize()) return;
 
         // create glow 
-        const glowManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.GLOW,
-            zIndex: this.Z_INDEX.GLOW
-        });
-        const glowContainer = glowManager.create();
+        const glowContainer = this.createContainer(
+            this.CONTAINER_TYPES.GLOW, 
+            this.Z_INDEX.GLOW
+        );
         
         new Glow(glowContainer, {
             count: isMobile() ? 3 : 10,
@@ -93,24 +80,14 @@ export class RoadmapSetup {
             typingSpeed: 20
         });
 
-        this.initialized = true;
-
-        this.logger.log({
-            type: 'success',
-            functionName: 'init'
-        });
+        this.completeInitialization();
     }
 
     cleanup() {
-        if (!this.initialized) return;
+        if (!this.canCleanup()) return;
         
-        const glowManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.GLOW
-        });
-        
-        glowManager.cleanup();
-        
-        this.initialized = false;
+        this.cleanupContainer(this.CONTAINER_TYPES.GLOW);
+        this.completeCleanup();
     }
 }
 

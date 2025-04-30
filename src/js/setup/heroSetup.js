@@ -1,17 +1,12 @@
-import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
+import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { Stars } from "../components/three/stars";
 import { GalacticCloud } from '../components/three/galactic';
-import { Stars } from '../components/three/stars';
-import { createLogger } from '../utils/logger';
-import { isMobile } from '../utils/utils';
+import { isMobile } from "../utils/utils";
 
-export class HeroSetup {
+export class HeroSetup extends BaseSetup {
     constructor() {
-        this.container = document.getElementById('hero');
-        this.initialized = false;
+        super('hero', 'HeroSetup');
         
-        this.name = 'HeroSetup';
-        this.logger = createLogger(this.name);
-
         this.CONTAINER_TYPES = {
             STARS: 'STARS',
             GALACTIC: 'GALACTIC'
@@ -25,27 +20,21 @@ export class HeroSetup {
     }
 
     init() {
-        if (!this.container || this.initialized) return;
-
-        this.logger.log({
-            conditions: 'init',
-            functionName: 'init'
-        });
+        if (!this.canInitialize()) return;
 
         // create galactic 
-        const galacticManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.GALACTIC,
-            zIndex: this.Z_INDEX.GALACTIC
-        });
-        const galacticContainer = galacticManager.create();
+        const galacticContainer = this.createContainer(
+            this.CONTAINER_TYPES.GALACTIC,
+            this.Z_INDEX.GALACTIC
+        );
         new GalacticCloud(galacticContainer);
 
         // create stars 
-        const starsManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.STARS,
-            zIndex: this.Z_INDEX.STARS
-        });
-        const starsContainer = starsManager.create();
+        const starsContainer = this.createContainer(
+            this.CONTAINER_TYPES.STARS,
+            this.Z_INDEX.STARS
+        );
+
         new Stars(starsContainer, {
             count: isMobile() ? 1000 : 4000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
@@ -79,28 +68,15 @@ export class HeroSetup {
             }
         });
 
-        this.initialized = true;
-
-        this.logger.log({
-            type: 'success',
-            functionName: 'init'
-        });
+        this.completeInitialization();
     }
 
     cleanup() {
-        if (!this.initialized) return;
+        if (!this.canCleanup()) return;
         
-        const galacticManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.GALACTIC
-        });
-        const starsManager = new ThreeDContainerManager(this.container, { 
-            type: this.CONTAINER_TYPES.STARS
-        });
-        
-        galacticManager.cleanup();
-        starsManager.cleanup();
-        
-        this.initialized = false;
+        this.cleanupContainer(this.CONTAINER_TYPES.GALACTIC);
+        this.cleanupContainer(this.CONTAINER_TYPES.STARS);
+        this.completeCleanup();
     }
 }
 
