@@ -125,3 +125,14 @@ export function getColors(container, selector, options = {}) {
 export function getRandomColor() {
     return '#' + Math.floor(Math.random()*16777215).toString(16);
 }
+
+// getRandomValue ============================================
+/**
+ * Generates a random number between min and max values
+ * @param {number} min - Minimum value (inclusive)
+ * @param {number} max - Maximum value (exclusive)
+ * @returns {number} Random number between min and max
+ */
+export function getRandomValue(min, max) {
+    return Math.random() * (max - min) + min;
+}
