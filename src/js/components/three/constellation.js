@@ -17,12 +17,12 @@ class ConstellationGroup {
         this.activeStarIndex = Math.floor(Math.random() * this.data.stars.length);
         this.nextStarIndex = this.getNextStarIndex();
         this.transitionProgress = 0;
-        this.changeSpeed = 0.5 + Math.random() * 0.5;
-        this.animationSpeed = 0.5 + Math.random() * 0.5;
+        this.changeSpeed = 0.2 + Math.random() * 0.3;
+        this.animationSpeed = 0.2 + Math.random() * 0.3;
         
         // Parameters for Z movement
-        this.zSpeed = 0.02 + Math.random() * 0.03;
-        this.zAmplitude = 5 + Math.random() * 2;
+        this.zSpeed = 0.01 + Math.random() * 0.015;
+        this.zAmplitude = 3 + Math.random() * 2;
         this.zPhase = Math.random() * Math.PI * 2;
         
         // Distance constraints
@@ -31,22 +31,22 @@ class ConstellationGroup {
 
         // Parameters for rotation
         this.rotationSpeed = {
-            x: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
-            y: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
-            z: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1)
+            x: (0.0005 + Math.random() * 0.0005) * (Math.random() > 0.5 ? 1 : -1),
+            y: (0.0005 + Math.random() * 0.0005) * (Math.random() > 0.5 ? 1 : -1),
+            z: (0.0005 + Math.random() * 0.0005) * (Math.random() > 0.5 ? 1 : -1)
         };
         this.targetRotationSpeed = { ...this.rotationSpeed };
-        this.rotationChangeTime = 15 + Math.random() * 15;
+        this.rotationChangeTime = 20 + Math.random() * 20;
         this.rotationTimer = 0;
         this.rotationTransitionProgress = 0;
 
         // Parameters for orbital movement
-        this.orbitSpeed = 0.03 + Math.random() * 0.02;
+        this.orbitSpeed = 0.015 + Math.random() * 0.01;
         this.orbitRadius = 50 + Math.random() * 60;
         this.orbitPhase = Math.random() * Math.PI * 2;
         
         // Parameters for additional canvas movement
-        this.canvasSpeed = 0.01 + Math.random() * 0.01;
+        this.canvasSpeed = 0.005 + Math.random() * 0.005;
         this.canvasRadius = 100 + Math.random() * 100;
         this.canvasPhase = Math.random() * Math.PI * 2;
         
@@ -101,13 +101,13 @@ class ConstellationGroup {
         
         if (this.rotationTimer >= this.rotationChangeTime) {
             this.targetRotationSpeed = {
-                x: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
-                y: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1),
-                z: (0.001 + Math.random() * 0.001) * (Math.random() > 0.5 ? 1 : -1)
+                x: (0.0005 + Math.random() * 0.0005) * (Math.random() > 0.5 ? 1 : -1),
+                y: (0.0005 + Math.random() * 0.0005) * (Math.random() > 0.5 ? 1 : -1),
+                z: (0.0005 + Math.random() * 0.0005) * (Math.random() > 0.5 ? 1 : -1)
             };
             this.rotationTimer = 0;
             this.rotationTransitionProgress = 0;
-            this.rotationChangeTime = 15 + Math.random() * 15;
+            this.rotationChangeTime = 20 + Math.random() * 20;
         }
 
         if (this.rotationTransitionProgress < 1) {
