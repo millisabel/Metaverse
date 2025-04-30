@@ -14,3 +14,17 @@ dist/
 # OS files
 .DS_Store
 Thumbs.db 
+
+# Tasks
+.tasks/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Cursor
+.cursor/
+
+# Cursor
+.cursor/
