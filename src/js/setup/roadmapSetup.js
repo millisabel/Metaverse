@@ -6,7 +6,12 @@ import { getColors, isMobile } from "../utils/utils";
 
 export class RoadmapSetup extends BaseSetup {
     constructor() {
-        super('roadmap', 'RoadmapSetup');
+        super('roadmap', 'RoadmapSetup', {
+            camera: {
+                position: { z: 5 },
+                lookAt: { x: 0, y: 0, z: 0 }
+            }
+        });
         
         this.CONTAINER_TYPES = {
             ROADMAP: 'ROADMAP',
@@ -17,18 +22,18 @@ export class RoadmapSetup extends BaseSetup {
             ROADMAP: '0',
             GLOW: '-1',
         };
+
+        this.glow = null;
     }
 
-    init() {
-        if (!this.canInitialize()) return;
-
+    setupScene() {
         // create glow 
         const glowContainer = this.createContainer(
             this.CONTAINER_TYPES.GLOW, 
             this.Z_INDEX.GLOW
         );
         
-        new Glow(glowContainer, {
+        this.glow = new Glow(glowContainer, {
             count: isMobile() ? 3 : 10,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             size: {
@@ -79,19 +84,20 @@ export class RoadmapSetup extends BaseSetup {
             revealDelay: 40,
             typingSpeed: 20
         });
+    }
 
-        this.completeInitialization();
+    update() {
+        if (this.glow) {
+            this.glow.update();
+        }
     }
 
     cleanup() {
-        if (!this.canCleanup()) return;
-        
         this.cleanupContainer(this.CONTAINER_TYPES.GLOW);
-        this.completeCleanup();
+        super.cleanup();
     }
 }
 
 export function initRoadmap() {
     const sectionRoadmap = new RoadmapSetup();
-    sectionRoadmap.init();
 } 

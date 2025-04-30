@@ -6,7 +6,14 @@ import * as THREE from 'three';
 
 export class AboutSetup extends BaseSetup {
     constructor() {
-        super('about', 'AboutSetup');
+        super('about', 'AboutSetup', {
+            camera: {
+                position: { z: -100 },
+                lookAt: { x: 0, y: 0, z: 0 },
+                rotation: false,
+                speed: { x: 0.0005, y: 0.0005 }
+            }
+        });
         
         this.CONTAINER_TYPES = {
             STARS: 'STARS',
@@ -18,18 +25,19 @@ export class AboutSetup extends BaseSetup {
             STARS: '1',
             CONSTELLATION: '2'
         };
+
+        this.stars = null;
+        this.constellation = null;
     }
 
-    init() {
-        if (!this.canInitialize()) return;
-
+    setupScene() {
         // create stars 
         const starsContainer = this.createContainer(
             this.CONTAINER_TYPES.STARS,
             this.Z_INDEX.STARS
         );
 
-        new Stars(starsContainer, {
+        this.stars = new Stars(starsContainer, {
             count: isMobile() ? 2000 : 4000,
             colors: [0xFFFFFF],
             size: {
@@ -40,7 +48,7 @@ export class AboutSetup extends BaseSetup {
             },
             depth: {
                 range: isMobile() ? 500 : 1000,
-                z: [300, -400] 
+                z: [300, -300] 
             },
             movement: {
                 enabled: true,
@@ -69,21 +77,25 @@ export class AboutSetup extends BaseSetup {
             this.CONTAINER_TYPES.CONSTELLATION,
             this.Z_INDEX.CONSTELLATION
         );
-        new Constellation(constellationContainer);
+        this.constellation = new Constellation(constellationContainer);
+    }
 
-        this.completeInitialization();
+    update() {
+        if (this.stars) {
+            this.stars.update();
+        }
+        if (this.constellation) {
+            this.constellation.update();
+        }
     }
 
     cleanup() {
-        if (!this.canCleanup()) return;
-        
         this.cleanupContainer(this.CONTAINER_TYPES.STARS);
         this.cleanupContainer(this.CONTAINER_TYPES.CONSTELLATION);
-        this.completeCleanup();
+        super.cleanup();
     }
 }
 
 export function initAbout() {
     const sectionAbout = new AboutSetup();
-    sectionAbout.init();
 }

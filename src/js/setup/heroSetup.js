@@ -5,7 +5,14 @@ import { isMobile } from "../utils/utils";
 
 export class HeroSetup extends BaseSetup {
     constructor() {
-        super('hero', 'HeroSetup');
+        super('hero', 'HeroSetup', {
+            camera: {
+                position: { z: -40 },
+                lookAt: { x: 0, y: 0, z: 0 },
+                rotation: true,
+                speed: { x: 0.00003, y: 0.00003 }
+            }
+        });
         
         this.CONTAINER_TYPES = {
             STARS: 'STARS',
@@ -17,17 +24,18 @@ export class HeroSetup extends BaseSetup {
             STARS: '2',
             GALACTIC: '1'
         };
+
+        this.stars = null;
+        this.galactic = null;
     }
 
-    init() {
-        if (!this.canInitialize()) return;
-
+    setupScene() {
         // create galactic 
         const galacticContainer = this.createContainer(
             this.CONTAINER_TYPES.GALACTIC,
             this.Z_INDEX.GALACTIC
         );
-        new GalacticCloud(galacticContainer);
+        this.galactic = new GalacticCloud(galacticContainer);
 
         // create stars 
         const starsContainer = this.createContainer(
@@ -35,7 +43,7 @@ export class HeroSetup extends BaseSetup {
             this.Z_INDEX.STARS
         );
 
-        new Stars(starsContainer, {
+        this.stars = new Stars(starsContainer, {
             count: isMobile() ? 1000 : 4000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {
@@ -67,20 +75,24 @@ export class HeroSetup extends BaseSetup {
                 transparent: true
             }
         });
+    }
 
-        this.completeInitialization();
+    update() {
+        if (this.stars) {
+            this.stars.update();
+        }
+        if (this.galactic) {
+            this.galactic.update();
+        }
     }
 
     cleanup() {
-        if (!this.canCleanup()) return;
-        
         this.cleanupContainer(this.CONTAINER_TYPES.GALACTIC);
         this.cleanupContainer(this.CONTAINER_TYPES.STARS);
-        this.completeCleanup();
+        super.cleanup();
     }
 }
 
 export function initHero() {
     const sectionHero = new HeroSetup();
-    sectionHero.init();
 }
