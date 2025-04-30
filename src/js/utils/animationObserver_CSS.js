@@ -5,6 +5,7 @@ export class AnimationObserverCSS {
         this.observedElements = new Map();
         this.observer = null;
         this.intersectionObserver = null;
+        this.resizeObserver = null;
         this.initialized = false;
         this.debug = false;
 
@@ -120,6 +121,32 @@ export class AnimationObserverCSS {
         });
     }
 
+    setupResizeObserver() {
+        this.resizeObserver = new ResizeObserver((entries) => {
+            entries.forEach(entry => {
+                const element = entry.target;
+                this.handleResize(element);
+            });
+        });
+
+        this.observedElements.forEach((data, element) => {
+            this.resizeObserver.observe(element);
+        });
+    }
+
+    handleResize(element) {
+        if (!this.initialized) return;
+
+        const animationData = this.observedElements.get(element);
+        if (!animationData) return;
+
+        this.logger.log(element, {
+            conditions: ['resize'],
+            trackType: ['resize'],
+            functionName: 'handleResize'
+        });
+    }
+
     hasAnimation(style) {
         return style.animationName !== 'none' &&
             style.animationDuration !== '0s' &&
@@ -148,6 +175,9 @@ export class AnimationObserverCSS {
         }
         if (this.intersectionObserver) {
             this.intersectionObserver.disconnect();
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
         }
         this.observedElements.clear();
     }

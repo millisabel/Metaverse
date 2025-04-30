@@ -9,10 +9,6 @@ import { initHeroBackground } from './components/three/heroBackground';
 import {initAboutBackground} from "./components/three/AboutBackground";
 import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
-// import { Glow } from './components/three/glow';
-
-// UI components
-import { initRoadmap } from './components/ui/roadmap';
 
 // Controllers
 import { initMoreButtons } from './controllers/moreButton';
@@ -22,13 +18,16 @@ import { initNavbar } from './components/common/navbar';
 import { initSlider } from './components/common/slider';
 import initModal from './components/common/modal';
 
+// Setup
+import { initRoadmapSetup } from './setup/roadmapSetup';
+
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Constellation');
-    Logger.disableLoggerFor('Glow');
-    Logger.disableLoggerFor('Roadmap');
+    // Logger.disableLoggerFor('Glow');
+    // Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('AnimationObserverCSS');
 } else {
     Logger.disableGlobalLogging();
@@ -41,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize 3D components
     initHeroBackground();
     initAboutBackground();
-    initRoadmap();
+    initRoadmapSetup('.roadmap');
     initDynamics3D();
     initSocialCards();
 

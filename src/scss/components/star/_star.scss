@@ -1,24 +1,21 @@
 .star {
     position: relative;
-
     display: inline-block;
     width: 1.5em;
     height: 1.5em;
     margin: 0 0.5em;
-
     vertical-align: middle;
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &::before {
         content: '';
-
         position: absolute;
         top: 50%;
         left: 50%;
-
         width: 100%;
         height: 100%;
         transform: translate(-50%, -50%);
-
         background-image: url('../assets/svg/star/star.svg');
         background-size: contain;
         background-repeat: no-repeat;
@@ -29,16 +26,13 @@
 
     &::after {
         content: '';
-
         position: absolute;
         top: 50%;
         left: 50%;
-        
         width: 120%;
         height: 120%;
         border-radius: 50%;
         transform: translate(-50%, -50%);
-
         background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
         animation: starGlow 2s infinite ease-in-out;
     }
@@ -47,11 +41,13 @@
     &--left {
         margin-right: auto;
         margin-left: 0;
+        animation: moveStarLeft 3s ease-in-out infinite;
     }
 
     &--right {
         margin-left: auto;
         margin-right: 0;
+        animation: moveStarRight 3s ease-in-out infinite;
     }
 
     // Modifiers size
@@ -113,5 +109,23 @@
     50% {
         transform: translate(-50%, -50%) scale(1.2);
         opacity: 0.3;
+    }
+}
+
+@keyframes moveStarLeft {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(30px);
+    }
+}
+
+@keyframes moveStarRight {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(-30px);
     }
 } 

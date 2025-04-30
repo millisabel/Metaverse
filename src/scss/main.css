@@ -1050,24 +1050,20 @@ body {
 .roadmap-circle-4 {
   background-image: url("/src/assets/svg/circle/q-4.svg");
 }
-.roadmap-circle.roadmap-animate {
+.roadmap-circle {
   opacity: 1;
 }
-.roadmap-circle.roadmap-animate.roadmap-circle-1 {
+.roadmap-circle.roadmap-circle-1 {
   animation: pulse 5s ease-in-out infinite;
 }
-.roadmap-circle.roadmap-animate.roadmap-circle-2 {
+.roadmap-circle.roadmap-circle-2 {
   animation: pulse 8s ease-in-out infinite;
 }
-.roadmap-circle.roadmap-animate.roadmap-circle-3 {
+.roadmap-circle.roadmap-circle-3 {
   animation: pulse 7s ease-in-out infinite;
 }
-.roadmap-circle.roadmap-animate.roadmap-circle-4 {
+.roadmap-circle.roadmap-circle-4 {
   animation: pulse 6s ease-in-out infinite;
-}
-.roadmap-circle:not(.roadmap-animate) {
-  animation: none;
-  opacity: 0;
 }
 @media (min-width: 768px) {
   .roadmap {

@@ -244,6 +244,20 @@ export class Logger {
         },
     };
     static elementStates = {
+        start: {
+            icon: '🚀',
+            style: {
+                background: 'rgba(31,126,10,0)',
+                color: '#666666',
+            },
+        },
+        update: {
+            icon: '🔁',
+            style: {
+                background: 'rgba(31,126,10,0)',
+                color: '#666666',
+            },
+        },
         visible: {
             icon: '💡',
             style: {
