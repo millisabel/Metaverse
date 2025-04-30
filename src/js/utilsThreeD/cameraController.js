@@ -1,7 +1,32 @@
 import * as THREE from 'three';
 import { createLogger } from '../utils/logger';
 
+/**
+ * Controller for managing Three.js camera setup and behavior
+ * Handles camera initialization, positioning, rotation, and cleanup
+ * 
+ * @class CameraController
+ */
 export class CameraController {
+    /**
+     * Creates an instance of CameraController
+     * @param {Object} [options={}] - Camera configuration options
+     * @param {number} [options.fov=45] - Field of view in degrees
+     * @param {number} [options.near=0.1] - Near clipping plane
+     * @param {number} [options.far=2000] - Far clipping plane
+     * @param {Object} [options.position] - Initial camera position
+     * @param {number} [options.position.x=0] - X position
+     * @param {number} [options.position.y=0] - Y position
+     * @param {number} [options.position.z=5] - Z position
+     * @param {Object} [options.lookAt] - Point camera looks at
+     * @param {number} [options.lookAt.x=0] - X coordinate
+     * @param {number} [options.lookAt.y=0] - Y coordinate
+     * @param {number} [options.lookAt.z=0] - Z coordinate
+     * @param {boolean} [options.rotation=false] - Enable camera rotation
+     * @param {Object} [options.speed] - Camera rotation speed
+     * @param {number} [options.speed.x=0.00002] - X rotation speed
+     * @param {number} [options.speed.y=0.00002] - Y rotation speed
+     */
     constructor(options = {}) {
         this.name = 'CameraController';
         this.logger = createLogger(this.name);
@@ -28,6 +53,12 @@ export class CameraController {
         });
     }
 
+    /**
+     * Initialize the camera with container dimensions
+     * Creates a new THREE.PerspectiveCamera and sets initial position and orientation
+     * @param {HTMLElement} container - Container element for calculating aspect ratio
+     * @public
+     */
     init(container) {
         if (this.isInitialized) return;
 
@@ -63,6 +94,14 @@ export class CameraController {
         });
     }
 
+    /**
+     * Set camera position
+     * @param {Object} position - Position coordinates
+     * @param {number} position.x - X coordinate
+     * @param {number} position.y - Y coordinate
+     * @param {number} position.z - Z coordinate
+     * @public
+     */
     setPosition(position) {
         if (!this.camera) return;
 
@@ -77,6 +116,14 @@ export class CameraController {
         });
     }
 
+    /**
+     * Set camera look-at point
+     * @param {Object} lookAt - Look-at coordinates
+     * @param {number} lookAt.x - X coordinate
+     * @param {number} lookAt.y - Y coordinate
+     * @param {number} lookAt.z - Z coordinate
+     * @public
+     */
     setLookAt(lookAt) {
         if (!this.camera) return;
 
@@ -89,6 +136,11 @@ export class CameraController {
         });
     }
 
+    /**
+     * Update camera rotation based on speed settings
+     * Only applies if rotation is enabled in options
+     * @public
+     */
     updateRotation() {
         if (!this.camera || !this.options.rotation) return;
 
@@ -101,6 +153,12 @@ export class CameraController {
         });
     }
 
+    /**
+     * Handle container resize
+     * Updates camera aspect ratio and projection matrix
+     * @param {HTMLElement} container - Container element for calculating new aspect ratio
+     * @public
+     */
     onResize(container) {
         if (!this.camera) return;
 
@@ -117,6 +175,11 @@ export class CameraController {
         });
     }
 
+    /**
+     * Clean up camera resources
+     * Resets camera instance and initialization state
+     * @public
+     */
     cleanup() {
         if (this.camera) {
             this.camera = null;

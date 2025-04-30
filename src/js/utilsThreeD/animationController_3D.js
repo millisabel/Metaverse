@@ -4,10 +4,29 @@ import {createCanvas, updateRendererSize} from "../utilsThreeD/canvasUtils";
 import { CameraController } from './cameraController';
 
 /**
- * Basic class for managing the animation of 3D objects
- * Provides visibility control and resize handling
+ * Basic controller for managing Three.js animations and scene lifecycle
+ * Provides functionality for:
+ * - Scene initialization and cleanup
+ * - Visibility tracking
+ * - Animation loop management
+ * - Resize handling
+ * - Camera control
+ * 
+ * This class serves as a base for specific 3D components like Stars, Glow, etc.
+ * 
+ * @class AnimationController
  */
 export class AnimationController {
+    /**
+     * Creates an instance of AnimationController
+     * @param {HTMLElement} container - Container element for the 3D scene
+     * @param {Object} [options={}] - Configuration options
+     * @param {Object} [options.renderer] - Three.js renderer options
+     * @param {boolean} [options.renderer.antialias=true] - Enable antialiasing
+     * @param {boolean} [options.renderer.alpha=true] - Enable alpha channel
+     * @param {string} [options.renderer.powerPreference='high-performance'] - GPU power preference
+     * @param {Object} [options.camera] - Camera configuration (passed to CameraController)
+     */
     constructor(container, options = {}) {
         this.container = container;
         this.isVisible = false;
@@ -36,6 +55,11 @@ export class AnimationController {
         this.init();
     }
 
+    /**
+     * Initialize the controller
+     * Sets up visibility observer and resize handler
+     * @protected
+     */
     init() {
         // Visibility observer
         this.observer = new IntersectionObserver((entries) => {
@@ -100,6 +124,11 @@ export class AnimationController {
         });
     }
 
+    /**
+     * Initialize Three.js scene
+     * Creates scene, camera, and renderer
+     * @protected
+     */
     initScene() {
         if (this.isInitialized) return;
 
@@ -127,15 +156,31 @@ export class AnimationController {
         this.isInitialized = true;
     }
 
+    /**
+     * Setup additional scene elements
+     * To be implemented by subclasses
+     * @abstract
+     * @protected
+     */
     setupScene() {
         // To be implemented by subclasses
     }
 
+    /**
+     * Handle resize event
+     * Updates renderer and camera dimensions
+     * @protected
+     */
     onResize() {
         this.cameraController.onResize(this.container);
         updateRendererSize(this.renderer, this.container, this.camera);
     }
 
+    /**
+     * Check if animation can proceed
+     * @returns {boolean} Whether animation should continue
+     * @protected
+     */
     canAnimate() {
         if (!this.isVisible) {
             this.logger.log('Object is hidden',  {
@@ -163,6 +208,11 @@ export class AnimationController {
         return true;
     }
 
+    /**
+     * Animation loop
+     * Calls update method and requests next frame
+     * @protected
+     */
     animate() {
         if (!this.canAnimate()) {
             if (this.animationFrameId) {
@@ -175,6 +225,11 @@ export class AnimationController {
         this.animationFrameId = requestAnimationFrame(() => this.animate());
     }
 
+    /**
+     * Stop animation loop
+     * Cancels animation frame and logs cleanup
+     * @protected
+     */
     stopAnimation() {
         if (this.animationFrameId) {
             const id = this.animationFrameId;
@@ -191,6 +246,13 @@ export class AnimationController {
         }
     }
 
+    /**
+     * Clean up resources
+     * Disposes of Three.js objects and removes event listeners
+     * @param {THREE.WebGLRenderer} renderer - Renderer to dispose
+     * @param {THREE.Scene} scene - Scene to dispose
+     * @public
+     */
     cleanup(renderer, scene) {
         this.logger.log(`Starting cleanup`);
 
@@ -245,6 +307,11 @@ export class AnimationController {
         this.logger.log(`Cleanup completed`);
     }
 
+    /**
+     * Get current time and aspect ratio
+     * @returns {Object} Object containing time, aspect ratio and mobile status
+     * @protected
+     */
     _getTimeAndAspect() {
         const rect = this.container.getBoundingClientRect();
         return {
@@ -254,6 +321,12 @@ export class AnimationController {
         };
     }
 
+    /**
+     * Update method for animation frame
+     * To be implemented by subclasses
+     * @abstract
+     * @protected
+     */
     update() {
         // Base method update, which will be overridden in child classes
         throw new Error('update must be implemented by subclass');
