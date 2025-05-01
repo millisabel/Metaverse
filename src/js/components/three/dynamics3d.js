@@ -236,79 +236,69 @@ export class Dynamics3D extends AnimationController {
                 const segments = 64;
                 return new THREE.CircleGeometry(radius, segments);
             case 'METAVERSE_CARD':
-                return new THREE.BoxGeometry(1.5, 1.5, 1.5);
+                return new THREE.BoxGeometry(1.5, 1.5, 0.5);
             case 'SANKOPA_CARD':
-                return new THREE.BoxGeometry(1.8, 1, 1.4);
+                return new THREE.BoxGeometry(1.8, 1, 0.4);
             default:
                 return new THREE.CircleGeometry(1, 64);
         }
     }
 
-    createMaterial() {
-        const materialConfig = {
-            color: this.options.color,
-            emissive: this.options.color,
-            emissiveIntensity: 1.0,
-            metalness: 0.8,
+    createGlowMaterial() {
+        const baseColor = this.options.color;
+        const material = new THREE.MeshStandardMaterial({
+            color: baseColor,
+            emissive: baseColor,
+            emissiveIntensity: 0.5,
+            metalness: 0.9,
             roughness: 0.2,
             transparent: true,
             opacity: 1,
             side: THREE.DoubleSide
-        };
+        });
 
-        switch(this.options.type) {
-            case 'GUARDIANS_CARD':
-                materialConfig.emissiveIntensity = 2.0;
-                materialConfig.metalness = 0.9;
-                materialConfig.roughness = 0;
-                break;
-            case 'METAVERSE_CARD':
-                materialConfig.emissiveIntensity = 3.0;
-                materialConfig.metalness = 0.95;
-                materialConfig.roughness = 0;
-                break;
-            case 'SANKOPA_CARD':
-                materialConfig.emissiveIntensity = 5.0;
-                materialConfig.metalness = 1.0;
-                materialConfig.roughness = 0;
-                break;
+        // Добавляем wireframe для куба и прямоугольника
+        if (this.options.type === 'METAVERSE_CARD' || this.options.type === 'SANKOPA_CARD') {
+            const edgesMaterial = new THREE.LineBasicMaterial({ 
+                color: baseColor,
+                transparent: true,
+                opacity: 0.7
+            });
+            
+            // Создаем и добавляем wireframe
+            const edges = new THREE.EdgesGeometry(this.mesh?.geometry);
+            this.wireframe = new THREE.LineSegments(edges, edgesMaterial);
+            this.wireframe.position.z = -0.51; // Чуть позади основной фигуры
+            this.group.add(this.wireframe);
         }
 
-        return new THREE.MeshStandardMaterial(materialConfig);
-    }
-
-    createGlowMaterial() {
-        return new THREE.MeshStandardMaterial({
-            color: this.options.color,
-            emissive: this.options.color,
-            emissiveIntensity: 2.0,
-            metalness: 0.9,
-            roughness: 0,
-            transparent: true,
-            opacity: 0.8,
-            side: THREE.DoubleSide
-        });
+        return material;
     }
 
     setupLights() {
-        // Ambient light - увеличили интенсивность
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        // Основной свет спереди
+        const frontLight = new THREE.DirectionalLight(0xffffff, 1);
+        frontLight.position.set(0, 0, 5);
+        this.scene.add(frontLight);
+
+        // Верхний свет для бликов
+        const topLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        topLight.position.set(0, 5, 0);
+        this.scene.add(topLight);
+
+        // Боковой свет слева
+        const leftLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        leftLight.position.set(-5, 0, 2);
+        this.scene.add(leftLight);
+
+        // Боковой свет справа
+        const rightLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        rightLight.position.set(5, 0, 2);
+        this.scene.add(rightLight);
+
+        // Мягкий рассеянный свет
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(ambientLight);
-
-        // Directional light - увеличили интенсивность
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        directionalLight.position.set(0, 5, 5);
-        this.scene.add(directionalLight);
-
-        // Point light for highlights - увеличили интенсивность
-        const pointLight = new THREE.PointLight(0xffffff, 0.8);
-        pointLight.position.set(0, 0, 5);
-        this.scene.add(pointLight);
-
-        // Back light for outline - увеличили интенсивность
-        const backLight = new THREE.PointLight(0xffffff, 0.5);
-        backLight.position.set(0, 0, -5);
-        this.scene.add(backLight);
     }
 
     update() {
@@ -316,6 +306,12 @@ export class Dynamics3D extends AnimationController {
 
         const time = performance.now() * 0.001;
         const params = this.animationParams;
+
+        // Обновляем позицию wireframe вместе с основной фигурой
+        if (this.wireframe) {
+            this.wireframe.rotation.copy(this.mesh.rotation);
+            this.wireframe.position.z = this.mesh.position.z - 0.01;
+        }
 
         // Rotation animation with unique parameters
         this.group.rotation.x = Math.sin(time * params.rotation.x.speed) * params.rotation.x.amplitude;
