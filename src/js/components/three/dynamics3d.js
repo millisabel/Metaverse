@@ -14,6 +14,11 @@ export class Dynamics3D extends AnimationController {
             type: 'guardians',
             color: 0x38DBFF,
             decoration: null,
+            textureAnimation: {
+                rotation: true,
+                pulse: true,
+                wave: true
+            },
             ...options
         };
 
@@ -30,9 +35,32 @@ export class Dynamics3D extends AnimationController {
     }
 
     getAnimationParams() {
+        const baseParams = {
+            texture: {
+                rotation: { speed: 0.2, amplitude: 0.1 },
+                pulse: { speed: 0.5, amplitude: 0.05 },
+                wave: { 
+                    speed: 0.3, 
+                    amplitude: 0.1,
+                    frequency: 2
+                }
+            }
+        };
+
         switch(this.options.type) {
             case 'GUARDIANS_CARD':
                 return {
+                    ...baseParams,
+                    texture: {
+                        ...baseParams.texture,
+                        rotation: { speed: 0.15, amplitude: 0.08 },
+                        pulse: { speed: 0.4, amplitude: 0.04 },
+                        wave: { 
+                            speed: 0.25, 
+                            amplitude: 0.08,
+                            frequency: 2.5
+                        }
+                    },
                     rotation: {
                         x: { speed: 0.5, amplitude: 0.2 },
                         y: { speed: 0.7, amplitude: 0.2 },
@@ -46,6 +74,17 @@ export class Dynamics3D extends AnimationController {
                 };
             case 'METAVERSE_CARD':
                 return {
+                    ...baseParams,
+                    texture: {
+                        ...baseParams.texture,
+                        rotation: { speed: 0.2, amplitude: 0.1 },
+                        pulse: { speed: 0.6, amplitude: 0.06 },
+                        wave: { 
+                            speed: 0.35, 
+                            amplitude: 0.12,
+                            frequency: 3
+                        }
+                    },
                     rotation: {
                         x: { speed: 0.7, amplitude: 0.25 },
                         y: { speed: 0.5, amplitude: 0.2 },
@@ -59,6 +98,17 @@ export class Dynamics3D extends AnimationController {
                 };
             case 'SANKOPA_CARD':
                 return {
+                    ...baseParams,
+                    texture: {
+                        ...baseParams.texture,
+                        rotation: { speed: 0.25, amplitude: 0.12 },
+                        pulse: { speed: 0.7, amplitude: 0.08 },
+                        wave: { 
+                            speed: 0.4, 
+                            amplitude: 0.15,
+                            frequency: 3.5
+                        }
+                    },
                     rotation: {
                         x: { speed: 0.4, amplitude: 0.2 },
                         y: { speed: 0.6, amplitude: 0.25 },
@@ -72,6 +122,7 @@ export class Dynamics3D extends AnimationController {
                 };
             default:
                 return {
+                    ...baseParams,
                     rotation: {
                         x: { speed: 0.5, amplitude: 0.2 },
                         y: { speed: 0.7, amplitude: 0.2 },
@@ -88,8 +139,8 @@ export class Dynamics3D extends AnimationController {
 
     async createDecoration() {
         if (!this.options.decoration) {
-            // Fallback to basic ring if no decoration provided
-            const geometry = new THREE.RingGeometry(1.5, 1.8, 32);
+            // Create more detailed ring geometry for wave animation
+            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
             const material = new THREE.MeshBasicMaterial({
                 color: this.options.color,
                 transparent: true,
@@ -102,7 +153,8 @@ export class Dynamics3D extends AnimationController {
         }
 
         const loader = new THREE.TextureLoader();
-        const planeGeometry = new THREE.PlaneGeometry(6, 6);
+        // Use more segments for smoother wave animation
+        const planeGeometry = new THREE.PlaneGeometry(6, 6, 64, 64);
         
         try {
             const texture = await new Promise((resolve, reject) => {
@@ -114,7 +166,7 @@ export class Dynamics3D extends AnimationController {
                 );
             });
 
-            // Настройки материала в зависимости от типа карточки
+            // Material settings based on card type
             let materialConfig = {
                 map: texture,
                 transparent: true,
@@ -126,7 +178,7 @@ export class Dynamics3D extends AnimationController {
                 roughness: 0.2
             };
 
-            // Индивидуальные настройки для каждого типа карточки
+            // Individual settings for each card type
             switch(this.options.type) {
                 case 'GUARDIANS_CARD':
                     materialConfig.emissiveIntensity = 1.5;
@@ -156,8 +208,8 @@ export class Dynamics3D extends AnimationController {
                 functionName: 'createDecoration'
             });
             
-            // Fallback to basic ring with increased opacity
-            const geometry = new THREE.RingGeometry(1.5, 1.8, 32);
+            // Fallback to detailed plane geometry for wave animation
+            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
             const material = new THREE.MeshBasicMaterial({
                 color: this.options.color,
                 transparent: true,
@@ -307,13 +359,46 @@ export class Dynamics3D extends AnimationController {
         const time = performance.now() * 0.001;
         const params = this.animationParams;
 
-        // Обновляем позицию wireframe вместе с основной фигурой
+        // Texture animation
+        if (this.decorationMesh && this.options.textureAnimation) {
+            const textureParams = params.texture;
+
+            // Rotation animation
+            if (this.options.textureAnimation.rotation) {
+                this.decorationMesh.rotation.z = Math.sin(time * textureParams.rotation.speed) * textureParams.rotation.amplitude;
+            }
+
+            // Pulse animation
+            if (this.options.textureAnimation.pulse) {
+                const pulseScale = 1 + Math.sin(time * textureParams.pulse.speed) * textureParams.pulse.amplitude;
+                this.decorationMesh.scale.set(pulseScale, pulseScale, 1);
+            }
+
+            // Wave animation
+            if (this.options.textureAnimation.wave) {
+                const vertices = this.decorationMesh.geometry.attributes.position.array;
+                const count = vertices.length / 3;
+                
+                for (let i = 0; i < count; i++) {
+                    const x = vertices[i * 3];
+                    const y = vertices[i * 3 + 1];
+                    const distance = Math.sqrt(x * x + y * y);
+                    
+                    vertices[i * 3 + 2] = Math.sin(distance * textureParams.wave.frequency - time * textureParams.wave.speed) 
+                        * textureParams.wave.amplitude;
+                }
+                
+                this.decorationMesh.geometry.attributes.position.needsUpdate = true;
+            }
+        }
+
+        // Update wireframe position with main figure
         if (this.wireframe) {
             this.wireframe.rotation.copy(this.mesh.rotation);
             this.wireframe.position.z = this.mesh.position.z - 0.01;
         }
 
-        // Rotation animation with unique parameters
+        // Group animation
         this.group.rotation.x = Math.sin(time * params.rotation.x.speed) * params.rotation.x.amplitude;
         this.group.rotation.y = Math.cos(time * params.rotation.y.speed) * params.rotation.y.amplitude;
         this.group.rotation.z = Math.sin(time * params.rotation.z.speed) * params.rotation.z.amplitude;
@@ -325,13 +410,10 @@ export class Dynamics3D extends AnimationController {
         // Position animation with unique parameters
         this.group.position.y = Math.sin(time * params.position.y.speed) * params.position.y.amplitude;
         
-        // Z-position animation (отдаление/приближение) с ограничением на приближение
+        // Z-position animation with depth limit
         let zPosition = params.position.z.basePosition + 
             Math.sin(time * params.position.z.speed) * params.position.z.amplitude;
-        
-        // Ограничиваем приближение до basePosition
         zPosition = Math.min(params.position.z.basePosition, zPosition);
-        
         this.group.position.z = zPosition;
 
         // Render the scene
