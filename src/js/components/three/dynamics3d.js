@@ -148,7 +148,7 @@ export class Dynamics3D extends AnimationController {
             const material = new THREE.MeshStandardMaterial(materialConfig);
             
             const decoration = new THREE.Mesh(planeGeometry, material);
-            decoration.position.z = -0.2;
+            decoration.position.z = 0;
             return decoration;
         } catch (error) {
             this.logger.log(`Failed to load decoration texture: ${error}`, {
@@ -165,7 +165,7 @@ export class Dynamics3D extends AnimationController {
                 side: THREE.DoubleSide
             });
             const decoration = new THREE.Mesh(geometry, material);
-            decoration.position.z = -0.2;
+            decoration.position.z = 0;
             return decoration;
         }
     }
@@ -184,24 +184,39 @@ export class Dynamics3D extends AnimationController {
             functionName: 'setupScene'
         });
 
-        // Create geometry based on type
-        const geometry = this.createGeometry();
-        
-        // Create material with glow effect
-        const material = this.createGlowMaterial();
-        
-        // Create mesh and add to group
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.group.add(this.mesh);
-        
         try {
-            // Add decoration
+            // Сначала создаем текстуру
             this.decorationMesh = await this.createDecoration();
             if (this.decorationMesh) {
+                this.decorationMesh.position.z = 0; // Текстура на нулевой плоскости
                 this.group.add(this.decorationMesh);
             }
+
+            // Создаем фигуру
+            const geometry = this.createGeometry();
+            const material = this.createGlowMaterial();
+            this.mesh = new THREE.Mesh(geometry, material);
+            
+            // Позиционируем фигуры внутри текстуры
+            switch(this.options.type) {
+                case 'GUARDIANS_CARD':
+                    this.mesh.scale.set(0.8, 0.8, 1); // Уменьшаем круг
+                    this.mesh.position.z = -0.5; // Утапливаем на половину
+                    break;
+                case 'METAVERSE_CARD':
+                    this.mesh.scale.set(0.7, 0.7, 1); // Уменьшаем куб
+                    this.mesh.position.z = -0.5; // Утапливаем на половину
+                    break;
+                case 'SANKOPA_CARD':
+                    this.mesh.scale.set(0.8, 0.5, 1); // Уменьшаем прямоугольник
+                    this.mesh.position.y = 0.5; // Поднимаем прямоугольник выше
+                    this.mesh.position.z = -0.5; // Утапливаем на половину
+                    break;
+            }
+            
+            this.group.add(this.mesh);
         } catch (error) {
-            this.logger.log(`Failed to create decoration: ${error}`, {
+            this.logger.log(`Failed to create scene elements: ${error}`, {
                 conditions: ['error'],
                 functionName: 'setupScene'
             });
