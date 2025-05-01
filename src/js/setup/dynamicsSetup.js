@@ -36,15 +36,42 @@ export class DynamicsSetup extends BaseSetup {
         this.CARD_CONFIG = {
             GUARDIANS_CARD: {
                 color: 0x00FFFF,
-                decoration: decoration1Svg
+                decoration: decoration1Svg,
+                glow: {
+                    enabled: true,
+                    size: 4.0,
+                    opacity: 0.3,
+                    scale: { min: 1, max: 2 },
+                    pulseSpeed: 0.3,
+                    pulseIntensity: 0.6,
+                    color: 0x00FFFF
+                }
             },
             METAVERSE_CARD: {
                 color: 0x4169FF,
-                decoration: decoration2Svg
+                decoration: decoration2Svg,
+                glow: {
+                    enabled: true,
+                    size: 3.8,
+                    opacity: 0.35,
+                    scale: { min: 0.9, max: 2.1 },
+                    pulseSpeed: 0.5,
+                    pulseIntensity: 0.8,
+                    color: 0x4169FF
+                }
             },
             SANKOPA_CARD: {
                 color: 0xFF00FF,
-                decoration: decoration3Svg
+                decoration: decoration3Svg,
+                glow: {
+                    enabled: true,
+                    size: 3.5,
+                    opacity: 0.3,
+                    scale: { min: 1.0, max: 2.0 },
+                    pulseSpeed: 0.7,
+                    pulseIntensity: 0.4,
+                    color: 0xFF00FF
+                }
             }
         };
         

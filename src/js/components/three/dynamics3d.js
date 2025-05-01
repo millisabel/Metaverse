@@ -19,12 +19,22 @@ export class Dynamics3D extends AnimationController {
                 pulse: true,
                 wave: true
             },
+            glow: {
+                enabled: true,
+                size: 3.5,
+                opacity: 0.3,
+                scale: { min: 1.2, max: 2 },
+                pulseSpeed: 0.5,
+                pulseIntensity: 0.6,
+                color: null // Will use main color if not specified
+            },
             ...options
         };
 
         // Initialize properties
         this.mesh = null;
         this.decorationMesh = null;
+        this.glowMesh = null;
         this.group = new THREE.Group();
         
         // Animation parameters based on type
@@ -284,32 +294,37 @@ export class Dynamics3D extends AnimationController {
         });
 
         try {
-            // Сначала создаем текстуру
+            // Create glow effect first (if enabled)
+            if (this.options.glow.enabled) {
+                this.createGlowEffect();
+            }
+
+            // Create decoration
             this.decorationMesh = await this.createDecoration();
             if (this.decorationMesh) {
-                this.decorationMesh.position.z = 0; // Текстура на нулевой плоскости
+                this.decorationMesh.position.z = 0;
                 this.group.add(this.decorationMesh);
             }
 
-            // Создаем фигуру
+            // Create main shape
             const geometry = this.createGeometry();
             const material = this.createGlowMaterial();
             this.mesh = new THREE.Mesh(geometry, material);
             
-            // Позиционируем фигуры внутри текстуры
+            // Position shapes inside texture
             switch(this.options.type) {
                 case 'GUARDIANS_CARD':
-                    this.mesh.scale.set(0.8, 0.8, 1); // Уменьшаем круг
-                    this.mesh.position.z = -0.5; // Утапливаем на половину
+                    this.mesh.scale.set(0.8, 0.8, 1);
+                    this.mesh.position.z = -0.5;
                     break;
                 case 'METAVERSE_CARD':
-                    this.mesh.scale.set(0.7, 0.7, 1); // Уменьшаем куб
-                    this.mesh.position.z = -0.5; // Утапливаем на половину
+                    this.mesh.scale.set(0.7, 0.7, 1);
+                    this.mesh.position.z = -0.5;
                     break;
                 case 'SANKOPA_CARD':
-                    this.mesh.scale.set(0.8, 0.5, 1); // Уменьшаем прямоугольник
-                    this.mesh.position.y = 0.5; // Поднимаем прямоугольник выше
-                    this.mesh.position.z = -0.5; // Утапливаем на половину
+                    this.mesh.scale.set(0.8, 0.5, 1);
+                    this.mesh.position.y = 0.5;
+                    this.mesh.position.z = -0.5;
                     break;
             }
             
@@ -374,6 +389,83 @@ export class Dynamics3D extends AnimationController {
         return material;
     }
 
+    createGlowEffect() {
+        const segments = 32;
+        const glowGeometry = new THREE.CircleGeometry(this.options.glow.size, segments);
+        const glowColor = this.options.glow.color || this.options.color;
+        
+        const glowMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                color: { value: new THREE.Color(glowColor) },
+                opacity: { value: this.options.glow.opacity },
+                time: { value: 0 },
+                scaleMin: { value: this.options.glow.scale.min },
+                scaleMax: { value: this.options.glow.scale.max },
+                pulseSpeed: { value: this.options.glow.pulseSpeed },
+                pulseIntensity: { value: this.options.glow.pulseIntensity }
+            },
+            vertexShader: `
+                uniform float time;
+                uniform float scaleMin;
+                uniform float scaleMax;
+                uniform float pulseSpeed;
+                uniform float pulseIntensity;
+                varying vec2 vUv;
+                varying float vPulse;
+
+                void main() {
+                    vUv = uv;
+                    // Enhanced pulsation effect
+                    float basePulse = sin(time * pulseSpeed);
+                    float secondaryPulse = sin(time * pulseSpeed * 1.5) * 0.3;
+                    float combinedPulse = mix(basePulse, secondaryPulse, pulseIntensity);
+                    
+                    // Calculate scale based on min/max range
+                    float scale = mix(scaleMin, scaleMax, (combinedPulse + 1.0) * 0.5);
+                    vPulse = scale * (0.7 + 0.3 * combinedPulse);
+                    
+                    // Apply scale to position
+                    vec3 scaledPosition = position * scale;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(scaledPosition, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 color;
+                uniform float opacity;
+                uniform float pulseIntensity;
+                varying vec2 vUv;
+                varying float vPulse;
+                
+                void main() {
+                    vec2 center = vec2(0.5, 0.5);
+                    float dist = distance(vUv, center);
+                    
+                    // Enhanced glow effect
+                    float glow = smoothstep(0.5, 0.0, dist);
+                    float falloff = pow(1.0 - smoothstep(0.0, 0.5, dist), 1.5);
+                    float intensity = glow * falloff;
+                    
+                    // Add subtle noise
+                    float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
+                    intensity *= 0.92 + 0.08 * noise;
+                    
+                    // Apply pulsation to opacity
+                    float finalOpacity = opacity * intensity * vPulse * (0.8 + 0.2 * pulseIntensity);
+                    
+                    gl_FragColor = vec4(color, finalOpacity);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+
+        this.glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+        this.glowMesh.position.z = -1; // Behind everything
+        this.group.add(this.glowMesh);
+    }
+
     setupLights() {
         // Основной свет спереди
         const frontLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -405,6 +497,15 @@ export class Dynamics3D extends AnimationController {
 
         const time = performance.now() * 0.001;
         const params = this.animationParams;
+
+        // Update glow effect with enhanced pulsation
+        if (this.glowMesh && this.glowMesh.material.uniforms) {
+            this.glowMesh.material.uniforms.time.value = time;
+            
+            // Add slight rotation to glow for more dynamic effect
+            const rotationSpeed = 0.1;
+            this.glowMesh.rotation.z = Math.sin(time * rotationSpeed) * 0.05;
+        }
 
         // Texture animation
         if (this.decorationMesh && this.options.textureAnimation) {
@@ -470,6 +571,13 @@ export class Dynamics3D extends AnimationController {
     }
 
     dispose() {
+        // Dispose glow resources
+        if (this.glowMesh) {
+            this.glowMesh.geometry.dispose();
+            this.glowMesh.material.dispose();
+            this.group.remove(this.glowMesh);
+        }
+
         // Dispose geometries
         if (this.mesh) {
             this.mesh.geometry.dispose();
