@@ -1,5 +1,6 @@
 import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { Dynamics3D } from '../components/three/dynamics3d';
+import * as THREE from 'three';
 import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
 import decoration2Svg from '../../assets/images/dynamics/decoration_2.svg';
 import decoration3Svg from '../../assets/images/dynamics/decoration_3.svg';
@@ -79,6 +80,22 @@ export class DynamicsSetup extends BaseSetup {
         this.metaverseCard = null;
         this.sankopaCard = null;
         this.glow = null;
+    }
+
+    initScene() {
+        if (this.initialized) return;
+
+        // Не создаем renderer и canvas здесь, так как они будут созданы в каждом Dynamics3D компоненте
+        this.scene = new THREE.Scene();
+        
+        // Initialize camera
+        this.cameraController.init(this.container);
+        this.camera = this.cameraController.camera;
+
+        // Setup additional scene elements
+        this.setupScene();
+        
+        this.initialized = true;
     }
 
     setupScene() { 
