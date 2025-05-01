@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createLogger } from '../../utils/logger';
+import { SingleGlow } from './singleGlow';
 
 export class Dynamics3D extends AnimationController {
     constructor(container, options = {}) {
@@ -21,11 +22,11 @@ export class Dynamics3D extends AnimationController {
             },
             glow: {
                 enabled: true,
-                size: 3.5,
-                opacity: 0.3,
-                scale: { min: 1.2, max: 2 },
-                pulseSpeed: 0.5,
-                pulseIntensity: 0.6,
+                size: 5.0,
+                opacity: 0.6,
+                scale: { min: 1.5, max: 2.5 },
+                pulseSpeed: 0.3,
+                pulseIntensity: 0.8,
                 color: null // Will use main color if not specified
             },
             ...options
@@ -34,7 +35,7 @@ export class Dynamics3D extends AnimationController {
         // Initialize properties
         this.mesh = null;
         this.decorationMesh = null;
-        this.glowMesh = null;
+        this.glowEffect = null;
         this.group = new THREE.Group();
         
         // Animation parameters based on type
@@ -390,80 +391,39 @@ export class Dynamics3D extends AnimationController {
     }
 
     createGlowEffect() {
-        const segments = 32;
-        const glowGeometry = new THREE.CircleGeometry(this.options.glow.size, segments);
         const glowColor = this.options.glow.color || this.options.color;
         
-        const glowMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                color: { value: new THREE.Color(glowColor) },
-                opacity: { value: this.options.glow.opacity },
-                time: { value: 0 },
-                scaleMin: { value: this.options.glow.scale.min },
-                scaleMax: { value: this.options.glow.scale.max },
-                pulseSpeed: { value: this.options.glow.pulseSpeed },
-                pulseIntensity: { value: this.options.glow.pulseIntensity }
-            },
-            vertexShader: `
-                uniform float time;
-                uniform float scaleMin;
-                uniform float scaleMax;
-                uniform float pulseSpeed;
-                uniform float pulseIntensity;
-                varying vec2 vUv;
-                varying float vPulse;
-
-                void main() {
-                    vUv = uv;
-                    // Enhanced pulsation effect
-                    float basePulse = sin(time * pulseSpeed);
-                    float secondaryPulse = sin(time * pulseSpeed * 1.5) * 0.3;
-                    float combinedPulse = mix(basePulse, secondaryPulse, pulseIntensity);
-                    
-                    // Calculate scale based on min/max range
-                    float scale = mix(scaleMin, scaleMax, (combinedPulse + 1.0) * 0.5);
-                    vPulse = scale * (0.7 + 0.3 * combinedPulse);
-                    
-                    // Apply scale to position
-                    vec3 scaledPosition = position * scale;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(scaledPosition, 1.0);
+        this.glowEffect = new SingleGlow(
+            this.scene,
+            this.renderer,
+            this.container,
+            {
+                color: glowColor,
+                size: this.options.glow.size,
+                opacity: {
+                    min: this.options.glow.opacity * 0.8,
+                    max: this.options.glow.opacity
+                },
+                scale: {
+                    min: this.options.glow.scale.min * 1.2,
+                    max: this.options.glow.scale.max * 1.5
+                },
+                pulse: {
+                    speed: this.options.glow.pulseSpeed * 0.8,
+                    intensity: this.options.glow.pulseIntensity * 1.2,
+                    sync: true
+                },
+                position: { x: 0, y: 0, z: -1 },
+                movement: {
+                    enabled: false
                 }
-            `,
-            fragmentShader: `
-                uniform vec3 color;
-                uniform float opacity;
-                uniform float pulseIntensity;
-                varying vec2 vUv;
-                varying float vPulse;
-                
-                void main() {
-                    vec2 center = vec2(0.5, 0.5);
-                    float dist = distance(vUv, center);
-                    
-                    // Enhanced glow effect
-                    float glow = smoothstep(0.5, 0.0, dist);
-                    float falloff = pow(1.0 - smoothstep(0.0, 0.5, dist), 1.5);
-                    float intensity = glow * falloff;
-                    
-                    // Add subtle noise
-                    float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
-                    intensity *= 0.92 + 0.08 * noise;
-                    
-                    // Apply pulsation to opacity
-                    float finalOpacity = opacity * intensity * vPulse * (0.8 + 0.2 * pulseIntensity);
-                    
-                    gl_FragColor = vec4(color, finalOpacity);
-                }
-            `,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-            side: THREE.DoubleSide
-        });
+            }
+        );
 
-        this.glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
-        this.glowMesh.position.z = -1; // Behind everything
-        this.group.add(this.glowMesh);
+        // Добавляем блик в группу для синхронизации анимаций
+        if (this.glowEffect.mesh) {
+            this.group.add(this.glowEffect.mesh);
+        }
     }
 
     setupLights() {
@@ -498,13 +458,21 @@ export class Dynamics3D extends AnimationController {
         const time = performance.now() * 0.001;
         const params = this.animationParams;
 
-        // Update glow effect with enhanced pulsation
-        if (this.glowMesh && this.glowMesh.material.uniforms) {
-            this.glowMesh.material.uniforms.time.value = time;
+        // Update glow effect
+        if (this.glowEffect) {
+            // Вычисляем z-позицию с улучшенной интерполяцией
+            const zPosition = params.position.z.basePosition + 
+                Math.sin(time * params.position.z.speed) * params.position.z.amplitude;
             
-            // Add slight rotation to glow for more dynamic effect
-            const rotationSpeed = 0.1;
-            this.glowMesh.rotation.z = Math.sin(time * rotationSpeed) * 0.05;
+            // Улучшенная нормализация z-позиции с плавным переходом
+            const rawNormalizedZ = (zPosition - params.position.z.basePosition) / params.position.z.amplitude;
+            const normalizedZ = Math.pow(Math.abs(rawNormalizedZ), 1.2); // Нелинейная нормализация
+            
+            // Добавляем плавное затухание для более естественного эффекта
+            const smoothedValue = 0.3 + normalizedZ * 0.7;
+            this.glowEffect.updateObjectPulse(smoothedValue);
+            
+            this.glowEffect.update(this.camera);
         }
 
         // Texture animation
@@ -572,10 +540,9 @@ export class Dynamics3D extends AnimationController {
 
     dispose() {
         // Dispose glow resources
-        if (this.glowMesh) {
-            this.glowMesh.geometry.dispose();
-            this.glowMesh.material.dispose();
-            this.group.remove(this.glowMesh);
+        if (this.glowEffect) {
+            this.glowEffect.dispose();
+            this.glowEffect = null;
         }
 
         // Dispose geometries

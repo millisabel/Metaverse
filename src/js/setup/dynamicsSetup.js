@@ -40,11 +40,11 @@ export class DynamicsSetup extends BaseSetup {
                 decoration: decoration1Svg,
                 glow: {
                     enabled: true,
-                    size: 4.0,
-                    opacity: 0.3,
-                    scale: { min: 1, max: 2 },
+                    size: 2.0,
+                    opacity: 0.7,
+                    scale: { min: 1, max: 3},
                     pulseSpeed: 0.3,
-                    pulseIntensity: 0.6,
+                    pulseIntensity: 0.8,
                     color: 0x00FFFF
                 }
             },
@@ -53,10 +53,10 @@ export class DynamicsSetup extends BaseSetup {
                 decoration: decoration2Svg,
                 glow: {
                     enabled: true,
-                    size: 3.8,
-                    opacity: 0.35,
-                    scale: { min: 0.9, max: 2.1 },
-                    pulseSpeed: 0.5,
+                    size: 2.0,
+                    opacity: 0.7,
+                    scale: { min: 1.2, max: 3 },
+                    pulseSpeed: 0.3,
                     pulseIntensity: 0.8,
                     color: 0x4169FF
                 }
@@ -66,11 +66,11 @@ export class DynamicsSetup extends BaseSetup {
                 decoration: decoration3Svg,
                 glow: {
                     enabled: true,
-                    size: 3.5,
-                    opacity: 0.3,
-                    scale: { min: 1.0, max: 2.0 },
-                    pulseSpeed: 0.7,
-                    pulseIntensity: 0.4,
+                    size: 2.0,
+                    opacity: 0.5,
+                    scale: { min: 1.2, max: 3.5 },
+                    pulseSpeed: 0.3,
+                    pulseIntensity: 0.8,
                     color: 0xFF00FF
                 }
             }

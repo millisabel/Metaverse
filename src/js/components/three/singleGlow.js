@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createLogger } from "../../utils/logger";
 
 export class SingleGlow {
@@ -66,7 +65,8 @@ export class SingleGlow {
                 color: { value: color },
                 opacity: { value: this.options.opacity.max },
                 time: { value: 0 },
-                scale: { value: this.options.scale.min },
+                scaleMin: { value: this.options.scale.min },
+                scaleMax: { value: this.options.scale.max },
                 pulseSpeed: { value: this.options.pulse.speed },
                 pulseIntensity: { value: this.options.pulse.intensity },
                 objectPulse: { value: 0 },
@@ -74,7 +74,8 @@ export class SingleGlow {
             },
             vertexShader: `
                 uniform float time;
-                uniform float scale;
+                uniform float scaleMin;
+                uniform float scaleMax;
                 uniform float pulseSpeed;
                 uniform float pulseIntensity;
                 uniform float objectPulse;
@@ -84,11 +85,25 @@ export class SingleGlow {
 
                 void main() {
                     vUv = uv;
-                    float ownPulse = scale * (0.7 + 0.3 * sin(time * pulseSpeed));
-                    float combinedPulse = mix(ownPulse, scale * (1.0 + objectPulse), syncWithObject);
-                    vPulse = combinedPulse;
+                    // Базовая пульсация с улучшенной интерполяцией
+                    float basePulse = sin(time * pulseSpeed) * 0.5 + 0.5;
+                    basePulse = pow(basePulse, 1.5) * pulseIntensity;
                     
-                    vec3 scaledPosition = position * combinedPulse;
+                    // Улучшенное влияние движения объекта с плавным переходом
+                    float objectInfluence = smoothstep(0.0, 1.0, objectPulse) * syncWithObject;
+                    
+                    // Улучшенное смешивание эффектов с нелинейной интерполяцией
+                    float combinedEffect = mix(
+                        basePulse,
+                        basePulse * (1.0 + objectInfluence),
+                        smoothstep(0.0, 1.0, objectInfluence)
+                    );
+                    
+                    // Нелинейное масштабирование для более плавного эффекта
+                    float scale = scaleMin + (scaleMax - scaleMin) * pow(combinedEffect, 1.2);
+                    vPulse = scale;
+                    
+                    vec3 scaledPosition = position * scale;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(scaledPosition, 1.0);
                 }
             `,
@@ -103,13 +118,13 @@ export class SingleGlow {
                     float dist = distance(vUv, center);
                     
                     float glow = smoothstep(0.5, 0.0, dist);
-                    float falloff = pow(1.0 - smoothstep(0.0, 0.5, dist), 1.5);
+                    float falloff = pow(1.0 - smoothstep(0.0, 0.5, dist), 2.0);
                     float intensity = glow * falloff;
                     
                     float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
-                    intensity *= 0.95 + 0.05 * noise;
+                    intensity *= 0.9 + 0.1 * noise;
                     
-                    gl_FragColor = vec4(color, intensity * opacity * vPulse);
+                    gl_FragColor = vec4(color, intensity * opacity);
                 }
             `,
             transparent: true,
