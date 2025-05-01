@@ -5,7 +5,6 @@
 .card{
 
     &--3d {
-    
         width: 100%;
         min-height: 300px;
         margin-bottom: 60px;
@@ -16,11 +15,13 @@
 
         canvas {
             position: absolute;
-            top: 10%;
-            left: 10%;
+            top: 2% !important;
+            left: 2% !important;
+            right: 2% !important;
+            bottom: 2% !important;
     
-            width: 80% !important;
-            height: 80% !important;
+            width: 96% !important;
+            height: 96% !important;
         }
     
         &-left {

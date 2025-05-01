@@ -1,5 +1,8 @@
 import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { Dynamics3D } from '../components/three/dynamics3d';
+import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
+import decoration2Svg from '../../assets/images/dynamics/decoration_2.svg';
+import decoration3Svg from '../../assets/images/dynamics/decoration_3.svg';
 
 export class DynamicsSetup extends BaseSetup {
     constructor() {
@@ -17,7 +20,7 @@ export class DynamicsSetup extends BaseSetup {
         });   
     
         this.CONTAINER_TYPES = {
-            GUARDIANS_CARD: 'GUARDIANS_CARD ',
+            GUARDIANS_CARD: 'GUARDIANS_CARD',
             METAVERSE_CARD: 'METAVERSE_CARD',
             SANKOPA_CARD: 'SANKOPA_CARD',
             GLOW: 'GLOW',
@@ -29,6 +32,21 @@ export class DynamicsSetup extends BaseSetup {
             METAVERSE_CARD: '1',
             SANKOPA_CARD: '1',
         };
+
+        this.CARD_CONFIG = {
+            GUARDIANS_CARD: {
+                color: 0x00FFFF,
+                decoration: decoration1Svg
+            },
+            METAVERSE_CARD: {
+                color: 0x4169FF,
+                decoration: decoration2Svg
+            },
+            SANKOPA_CARD: {
+                color: 0xFF00FF,
+                decoration: decoration3Svg
+            }
+        };
         
         this.guardiansCard = null;
         this.metaverseCard = null;
@@ -39,39 +57,42 @@ export class DynamicsSetup extends BaseSetup {
     setupScene() { 
         const guardiansContainer = document.getElementById('guardians3d');
         if (guardiansContainer) {
-            this.guardiansCard = this.createContainer(
+            const container = this.createContainer(
                 this.CONTAINER_TYPES.GUARDIANS_CARD,
                 this.Z_INDEX.GUARDIANS_CARD
             );
-            this.guardiansCard = new Dynamics3D(guardiansContainer, {
+            guardiansContainer.appendChild(container);
+            this.guardiansCard = new Dynamics3D(container, {
                 type: this.CONTAINER_TYPES.GUARDIANS_CARD,
-                color: 0x38DBFF
+                ...this.CARD_CONFIG.GUARDIANS_CARD
             });
         }
 
         // Create and initialize Metaverse 3D object
         const metaverseContainer = document.getElementById('metaverse3d');
         if (metaverseContainer) {
-            this.metaverseCard = this.createContainer(  
+            const container = this.createContainer(  
                 this.CONTAINER_TYPES.METAVERSE_CARD,
                 this.Z_INDEX.METAVERSE_CARD
             );
-            this.metaverseCard = new Dynamics3D(metaverseContainer, {
+            metaverseContainer.appendChild(container);
+            this.metaverseCard = new Dynamics3D(container, {
                 type: this.CONTAINER_TYPES.METAVERSE_CARD,
-                color: 0x2B6BF3
+                ...this.CARD_CONFIG.METAVERSE_CARD
             });
         }
 
         // Create and initialize Sankopa 3D object
         const sankopaContainer = document.getElementById('sankopa3d');
         if (sankopaContainer) {
-            this.sankopaCard = this.createContainer(
+            const container = this.createContainer(
                 this.CONTAINER_TYPES.SANKOPA_CARD,
                 this.Z_INDEX.SANKOPA_CARD
             );
-            this.sankopaCard = new Dynamics3D(sankopaContainer, {
+            sankopaContainer.appendChild(container);
+            this.sankopaCard = new Dynamics3D(container, {
                 type: this.CONTAINER_TYPES.SANKOPA_CARD,
-                color: 0xE431FF
+                ...this.CARD_CONFIG.SANKOPA_CARD
             });
         }
 
@@ -84,14 +105,14 @@ export class DynamicsSetup extends BaseSetup {
     }
 
     update() {
-        if (this.guardiansObject) {
-            this.guardiansObject.update();
+        if (this.guardiansCard) {
+            this.guardiansCard.update();
         }
-        if (this.metaverseObject) {
-            this.metaverseObject.update();
+        if (this.metaverseCard) {
+            this.metaverseCard.update();
         }
-        if (this.sankopaObject) {
-            this.sankopaObject.update();
+        if (this.sankopaCard) {
+            this.sankopaCard.update();
         }
         if (this.glow) {
             this.glow.update();
@@ -99,13 +120,13 @@ export class DynamicsSetup extends BaseSetup {
     }
 
     cleanup() {
-        if (this.guardiansObject) {
+        if (this.guardiansCard) {
             this.cleanupContainer(this.CONTAINER_TYPES.GUARDIANS_CARD);
         }
-        if (this.metaverseObject) {
+        if (this.metaverseCard) {
             this.cleanupContainer(this.CONTAINER_TYPES.METAVERSE_CARD);
         }
-        if (this.sankopaObject) {
+        if (this.sankopaCard) {
             this.cleanupContainer(this.CONTAINER_TYPES.SANKOPA_CARD);
         }
         if (this.glow) {
@@ -117,7 +138,8 @@ export class DynamicsSetup extends BaseSetup {
 }
 
 export function initDynamics() {
-    const sectionDynamics = new DynamicsSetup();
+    const dynamicsSetup = new DynamicsSetup();
+    return dynamicsSetup;
 }
 
 
