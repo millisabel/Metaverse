@@ -147,11 +147,24 @@ export class BaseSetup {
         this.cameraController.init(this.container);
         this.camera = this.cameraController.camera;
 
+        // Get the main container type
+        const mainContainerType = Object.values(this.CONTAINER_TYPES)[0] || '';
+        
+        // Add container type to the main container
+        if (mainContainerType) {
+            this.container.dataset.containerType = mainContainerType;
+        }
+
         // Create renderer
         this.renderer = new THREE.WebGLRenderer(this.options.renderer);
         updateRendererSize(this.renderer, this.container, this.camera);
         this.container.appendChild(this.renderer.domElement);
-        createCanvas(this.renderer, { zIndex: '2' });
+
+        createCanvas(this.renderer, { 
+            zIndex: '2',
+            canvasName: this.name,
+            containerType: mainContainerType
+        });
 
         // Setup additional scene elements
         this.setupScene();
@@ -170,7 +183,14 @@ export class BaseSetup {
             type: type,
             zIndex: zIndex
         });
-        return manager.create();
+        const container = manager.create();
+        
+        // Add container type to the created container
+        if (type) {
+            container.dataset.containerType = type;
+        }
+        
+        return container;
     }
 
     /**

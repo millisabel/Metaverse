@@ -1,21 +1,30 @@
-
-
 export const createCanvas = (renderer, options = {}) => {
-    const { zIndex = '0' } = options;
+    const { zIndex = '0', canvasName = '', containerType = '' } = options;
 
     const canvas = renderer.domElement;
 
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.zIndex = zIndex;
-    canvas.style.pointerEvents = 'none';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.overflow = 'hidden';
-    canvas.style.transform = 'translateZ(0)';
-    canvas.style.backfaceVisibility = 'hidden';
-    canvas.style.willChange = 'transform';
+    // Set canvas styles
+    Object.assign(canvas.style, {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        zIndex: zIndex,
+        pointerEvents: 'none',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        willChange: 'transform'
+    });
+
+    // Add data attributes
+    if (canvasName) {
+        canvas.dataset.canvasName = canvasName;
+    }
+    if (containerType) {
+        canvas.dataset.containerType = containerType;
+    }
     
     return canvas;
 };
