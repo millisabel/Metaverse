@@ -13,15 +13,29 @@
         aspect-ratio: 1;
         background-color: var(--bs-body-bg);
 
-        canvas {
+        &>* {
             position: absolute;
-            top: 2% !important;
-            left: 2% !important;
-            right: 2% !important;
-            bottom: 2% !important;
-    
-            width: 96% !important;
-            height: 96% !important;
+            top: 1% !important;
+            left: 1% !important;
+            right: 1% !important;
+            bottom: 1% !important;
+
+            width: 98% !important;
+            height: 98% !important;
+
+            border-radius: inherit;
+            overflow: hidden;
+
+            clip-path: var(--border-gradient-inner-clip-path);
+
+            
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: inherit;
         }
     
         &-left {

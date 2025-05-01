@@ -32,6 +32,48 @@ export class Dynamics3D extends AnimationController {
         
         // Initialize scene and other components from parent class
         this.init();
+
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance",
+            premultipliedAlpha: false,
+            preserveDrawingBuffer: false
+        });
+        this.renderer.setClearColor(0x000000, 0);
+
+        // Add resize handler
+        this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
+        if (this.container) {
+            this.resizeObserver.observe(this.container);
+        }
+    }
+
+    handleResize() {
+        if (!this.container || !this.camera || !this.renderer) return;
+
+        // Get container dimensions
+        const rect = this.container.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height || width; // Ensure square aspect ratio
+
+        // Update camera
+        this.camera.aspect = 1; // Keep aspect ratio 1:1
+        this.camera.updateProjectionMatrix();
+
+        // Update renderer size
+        this.renderer.setSize(width, height, false);
+
+        // Force a re-render
+        if (this.scene) {
+            this.renderer.render(this.scene, this.camera);
+        }
+
+        // Log resize for debugging
+        this.logger.log(`Resizing canvas: ${width}x${height}`, {
+            conditions: ['resize'],
+            functionName: 'handleResize'
+        });
     }
 
     getAnimationParams() {
@@ -230,6 +272,11 @@ export class Dynamics3D extends AnimationController {
             });
             return;
         }
+
+        // Initial size setup
+        const rect = this.container.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height);
+        this.renderer.setSize(size, size, false);
 
         this.logger.log('Setting up dynamics scene', {
             conditions: ['initializing-scene'],
@@ -432,6 +479,11 @@ export class Dynamics3D extends AnimationController {
         if (this.decorationMesh) {
             this.decorationMesh.geometry.dispose();
             this.decorationMesh.material.dispose();
+        }
+
+        // Remove resize observer
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
         }
 
         // Remove from scene
