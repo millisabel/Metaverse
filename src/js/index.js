@@ -8,6 +8,7 @@ import { Logger } from './utils/logger';
 import { initHero } from './setup/heroSetup';
 import { initAbout } from "./setup/aboutSetup";
 import { initRoadmap } from './setup/roadmapSetup';
+import { initDynamics } from './setup/dynamicsSetup';
 
 // Common components
 import { initNavbar } from './components/common/navbar';
@@ -15,7 +16,7 @@ import { initSlider } from './components/common/slider';
 import initModal from './components/common/modal';
 
 // 3D components
-import { initDynamics3D } from './components/three/dynamics3d';
+// import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
 
 if (process.env.NODE_ENV === 'development') {
@@ -41,12 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create a logger instance
     // const observer = new AnimationObserverCSS();
 
-    // Initialize 3D components
     initHero();
     initAbout();
     initRoadmap();
+    initDynamics();
 
-    initDynamics3D();
+    // initDynamics3D();
     initSocialCards();
 
     // Initialize UI components
