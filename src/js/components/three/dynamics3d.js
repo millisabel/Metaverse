@@ -9,6 +9,16 @@ export class Dynamics3D extends AnimationController {
 
         this.name = 'Dynamics3D';
         this.logger = createLogger(this.name);
+        this.lastLogTime = 0; // Initialize lastLogTime
+
+        // Test logger
+        this.logger.log('Dynamics3D initialized', {
+            conditions: ['initialization'],
+            functionName: 'constructor',
+            customData: {
+                type: options.type || 'unknown'
+            }
+        });
 
         // Default options
         this.options = {
@@ -458,20 +468,90 @@ export class Dynamics3D extends AnimationController {
         const time = performance.now() * 0.001;
         const params = this.animationParams;
 
-        // Update glow effect
+        // Calculate z-position first
+        let zPosition = params.position.z.basePosition + 
+            Math.sin(time * params.position.z.speed) * params.position.z.amplitude;
+        zPosition = Math.min(params.position.z.basePosition, zPosition);
+
+        // Update glow effect with direct z-position sync
         if (this.glowEffect) {
-            // Вычисляем z-позицию с улучшенной интерполяцией
-            const zPosition = params.position.z.basePosition + 
-                Math.sin(time * params.position.z.speed) * params.position.z.amplitude;
+            // Define z-position range
+            const zRange = {
+                min: params.position.z.basePosition + params.position.z.amplitude, // Maximum distance (-5)
+                max: params.position.z.basePosition // Maximum proximity (-1)
+            };
             
-            // Улучшенная нормализация z-позиции с плавным переходом
-            const rawNormalizedZ = (zPosition - params.position.z.basePosition) / params.position.z.amplitude;
-            const normalizedZ = Math.pow(Math.abs(rawNormalizedZ), 1.2); // Нелинейная нормализация
+            // Normalize z-position with improved stability
+            let normalizedZ = (zPosition - zRange.min) / (zRange.max - zRange.min);
             
-            // Добавляем плавное затухание для более естественного эффекта
-            const smoothedValue = 0.3 + normalizedZ * 0.7;
-            this.glowEffect.updateObjectPulse(smoothedValue);
+            // Add threshold and smoothing for stability at extremes
+            const threshold = 0.1; // Increased threshold for better stability
+            const smoothingFactor = 0.08; // Reduced for smoother transitions
             
+            if (normalizedZ > 1 - threshold) {
+                normalizedZ = 1;
+            } else if (normalizedZ < threshold) {
+                normalizedZ = 0;
+            } else {
+                // Enhanced smooth transition in the middle range
+                normalizedZ = (normalizedZ - threshold) / (1 - 2 * threshold);
+                // Apply double cubic easing for smoother transitions
+                normalizedZ = normalizedZ * normalizedZ * (3 - 2 * normalizedZ);
+                normalizedZ = normalizedZ * normalizedZ * (3 - 2 * normalizedZ);
+            }
+            
+            // Calculate glow parameters with enhanced stability
+            const glowScale = {
+                min: this.options.glow.scale.min,
+                max: this.options.glow.scale.max
+            };
+
+            const glowOpacity = {
+                min: 0.1,
+                max: 0.8
+            };
+
+            // Calculate scale and opacity with improved stability
+            const scaleRange = glowScale.max - glowScale.min;
+            const opacityRange = glowOpacity.max - glowOpacity.min;
+            
+            // Apply easing to scale calculation
+            const easedScale = glowScale.min + (scaleRange * Math.pow(normalizedZ, 1.5));
+            const currentScale = Math.max(glowScale.min, Math.min(glowScale.max, easedScale));
+            
+            // Calculate opacity with slight delay relative to scale
+            const opacityNormal = Math.pow(normalizedZ, 1.2); // Less aggressive curve for opacity
+            const currentOpacity = glowOpacity.min + (opacityRange * opacityNormal);
+
+            // Apply smoothed values with lerp
+            const targetScale = new THREE.Vector3(currentScale, currentScale, 1);
+            this.glowEffect.mesh.scale.lerp(targetScale, smoothingFactor);
+            
+            // Smooth opacity transition with memory
+            const currentMeshOpacity = this.glowEffect.mesh.material.opacity;
+            this.glowEffect.mesh.material.opacity += (currentOpacity - currentMeshOpacity) * smoothingFactor;
+
+            // Store last values for next frame
+            this.lastScale = currentScale;
+            this.lastOpacity = currentOpacity;
+
+            // Log values for debugging
+            if (Math.floor(time) > this.lastLogTime) {
+                const message = `
+                    Z-Position: ${zPosition.toFixed(3)}
+                    Normalized Z: ${normalizedZ.toFixed(3)}
+                    Glow Scale: ${currentScale.toFixed(3)}
+                    Glow Opacity: ${currentOpacity.toFixed(3)}
+                `;
+                
+                this.logger.log(message, {
+                    conditions: ['animation-sync'],
+                    functionName: 'update'
+                });
+                this.lastLogTime = Math.floor(time);
+            }
+            
+            // Update glow effect
             this.glowEffect.update(this.camera);
         }
 
@@ -526,10 +606,7 @@ export class Dynamics3D extends AnimationController {
         // Position animation with unique parameters
         this.group.position.y = Math.sin(time * params.position.y.speed) * params.position.y.amplitude;
         
-        // Z-position animation with depth limit
-        let zPosition = params.position.z.basePosition + 
-            Math.sin(time * params.position.z.speed) * params.position.z.amplitude;
-        zPosition = Math.min(params.position.z.basePosition, zPosition);
+        // Update group z-position
         this.group.position.z = zPosition;
 
         // Render the scene
