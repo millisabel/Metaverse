@@ -42,7 +42,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.5,
-                    scale: { min: 1.2, max: 3.5 },
+                    scale: { min: 2, max: 4 },
                     pulseSpeed: 0.3,
                     pulseIntensity: 0.8,
                     color: 0x00FFFF
@@ -55,7 +55,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.7,
-                    scale: { min: 1.2, max: 3.5 },
+                    scale: { min: 2, max: 4.5 },
                     pulseSpeed: 0.3,
                     pulseIntensity: 0.8,
                     color: 0x4169FF
@@ -68,7 +68,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.4,
-                    scale: { min: 1.2, max: 3.5 },
+                    scale: { min: 2, max: 4 },
                     pulseSpeed: 0.3,
                     pulseIntensity: 0.8,
                     color: 0xFF00FF
