@@ -12,6 +12,8 @@
     
         aspect-ratio: 1;
         background-color: var(--bs-body-bg);
+        position: relative;
+        z-index: 0;
 
         &>* {
             position: absolute;
@@ -33,8 +35,8 @@
 
         canvas {
             display: block;
-            width: 100% !important;
-            height: 100% !important;
+            width: 98% !important;
+            height: 98% !important;
             border-radius: inherit;
         }
     

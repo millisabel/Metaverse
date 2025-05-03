@@ -22,17 +22,15 @@ export class DynamicsSetup extends BaseSetup {
         });   
     
         this.CONTAINER_TYPES = {
-            GUARDIANS_CARD: 'GUARDIANS_CARD',
-            METAVERSE_CARD: 'METAVERSE_CARD',
-            SANKOPA_CARD: 'SANKOPA_CARD',
-            BACKGROUND_GLOWS: 'BACKGROUND_GLOWS'
+            BACKGROUND_GLOWS: 'BACKGROUND_GLOWS',
+            GUARDIANS: 'GUARDIANS_CARD',
+            METAVERSE: 'METAVERSE_CARD',
+            SANKOPA: 'SANKOPA_CARD'
         };
         
         this.Z_INDEX = {
-            BACKGROUND_GLOWS: '-1',
-            GUARDIANS_CARD: '1',
-            METAVERSE_CARD: '1',
-            SANKOPA_CARD: '1',
+            BACKGROUND_GLOWS: '-2',
+            CARDS: '0'
         };
 
         this.CARD_CONFIG = {
@@ -71,10 +69,8 @@ export class DynamicsSetup extends BaseSetup {
             }
         };
         
-        this.guardiansCard = null;
-        this.metaverseCard = null;
-        this.sankopaCard = null;
         this.backgroundGlows = null;
+        this.cards = {};  // Store card references
     }
 
     initScene() {
@@ -98,11 +94,17 @@ export class DynamicsSetup extends BaseSetup {
                 this.CONTAINER_TYPES.BACKGROUND_GLOWS,
                 this.Z_INDEX.BACKGROUND_GLOWS
             );
-            dynamicsSection.appendChild(glowContainer);
+            
+            // Ensure the glow container is added first
+            if (dynamicsSection.firstChild) {
+                dynamicsSection.insertBefore(glowContainer, dynamicsSection.firstChild);
+            } else {
+                dynamicsSection.appendChild(glowContainer);
+            }
 
             // Create three background glows with colors matching the cards
             this.backgroundGlows = new Glow(glowContainer, {
-                count: 3, // One for each card
+                count: 3,
                 colors: [
                     this.CARD_CONFIG.GUARDIANS_CARD.color,
                     this.CARD_CONFIG.METAVERSE_CARD.color,
@@ -110,24 +112,27 @@ export class DynamicsSetup extends BaseSetup {
                 ],
                 randomizeColors: false,
                 size: {
-                    min: 0.0,
-                    max: 1.0
+                    min: 1.0,
+                    max: 2.0
                 },
                 opacity: {
-                    min: 0.1,
-                    max: 0.4
+                    min: 0.05,
+                    max: 0.3
                 },
                 scale: {
-                    min: 0,
-                    max: 4
+                    min: 1.0,
+                    max: 4.0
+                },
+                pulse: {
+                    enabled: false
                 },
                 movement: {
                     enabled: false
                 },
                 initialPositions: [
-                    { x: -1.5, y: 0.5, z: -2 }, // Left for Guardians
-                    { x: 0, y: 0.5, z: -2 },  // Center for Metaverse
-                    { x: 1.5, y: 0.5, z: -2 }   // Right for Sankopa
+                    { x: -1.5, y: 0, z: -2 },
+                    { x: 0, y: 0, z: -2 },
+                    { x: 1.5, y: 0, z: -2 }
                 ]
             });
         }
@@ -135,63 +140,63 @@ export class DynamicsSetup extends BaseSetup {
         // Setup cards
         const guardiansContainer = document.getElementById('guardians3d');
         if (guardiansContainer) {
-            const container = this.createContainer(
-                this.CONTAINER_TYPES.GUARDIANS_CARD,
-                this.Z_INDEX.GUARDIANS_CARD
-            );
-            guardiansContainer.appendChild(container);
-            this.guardiansCard = new Dynamics3D(container, {
-                type: this.CONTAINER_TYPES.GUARDIANS_CARD,
+            this.cards.guardians = new Dynamics3D(guardiansContainer, {
+                type: this.CONTAINER_TYPES.GUARDIANS,
                 ...this.CARD_CONFIG.GUARDIANS_CARD
             });
         }
 
         const metaverseContainer = document.getElementById('metaverse3d');
         if (metaverseContainer) {
-            const container = this.createContainer(  
-                this.CONTAINER_TYPES.METAVERSE_CARD,
-                this.Z_INDEX.METAVERSE_CARD
-            );
-            metaverseContainer.appendChild(container);
-            this.metaverseCard = new Dynamics3D(container, {
-                type: this.CONTAINER_TYPES.METAVERSE_CARD,
+            this.cards.metaverse = new Dynamics3D(metaverseContainer, {
+                type: this.CONTAINER_TYPES.METAVERSE,
                 ...this.CARD_CONFIG.METAVERSE_CARD
             });
         }
 
         const sankopaContainer = document.getElementById('sankopa3d');
         if (sankopaContainer) {
-            const container = this.createContainer(
-                this.CONTAINER_TYPES.SANKOPA_CARD,
-                this.Z_INDEX.SANKOPA_CARD
-            );
-            sankopaContainer.appendChild(container);
-            this.sankopaCard = new Dynamics3D(container, {
-                type: this.CONTAINER_TYPES.SANKOPA_CARD,
+            this.cards.sankopa = new Dynamics3D(sankopaContainer, {
+                type: this.CONTAINER_TYPES.SANKOPA,
                 ...this.CARD_CONFIG.SANKOPA_CARD
             });
         }
+
+        // Start syncing background glows with cards
+        this.startBackgroundGlowSync();
+    }
+
+    startBackgroundGlowSync() {
+        if (!this.backgroundGlows) return;
+
+        const animate = () => {
+            // Sync each background glow with its corresponding card
+            if (this.cards.guardians) {
+                this.backgroundGlows.syncWithCard(this.cards.guardians, 0);
+            }
+            if (this.cards.metaverse) {
+                this.backgroundGlows.syncWithCard(this.cards.metaverse, 1);
+            }
+            if (this.cards.sankopa) {
+                this.backgroundGlows.syncWithCard(this.cards.sankopa, 2);
+            }
+
+            requestAnimationFrame(animate);
+        };
+
+        animate();
     }
 
     update() {
         // Update cards
-        if (this.guardiansCard) {
-            this.guardiansCard.update();
-            if (this.backgroundGlows) {
-                this.backgroundGlows.syncWithCard(this.guardiansCard, 0); // sync first glow
-            }
+        if (this.cards.guardians) {
+            this.cards.guardians.update();
         }
-        if (this.metaverseCard) {
-            this.metaverseCard.update();
-            if (this.backgroundGlows) {
-                this.backgroundGlows.syncWithCard(this.metaverseCard, 1); // sync second glow
-            }
+        if (this.cards.metaverse) {
+            this.cards.metaverse.update();
         }
-        if (this.sankopaCard) {
-            this.sankopaCard.update();
-            if (this.backgroundGlows) {
-                this.backgroundGlows.syncWithCard(this.sankopaCard, 2); // sync third glow
-            }
+        if (this.cards.sankopa) {
+            this.cards.sankopa.update();
         }
     }
 
@@ -199,14 +204,14 @@ export class DynamicsSetup extends BaseSetup {
         if (this.backgroundGlows) {
             this.cleanupContainer(this.CONTAINER_TYPES.BACKGROUND_GLOWS);
         }
-        if (this.guardiansCard) {
-            this.cleanupContainer(this.CONTAINER_TYPES.GUARDIANS_CARD);
+        if (this.cards.guardians) {
+            this.cleanupContainer(this.CONTAINER_TYPES.GUARDIANS);
         }
-        if (this.metaverseCard) {
-            this.cleanupContainer(this.CONTAINER_TYPES.METAVERSE_CARD);
+        if (this.cards.metaverse) {
+            this.cleanupContainer(this.CONTAINER_TYPES.METAVERSE);
         }
-        if (this.sankopaCard) {
-            this.cleanupContainer(this.CONTAINER_TYPES.SANKOPA_CARD);
+        if (this.cards.sankopa) {
+            this.cleanupContainer(this.CONTAINER_TYPES.SANKOPA);
         }
         
         super.cleanup();    
