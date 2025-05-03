@@ -5,6 +5,7 @@ import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
 import decoration2Svg from '../../assets/images/dynamics/decoration_2.svg';
 import decoration3Svg from '../../assets/images/dynamics/decoration_3.svg';
 import { Glow } from '../components/three/glow';
+import { isMobile } from '../utils/utils';
 
 export class DynamicsSetup extends BaseSetup {
     constructor() {
@@ -41,7 +42,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.5,
-                    scale: { min: 2, max: 5 },
+                    scale: { min: 2, max: 6 },
                     color: 0x00FFFF
                 }
             },
@@ -71,6 +72,44 @@ export class DynamicsSetup extends BaseSetup {
         
         this.backgroundGlows = null;
         this.cards = {};  // Store card references
+        
+        // Add resize observer
+        this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
+    }
+
+    handleResize() {
+        if (!this.backgroundGlows) return;
+
+        const positions = this.calculateGlowPositions();
+        this.updateGlowPositions(positions);
+    }
+
+    calculateGlowPositions() {
+        
+        if (isMobile()) {
+            return [
+                { x: 0, y: 1.5, z: -2 },  // Top position for first card
+                { x: 0, y: 0, z: -2 },    // Middle position for second card
+                { x: 0, y: -1.5, z: -2 }  // Bottom position for third card
+            ];
+        } else {
+            return [
+                { x: -1.5, y: 0, z: -2 },
+                { x: 0, y: 0, z: -2 },
+                { x: 1.5, y: 0, z: -2 }
+            ];
+        }
+    }
+
+    updateGlowPositions(positions) {
+        if (!this.backgroundGlows || !this.backgroundGlows.glows) return;
+
+        positions.forEach((position, index) => {
+            const glow = this.backgroundGlows.glows[index];
+            if (glow && glow.mesh) {
+                glow.mesh.position.set(position.x, position.y, position.z);
+            }
+        });
     }
 
     initScene() {
@@ -102,6 +141,9 @@ export class DynamicsSetup extends BaseSetup {
                 dynamicsSection.appendChild(glowContainer);
             }
 
+            // Calculate initial positions based on screen size
+            const initialPositions = this.calculateGlowPositions();
+
             // Create three background glows with colors matching the cards
             this.backgroundGlows = new Glow(glowContainer, {
                 count: 3,
@@ -121,7 +163,7 @@ export class DynamicsSetup extends BaseSetup {
                 },
                 scale: {
                     min: 1.0,
-                    max: 4.0
+                    max: isMobile() ? 2.0 : 4.0
                 },
                 pulse: {
                     enabled: false
@@ -129,12 +171,13 @@ export class DynamicsSetup extends BaseSetup {
                 movement: {
                     enabled: false
                 },
-                initialPositions: [
-                    { x: -1.5, y: 0, z: -2 },
-                    { x: 0, y: 0, z: -2 },
-                    { x: 1.5, y: 0, z: -2 }
-                ]
+                initialPositions: initialPositions
             });
+
+            // Добавляем небольшую задержку перед началом отслеживания изменений размера
+            setTimeout(() => {
+                this.resizeObserver.observe(document.body);
+            }, 100);
         }
 
         // Setup cards
@@ -201,6 +244,11 @@ export class DynamicsSetup extends BaseSetup {
     }
 
     cleanup() {
+        // Disconnect resize observer
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
         if (this.backgroundGlows) {
             this.cleanupContainer(this.CONTAINER_TYPES.BACKGROUND_GLOWS);
         }
