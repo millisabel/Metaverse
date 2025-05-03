@@ -172,6 +172,47 @@ export class Glow extends AnimationController {
         this.glows.forEach(glow => glow.toggleMovement(enabled));
     }
 
+    syncWithCard(card, glowIndex = 0) {
+        if (!card || !this.glows || !this.glows[glowIndex]) return;
+
+        // Get the specific glow to sync
+        const glow = this.glows[glowIndex];
+        
+        // Get normalized Z position from card
+        const zPosition = card.group.position.z;
+        const zRange = {
+            min: card.animationParams.position.z.basePosition + card.animationParams.position.z.amplitude,
+            max: card.animationParams.position.z.basePosition
+        };
+        
+        // Calculate normalized position (0 to 1)
+        let normalizedZ = (zPosition - zRange.min) / (zRange.max - zRange.min);
+        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
+
+        // Update glow scale based on z position
+        const scale = this.options.scale.min + (this.options.scale.max - this.options.scale.min) * normalizedZ;
+        glow.setScale(scale);
+
+        // Update glow opacity based on z position
+        const opacity = this.options.opacity.min + (this.options.opacity.max - this.options.opacity.min) * normalizedZ;
+        if (glow.mesh && glow.mesh.material.uniforms) {
+            glow.mesh.material.uniforms.opacity.value = opacity;
+        }
+
+        // Log synchronization details
+        this.logger.log('Syncing background glow with card', {
+            custom: {
+                cardType: card.options.type,
+                glowIndex,
+                zPosition: zPosition.toFixed(3),
+                normalizedZ: normalizedZ.toFixed(3),
+                scale: scale.toFixed(3),
+                opacity: opacity.toFixed(3)
+            },
+            conditions: ['glow-sync']
+        });
+    }
+
     dispose() {
         this.glows.forEach(glow => glow.dispose());
         this.glows = [];

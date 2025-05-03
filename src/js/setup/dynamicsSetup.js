@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
 import decoration2Svg from '../../assets/images/dynamics/decoration_2.svg';
 import decoration3Svg from '../../assets/images/dynamics/decoration_3.svg';
+import { Glow } from '../components/three/glow';
 
 export class DynamicsSetup extends BaseSetup {
     constructor() {
@@ -24,11 +25,11 @@ export class DynamicsSetup extends BaseSetup {
             GUARDIANS_CARD: 'GUARDIANS_CARD',
             METAVERSE_CARD: 'METAVERSE_CARD',
             SANKOPA_CARD: 'SANKOPA_CARD',
-            GLOW: 'GLOW',
+            BACKGROUND_GLOWS: 'BACKGROUND_GLOWS'
         };
         
         this.Z_INDEX = {
-            GLOW: '0',
+            BACKGROUND_GLOWS: '-1',
             GUARDIANS_CARD: '1',
             METAVERSE_CARD: '1',
             SANKOPA_CARD: '1',
@@ -73,7 +74,7 @@ export class DynamicsSetup extends BaseSetup {
         this.guardiansCard = null;
         this.metaverseCard = null;
         this.sankopaCard = null;
-        this.glow = null;
+        this.backgroundGlows = null;
     }
 
     initScene() {
@@ -90,6 +91,48 @@ export class DynamicsSetup extends BaseSetup {
     }
 
     setupScene() { 
+        // Create background glows first
+        const dynamicsSection = document.getElementById('dynamics');
+        if (dynamicsSection) {
+            const glowContainer = this.createContainer(
+                this.CONTAINER_TYPES.BACKGROUND_GLOWS,
+                this.Z_INDEX.BACKGROUND_GLOWS
+            );
+            dynamicsSection.appendChild(glowContainer);
+
+            // Create three background glows with colors matching the cards
+            this.backgroundGlows = new Glow(glowContainer, {
+                count: 3, // One for each card
+                colors: [
+                    this.CARD_CONFIG.GUARDIANS_CARD.color,
+                    this.CARD_CONFIG.METAVERSE_CARD.color,
+                    this.CARD_CONFIG.SANKOPA_CARD.color
+                ],
+                randomizeColors: false,
+                size: {
+                    min: 0.0,
+                    max: 1.0
+                },
+                opacity: {
+                    min: 0.1,
+                    max: 0.4
+                },
+                scale: {
+                    min: 0,
+                    max: 4
+                },
+                movement: {
+                    enabled: false
+                },
+                initialPositions: [
+                    { x: -1.5, y: 0.5, z: -2 }, // Left for Guardians
+                    { x: 0, y: 0.5, z: -2 },  // Center for Metaverse
+                    { x: 1.5, y: 0.5, z: -2 }   // Right for Sankopa
+                ]
+            });
+        }
+
+        // Setup cards
         const guardiansContainer = document.getElementById('guardians3d');
         if (guardiansContainer) {
             const container = this.createContainer(
@@ -128,31 +171,34 @@ export class DynamicsSetup extends BaseSetup {
                 ...this.CARD_CONFIG.SANKOPA_CARD
             });
         }
-
-        // Initialize glow effect if needed
-        // const glowContainer = this.createContainer(
-        //     this.CONTAINER_TYPES.GLOW,
-        //     this.Z_INDEX.GLOW
-        // );
-        // this.glow = new Glow(glowContainer);    
     }
 
     update() {
+        // Update cards
         if (this.guardiansCard) {
             this.guardiansCard.update();
+            if (this.backgroundGlows) {
+                this.backgroundGlows.syncWithCard(this.guardiansCard, 0); // sync first glow
+            }
         }
         if (this.metaverseCard) {
             this.metaverseCard.update();
+            if (this.backgroundGlows) {
+                this.backgroundGlows.syncWithCard(this.metaverseCard, 1); // sync second glow
+            }
         }
         if (this.sankopaCard) {
             this.sankopaCard.update();
-        }
-        if (this.glow) {
-            this.glow.update();
+            if (this.backgroundGlows) {
+                this.backgroundGlows.syncWithCard(this.sankopaCard, 2); // sync third glow
+            }
         }
     }
 
     cleanup() {
+        if (this.backgroundGlows) {
+            this.cleanupContainer(this.CONTAINER_TYPES.BACKGROUND_GLOWS);
+        }
         if (this.guardiansCard) {
             this.cleanupContainer(this.CONTAINER_TYPES.GUARDIANS_CARD);
         }
@@ -161,9 +207,6 @@ export class DynamicsSetup extends BaseSetup {
         }
         if (this.sankopaCard) {
             this.cleanupContainer(this.CONTAINER_TYPES.SANKOPA_CARD);
-        }
-        if (this.glow) {
-            this.cleanupContainer(this.CONTAINER_TYPES.GLOW);
         }
         
         super.cleanup();    
