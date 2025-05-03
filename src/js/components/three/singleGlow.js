@@ -157,7 +157,8 @@ export class SingleGlow {
         // Skip movement updates if disabled
         if (!this.options.movement.enabled) return;
 
-        const timeOffset = time * this.options.movement.speed;
+        const timeOffset = time;
+        const speed = this.options.movement.speed;
 
         // Calculate wave movement
         const waveX = Math.sin(timeOffset * this.waveParams.frequency) * this.waveParams.amplitude;
@@ -167,9 +168,9 @@ export class SingleGlow {
         const secondaryWaveX = Math.sin(timeOffset * 0.3) * 0.2;
         const secondaryWaveY = Math.cos(timeOffset * 0.4) * 0.2;
 
-        // Update position
-        this.mesh.position.x += (waveX + secondaryWaveX) * this.currentPath.x * 0.003;
-        this.mesh.position.y += (waveY + secondaryWaveY) * this.currentPath.y * 0.003;
+        // Update position with proper speed scaling
+        this.mesh.position.x += (waveX + secondaryWaveX) * this.currentPath.x * speed;
+        this.mesh.position.y += (waveY + secondaryWaveY) * this.currentPath.y * speed;
         this.mesh.position.z = Math.sin(timeOffset * this.waveParams.frequency * 0.5) * 0.2;
 
         // Keep within bounds

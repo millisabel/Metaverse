@@ -40,9 +40,14 @@ export class RoadmapSetup extends BaseSetup {
                 min: isMobile() ? 0.2 : 0.5,
                 max: isMobile() ? 1.5 : 3
             },
-            speed: {
-                min: isMobile() ? 0.1 : 0.2,
-                max: isMobile() ? 0.2 : 0.5
+            movement: {
+                enabled: true,
+                speed: isMobile() ? 0.2 : 0.001,
+                range: {
+                    x: 1,
+                    y: 0.9,
+                    z: 0.3
+                }
             },
             opacity: {
                 min: 0.1,
@@ -53,13 +58,9 @@ export class RoadmapSetup extends BaseSetup {
                 max: 1.2
             },
             pulse: {
-                min: 0.1,
-                max: 0.3
-            },
-            range: {
-                x: 1,
-                y: 0.9,
-                z: 0.3
+                speed: isMobile() ? 0.1 : 0.1,
+                intensity: 0.3,
+                sync: false
             },
             zIndex: this.Z_INDEX.GLOW
         });
