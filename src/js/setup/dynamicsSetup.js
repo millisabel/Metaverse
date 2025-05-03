@@ -42,9 +42,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.5,
-                    scale: { min: 2, max: 4 },
-                    pulseSpeed: 0.3,
-                    pulseIntensity: 0.8,
+                    scale: { min: 2, max: 5 },
                     color: 0x00FFFF
                 }
             },
@@ -55,9 +53,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.7,
-                    scale: { min: 2, max: 4.5 },
-                    pulseSpeed: 0.3,
-                    pulseIntensity: 0.8,
+                    scale: { min: 2, max: 6 },
                     color: 0x4169FF
                 }
             },
@@ -68,9 +64,7 @@ export class DynamicsSetup extends BaseSetup {
                     enabled: true,
                     size: 2.0,
                     opacity: 0.4,
-                    scale: { min: 2, max: 4 },
-                    pulseSpeed: 0.3,
-                    pulseIntensity: 0.8,
+                    scale: { min: 2, max: 6 },
                     color: 0xFF00FF
                 }
             }
@@ -85,14 +79,11 @@ export class DynamicsSetup extends BaseSetup {
     initScene() {
         if (this.initialized) return;
 
-        // Не создаем renderer и canvas здесь, так как они будут созданы в каждом Dynamics3D компоненте
         this.scene = new THREE.Scene();
         
-        // Initialize camera
         this.cameraController.init(this.container);
         this.camera = this.cameraController.camera;
 
-        // Setup additional scene elements
         this.setupScene();
         
         this.initialized = true;
@@ -112,7 +103,6 @@ export class DynamicsSetup extends BaseSetup {
             });
         }
 
-        // Create and initialize Metaverse 3D object
         const metaverseContainer = document.getElementById('metaverse3d');
         if (metaverseContainer) {
             const container = this.createContainer(  
@@ -126,7 +116,6 @@ export class DynamicsSetup extends BaseSetup {
             });
         }
 
-        // Create and initialize Sankopa 3D object
         const sankopaContainer = document.getElementById('sankopa3d');
         if (sankopaContainer) {
             const container = this.createContainer(

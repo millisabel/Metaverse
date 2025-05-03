@@ -35,8 +35,6 @@ export class Dynamics3D extends AnimationController {
                 size: 5.0,
                 opacity: 0.6,
                 scale: { min: 1.5, max: 2.5 },
-                pulseSpeed: 0.3,
-                pulseIntensity: 0.8,
                 color: null // Will use main color if not specified
             },
             ...options
@@ -415,13 +413,8 @@ export class Dynamics3D extends AnimationController {
                     max: this.options.glow.opacity
                 },
                 scale: {
-                    min: this.options.glow.scale.min * 1.2,
-                    max: this.options.glow.scale.max * 1.5
-                },
-                pulse: {
-                    speed: this.options.glow.pulseSpeed * 0.8,
-                    intensity: this.options.glow.pulseIntensity * 1.2,
-                    sync: true
+                    min: this.options.glow.scale.min,
+                    max: this.options.glow.scale.max
                 },
                 position: { x: 0, y: 0, z: -1 },
                 movement: {
