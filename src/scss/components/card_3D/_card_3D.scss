@@ -6,7 +6,7 @@
 .card{
     &--3d {
         width: 100%;
-        min-height: 300px;
+        height: min(300px, 100vw);
         margin-bottom: 60px;
         border-radius: 16px;
         aspect-ratio: 1;
@@ -65,7 +65,7 @@
     &--dynamic.border-gradient{
         --border-gradient-inner-border-radius: 16px;
         --border-gradient-inner-height: auto;
-        --border-gradient-inset-before: 2px;
+        --border-gradient-inset-before: 1px;
     }
 }
 
