@@ -22,18 +22,21 @@ import { initSocialCards } from './components/three/socialCards';
 if (process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging(false);
     Logger.disableLoggerFor('HeroSetup');
+    Logger.disableLoggerFor('AboutSetup');
+    Logger.disableLoggerFor('RoadmapSetup');
+    Logger.disableLoggerFor('DynamicsSetup');
     Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('CameraController');
     Logger.disableLoggerFor('AnimationController_3D');
     Logger.disableLoggerFor('Utils');
-    Logger.disableLoggerFor('AboutSetup');
-    Logger.disableLoggerFor('RoadmapSetup');
-    Logger.disableLoggerFor('Roadmap');
-    Logger.disableLoggerFor('AnimationObserverCSS');
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Constellation');
+    Logger.disableLoggerFor('SingleGlow');
     Logger.disableLoggerFor('Glow');
+    Logger.disableLoggerFor('Roadmap');
+    Logger.disableLoggerFor('Dynamics3D');
+    Logger.disableLoggerFor('AnimationObserverCSS');
 } else {
     Logger.disableGlobalLogging();
 }
