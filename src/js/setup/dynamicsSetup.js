@@ -71,7 +71,7 @@ export class DynamicsSetup extends BaseSetup {
         };
         
         this.backgroundGlows = null;
-        this.cards = {};  // Store card references
+        this.cards = {};  
         
         // Add resize observer
         this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
@@ -134,17 +134,14 @@ export class DynamicsSetup extends BaseSetup {
                 this.Z_INDEX.BACKGROUND_GLOWS
             );
             
-            // Ensure the glow container is added first
             if (dynamicsSection.firstChild) {
                 dynamicsSection.insertBefore(glowContainer, dynamicsSection.firstChild);
             } else {
                 dynamicsSection.appendChild(glowContainer);
             }
 
-            // Calculate initial positions based on screen size
             const initialPositions = this.calculateGlowPositions();
 
-            // Create three background glows with colors matching the cards
             this.backgroundGlows = new Glow(glowContainer, {
                 count: 3,
                 colors: [
@@ -174,13 +171,11 @@ export class DynamicsSetup extends BaseSetup {
                 initialPositions: initialPositions
             });
 
-            // Добавляем небольшую задержку перед началом отслеживания изменений размера
             setTimeout(() => {
                 this.resizeObserver.observe(document.body);
             }, 100);
         }
 
-        // Setup cards
         const guardiansContainer = document.getElementById('guardians3d');
         if (guardiansContainer) {
             this.cards.guardians = new Dynamics3D(guardiansContainer, {
@@ -205,7 +200,6 @@ export class DynamicsSetup extends BaseSetup {
             });
         }
 
-        // Start syncing background glows with cards
         this.startBackgroundGlowSync();
     }
 
@@ -213,7 +207,6 @@ export class DynamicsSetup extends BaseSetup {
         if (!this.backgroundGlows) return;
 
         const animate = () => {
-            // Sync each background glow with its corresponding card
             if (this.cards.guardians) {
                 this.backgroundGlows.syncWithCard(this.cards.guardians, 0);
             }
@@ -231,7 +224,6 @@ export class DynamicsSetup extends BaseSetup {
     }
 
     update() {
-        // Update cards
         if (this.cards.guardians) {
             this.cards.guardians.update();
         }
@@ -244,7 +236,6 @@ export class DynamicsSetup extends BaseSetup {
     }
 
     cleanup() {
-        // Disconnect resize observer
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }

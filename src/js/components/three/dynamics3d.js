@@ -9,18 +9,17 @@ export class Dynamics3D extends AnimationController {
 
         this.name = 'Dynamics3D';
         this.logger = createLogger(this.name);
-        this.lastLogTime = 0; // Initialize lastLogTime
+        this.lastLogTime = 0;
 
-        // Test logger
+        
         this.logger.log('Dynamics3D initialized', {
-            conditions: ['initialization'],
+            conditions: ['init'],
             functionName: 'constructor',
             customData: {
                 type: options.type || 'unknown'
             }
         });
 
-        // Default options
         this.options = {
             type: 'guardians',
             color: 0x38DBFF,
@@ -35,7 +34,7 @@ export class Dynamics3D extends AnimationController {
                 size: 5.0,
                 opacity: 0.6,
                 scale: { min: 1.5, max: 2.5 },
-                color: null // Will use main color if not specified
+                color: null 
             },
             ...options
         };
@@ -46,10 +45,8 @@ export class Dynamics3D extends AnimationController {
         this.glowEffect = null;
         this.group = new THREE.Group();
         
-        // Animation parameters based on type
         this.animationParams = this.getAnimationParams();
         
-        // Initialize scene and other components from parent class
         this.init();
 
         this.renderer = new THREE.WebGLRenderer({ 
@@ -74,10 +71,10 @@ export class Dynamics3D extends AnimationController {
         // Get container dimensions
         const rect = this.container.getBoundingClientRect();
         const width = rect.width;
-        const height = rect.height || width; // Ensure square aspect ratio
+        const height = rect.height || width; 
 
         // Update camera
-        this.camera.aspect = 1; // Keep aspect ratio 1:1
+        this.camera.aspect = 1; 
         this.camera.updateProjectionMatrix();
 
         // Update renderer size
@@ -200,7 +197,6 @@ export class Dynamics3D extends AnimationController {
 
     async createDecoration() {
         if (!this.options.decoration) {
-            // Create more detailed ring geometry for wave animation
             const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
             const material = new THREE.MeshBasicMaterial({
                 color: this.options.color,
@@ -214,7 +210,6 @@ export class Dynamics3D extends AnimationController {
         }
 
         const loader = new THREE.TextureLoader();
-        // Use more segments for smoother wave animation
         const planeGeometry = new THREE.PlaneGeometry(6, 6, 64, 64);
         
         try {
@@ -227,7 +222,6 @@ export class Dynamics3D extends AnimationController {
                 );
             });
 
-            // Material settings based on card type
             let materialConfig = {
                 map: texture,
                 transparent: true,
@@ -239,7 +233,6 @@ export class Dynamics3D extends AnimationController {
                 roughness: 0.2
             };
 
-            // Individual settings for each card type
             switch(this.options.type) {
                 case 'GUARDIANS_CARD':
                     materialConfig.emissiveIntensity = 1.5;
@@ -292,7 +285,6 @@ export class Dynamics3D extends AnimationController {
             return;
         }
 
-        // Initial size setup
         const rect = this.container.getBoundingClientRect();
         const size = Math.min(rect.width, rect.height);
         this.renderer.setSize(size, size, false);
@@ -303,24 +295,20 @@ export class Dynamics3D extends AnimationController {
         });
 
         try {
-            // Create glow effect first (if enabled)
             if (this.options.glow.enabled) {
                 this.createGlowEffect();
             }
 
-            // Create decoration
             this.decorationMesh = await this.createDecoration();
             if (this.decorationMesh) {
                 this.decorationMesh.position.z = 0;
                 this.group.add(this.decorationMesh);
             }
 
-            // Create main shape
             const geometry = this.createGeometry();
             const material = this.createGlowMaterial();
             this.mesh = new THREE.Mesh(geometry, material);
             
-            // Position shapes inside texture
             switch(this.options.type) {
                 case 'GUARDIANS_CARD':
                     this.mesh.scale.set(0.8, 0.8, 1);
@@ -345,10 +333,8 @@ export class Dynamics3D extends AnimationController {
             });
         }
         
-        // Add group to scene
         this.scene.add(this.group);
         
-        // Add lights
         this.setupLights();
     }
 
@@ -380,7 +366,6 @@ export class Dynamics3D extends AnimationController {
             side: THREE.DoubleSide
         });
 
-        // Добавляем wireframe для куба и прямоугольника
         if (this.options.type === 'METAVERSE_CARD' || this.options.type === 'SANKOPA_CARD') {
             const edgesMaterial = new THREE.LineBasicMaterial({ 
                 color: baseColor,
@@ -388,7 +373,6 @@ export class Dynamics3D extends AnimationController {
                 opacity: 0.7
             });
             
-            // Создаем и добавляем wireframe
             const edges = new THREE.EdgesGeometry(this.mesh?.geometry);
             this.wireframe = new THREE.LineSegments(edges, edgesMaterial);
             this.wireframe.position.z = -0.51; // Чуть позади основной фигуры
@@ -430,27 +414,22 @@ export class Dynamics3D extends AnimationController {
     }
 
     setupLights() {
-        // Основной свет спереди
         const frontLight = new THREE.DirectionalLight(0xffffff, 1);
         frontLight.position.set(0, 0, 5);
         this.scene.add(frontLight);
 
-        // Верхний свет для бликов
         const topLight = new THREE.DirectionalLight(0xffffff, 0.8);
         topLight.position.set(0, 5, 0);
         this.scene.add(topLight);
 
-        // Боковой свет слева
         const leftLight = new THREE.DirectionalLight(0xffffff, 0.5);
         leftLight.position.set(-5, 0, 2);
         this.scene.add(leftLight);
 
-        // Боковой свет справа
         const rightLight = new THREE.DirectionalLight(0xffffff, 0.5);
         rightLight.position.set(5, 0, 2);
         this.scene.add(rightLight);
 
-        // Мягкий рассеянный свет
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(ambientLight);
     }
@@ -461,23 +440,19 @@ export class Dynamics3D extends AnimationController {
         const time = performance.now() * 0.001;
         const params = this.animationParams;
 
-        // Calculate z-position first with clamping to basePosition
         const zPosition = Math.min(
             params.position.z.basePosition,
             params.position.z.basePosition + Math.sin(time * params.position.z.speed) * params.position.z.amplitude
         );
 
-        // Define z-position range based on animation parameters
         const zRange = {
-            min: params.position.z.basePosition + params.position.z.amplitude, // Maximum distance (e.g. -5)
-            max: params.position.z.basePosition // Maximum proximity (e.g. -1)
+            min: params.position.z.basePosition + params.position.z.amplitude,
+            max: params.position.z.basePosition 
         };
 
-        // Calculate normalized Z with proper clamping
         let normalizedZ = (zPosition - zRange.min) / (zRange.max - zRange.min);
         normalizedZ = Math.max(0, Math.min(1, normalizedZ));
 
-        // Calculate glow parameters
         const glowScale = {
             min: this.options.glow.scale.min,
             max: this.options.glow.scale.max
@@ -488,38 +463,12 @@ export class Dynamics3D extends AnimationController {
             max: 0.8
         };
 
-        // Linear interpolation for scale and opacity
         const currentScale = glowScale.min + (glowScale.max - glowScale.min) * normalizedZ;
         const currentOpacity = glowOpacity.min + (glowOpacity.max - glowOpacity.min) * normalizedZ;
 
-        // Apply values directly
         if (this.glowEffect && this.glowEffect.mesh) {
             this.glowEffect.mesh.scale.set(currentScale, currentScale, 1);
             this.glowEffect.mesh.material.opacity = currentOpacity;
-        }
-
-        // Log values with improved formatting and identification
-        if (Math.floor(time) > this.lastLogTime) {
-            const message = `
-                Type: ${this.options.type}
-                Container ID: ${this.container.id}
-                Z-Position: ${zPosition.toFixed(3)}
-                Z-Range: [${zRange.min.toFixed(3)}, ${zRange.max.toFixed(3)}]
-                Normalized Z: ${normalizedZ.toFixed(3)}
-                Glow Scale: ${currentScale.toFixed(3)}
-                Glow Opacity: ${currentOpacity.toFixed(3)}
-            `;
-            
-            this.logger.log(message, {
-                conditions: ['animation-sync'],
-                functionName: 'update',
-                customData: {
-                    type: this.options.type,
-                    elementId: this.container.id,
-                    zRange: zRange
-                }
-            });
-            this.lastLogTime = Math.floor(time);
         }
 
         // Texture animation
