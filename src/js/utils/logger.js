@@ -596,7 +596,7 @@ export class Logger {
                 if (arg.trackType) trackType = arg.trackType;
                 if (arg.functionName) functionName = arg.functionName;
                 if (arg.classNames) classNames = Array.isArray(arg.classNames) ? arg.classNames : [arg.classNames];
-                if (arg.custom) customData = arg.custom;
+                if (arg.customData) customData = arg.customData;
             }
         });
 
