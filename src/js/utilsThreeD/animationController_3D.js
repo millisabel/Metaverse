@@ -26,6 +26,8 @@ export class AnimationController {
      * @param {boolean} [options.renderer.alpha=true] - Enable alpha channel
      * @param {string} [options.renderer.powerPreference='high-performance'] - GPU power preference
      * @param {Object} [options.camera] - Camera configuration (passed to CameraController)
+     * @param {string} [options.containerType] - Type of container for data-container-type attribute
+     * @param {string} [options.zIndex='2'] - Z-index for the canvas
      */
     constructor(container, options = {}) {
         this.container = container;
@@ -43,6 +45,8 @@ export class AnimationController {
                 alpha: true,
                 powerPreference: 'high-performance'
             },
+            containerType: '',
+            zIndex: '2',
             ...options
         };
 
@@ -126,7 +130,7 @@ export class AnimationController {
 
     /**
      * Initialize Three.js scene
-     * Creates scene, camera, and renderer
+     * Creates scene, camera, and renderer with proper container type and z-index
      * @protected
      */
     initScene() {
@@ -144,12 +148,23 @@ export class AnimationController {
         this.cameraController.init(this.container);
         this.camera = this.cameraController.camera;
 
-        // Create renderer
+        // Create renderer with proper container type and z-index
         this.renderer = new THREE.WebGLRenderer(this.options.renderer);
         this.renderer.setClearColor(0x000000, 0);
         updateRendererSize(this.renderer, this.container, this.camera);
+        
+        // Add container type if specified
+        if (this.options.containerType) {
+            this.container.dataset.containerType = this.options.containerType;
+        }
+        
+        // Create canvas with proper z-index and container type
         this.container.appendChild(this.renderer.domElement);
-        createCanvas(this.renderer, { zIndex: '2' });
+        createCanvas(this.renderer, {
+            zIndex: this.options.zIndex,
+            containerType: this.options.containerType,
+            canvasName: this.name
+        });
 
         // Call setupScene for additional configuration
         this.setupScene();

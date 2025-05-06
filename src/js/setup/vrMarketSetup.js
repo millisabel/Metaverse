@@ -23,15 +23,15 @@ export class VRMarketSetup extends BaseSetup {
         };
 
         this.GLOW_CONFIG = {
-            count: isMobile() ? 3 : 7,
+            count: isMobile() ? 4 : 8,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             size: {
-                min: isMobile() ? 0.2 : 1,
-                max: isMobile() ? 1.5 : 3
+                min: 1,
+                max: 3
             },
             movement: {
                 enabled: true,
-                speed: isMobile() ? 0.2 : 0.001,
+                speed: 0.001,
                 range: {
                     x: 1,
                     y: 0.9,
@@ -45,14 +45,14 @@ export class VRMarketSetup extends BaseSetup {
             },
             opacity: {
                 min: 0.1,
-                max: 0.3
+                max: 0.2
             },
             scale: {
                 min: 0.9,
-                max: 4
+                max: isMobile() ? 3 : 4
             },
             pulse: {
-                speed: isMobile() ? 0.1 : 0.1,
+                speed: 0.1,
                 intensity: 0.3,
                 sync: false
             },

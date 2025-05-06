@@ -35,7 +35,10 @@ export class HeroSetup extends BaseSetup {
             this.CONTAINER_TYPES.GALACTIC,
             this.Z_INDEX.GALACTIC
         );
-        this.galactic = new GalacticCloud(galacticContainer);
+        this.galactic = new GalacticCloud(galacticContainer, {
+            containerType: this.CONTAINER_TYPES.GALACTIC,
+            zIndex: this.Z_INDEX.GALACTIC
+        });
 
         // create stars 
         const starsContainer = this.createContainer(
@@ -44,6 +47,8 @@ export class HeroSetup extends BaseSetup {
         );
 
         this.stars = new Stars(starsContainer, {
+            containerType: this.CONTAINER_TYPES.STARS,
+            zIndex: this.Z_INDEX.STARS,
             count: isMobile() ? 1000 : 4000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {

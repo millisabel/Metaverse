@@ -22,10 +22,6 @@ export class BaseSetup {
      * @param {string} containerId - ID of the container element
      * @param {string} name - Name of the setup for logging
      * @param {Object} options - Configuration options
-     * @param {Object} [options.renderer] - Three.js renderer options
-     * @param {boolean} [options.renderer.antialias=true] - Enable antialiasing
-     * @param {boolean} [options.renderer.alpha=true] - Enable alpha
-     * @param {string} [options.renderer.powerPreference='high-performance'] - GPU power preference
      * @param {Object} [options.camera] - Camera configuration
      * @param {Object} [options.camera.position] - Camera position {x, y, z}
      * @param {Object} [options.camera.lookAt] - Camera look at point {x, y, z}
@@ -50,18 +46,7 @@ export class BaseSetup {
 
         // Scene elements
         this.scene = null;
-        this.renderer = null;
         
-        // Options
-        this.options = {
-            renderer: {
-                antialias: true,
-                alpha: true,
-                powerPreference: 'high-performance'
-            },
-            ...options
-        };
-
         // Camera
         this.cameraController = new CameraController(options.camera);
         
@@ -135,7 +120,7 @@ export class BaseSetup {
     }
 
     /**
-     * Initialize Three.js scene with camera and renderer
+     * Initialize Three.js scene with camera
      * @private
      */
     initScene() {
@@ -154,17 +139,6 @@ export class BaseSetup {
         if (mainContainerType) {
             this.container.dataset.containerType = mainContainerType;
         }
-
-        // Create renderer
-        this.renderer = new THREE.WebGLRenderer(this.options.renderer);
-        updateRendererSize(this.renderer, this.container, this.camera);
-        this.container.appendChild(this.renderer.domElement);
-
-        createCanvas(this.renderer, { 
-            zIndex: '2',
-            canvasName: this.name,
-            containerType: mainContainerType
-        });
 
         // Setup additional scene elements
         this.setupScene();
