@@ -9,6 +9,7 @@ import { initHero } from './setup/heroSetup';
 import { initAbout } from "./setup/aboutSetup";
 import { initRoadmap } from './setup/roadmapSetup';
 import { initDynamics } from './setup/dynamicsSetup';
+import { initVRMarket } from './setup/vrMarketSetup';
 
 // Common components
 import { initNavbar } from './components/common/navbar';
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAbout();
     initRoadmap();
     initDynamics();
+    initVRMarket();
 
     // initDynamics3D();
     initSocialCards();
