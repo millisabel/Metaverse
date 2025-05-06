@@ -42,6 +42,21 @@
         }
     }
 
+    &--vr-market {
+        .card{
+            &-body  {
+                padding-top: 75px;
+                border-top: 6px solid var(--card-current-color);
+            }
+
+            &-title {
+                --bs-card-title-color: var(--bs-white);
+
+                margin-bottom: 1rem;
+            }
+        }
+    }
+
     &--team {
         --bs-card-title-color: var(--card-current-color);
 
