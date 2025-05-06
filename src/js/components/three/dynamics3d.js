@@ -5,13 +5,25 @@ import { SingleGlow } from './singleGlow';
 
 export class Dynamics3D extends AnimationController {
     constructor(container, options = {}) {
-        super(container, options);
+        // Extend renderer options before passing to parent
+        const extendedOptions = {
+            ...options,
+            renderer: {
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance",
+                premultipliedAlpha: false,
+                preserveDrawingBuffer: false,
+                ...(options.renderer || {})
+            }
+        };
+        
+        super(container, extendedOptions);
 
         this.name = 'Dynamics3D';
         this.logger = createLogger(this.name);
         this.lastLogTime = 0;
 
-        
         this.logger.log('Dynamics3D initialized', {
             conditions: ['init'],
             functionName: 'constructor',
@@ -48,15 +60,6 @@ export class Dynamics3D extends AnimationController {
         this.animationParams = this.getAnimationParams();
         
         this.init();
-
-        this.renderer = new THREE.WebGLRenderer({ 
-            antialias: true,
-            alpha: true,
-            powerPreference: "high-performance",
-            premultipliedAlpha: false,
-            preserveDrawingBuffer: false
-        });
-        this.renderer.setClearColor(0x000000, 0);
 
         // Add resize handler
         this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));

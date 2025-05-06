@@ -146,6 +146,7 @@ export class AnimationController {
 
         // Create renderer
         this.renderer = new THREE.WebGLRenderer(this.options.renderer);
+        this.renderer.setClearColor(0x000000, 0);
         updateRendererSize(this.renderer, this.container, this.camera);
         this.container.appendChild(this.renderer.domElement);
         createCanvas(this.renderer, { zIndex: '2' });
