@@ -33,7 +33,7 @@ export class ExploreSetup extends BaseSetup {
             cellSize: 3,
             lineWidth: 1.5,
             borderLineWidth: 3,
-            rightWallColor: 0x0B061B,
+            rightWallColor: 0x14092b,
         };
 
         this.COMMON_GLOW_PROPS = {
