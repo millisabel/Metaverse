@@ -10,6 +10,7 @@ import { initAbout } from "./setup/aboutSetup";
 import { initRoadmap } from './setup/roadmapSetup';
 import { initDynamics } from './setup/dynamicsSetup';
 import { initVRMarket } from './setup/vrMarketSetup';
+import { initExplore } from './setup/exploreSetup';
 
 // Common components
 import { initNavbar } from './components/common/navbar';
@@ -40,6 +41,9 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('AnimationObserverCSS');
     Logger.disableLoggerFor('VRMarketSetup');
     Logger.disableLoggerFor('CharacterFloatingBadge');
+    // Logger.disableLoggerFor('ExploreSetup');
+    // Logger.disableLoggerFor('ExploreScene');
+    Logger.disableLoggerFor('AnimationController_3D');
 } else {
     Logger.disableGlobalLogging();
 }
@@ -53,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRoadmap();
     initDynamics();
     initVRMarket();
+    initExplore();
 
     // initDynamics3D();
     initSocialCards();
