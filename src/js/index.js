@@ -34,15 +34,15 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Constellation');
-    Logger.disableLoggerFor('SingleGlow');
     Logger.disableLoggerFor('Glow');
+    // Logger.disableLoggerFor('SingleGlow');
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('AnimationObserverCSS');
     Logger.disableLoggerFor('VRMarketSetup');
     Logger.disableLoggerFor('CharacterFloatingBadge');
-    // Logger.disableLoggerFor('ExploreSetup');
-    // Logger.disableLoggerFor('ExploreScene');
+    Logger.disableLoggerFor('ExploreSetup');
+    Logger.disableLoggerFor('ExploreScene');     
     Logger.disableLoggerFor('AnimationController_3D');
 } else {
     Logger.disableGlobalLogging();

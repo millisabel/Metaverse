@@ -54,3 +54,34 @@ export function setupGeometry(geometry, positions, colors, sizes) {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 }
+
+/**
+ * Linear interpolation between two vectors (3D)
+ * @param {number[]} a - Vector 1 [x, y, z]
+ * @param {number[]} b - Vector 2 [x, y, z]
+ * @param {number} t - Interpolation parameter (0..1)
+ * @returns {number[]} Resulting vector
+ */
+export function lerpVec3(a, b, t) {
+    return [
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t,
+        a[2] + (b[2] - a[2]) * t
+    ];
+}
+
+/**
+ * Projects a point (x, y) onto the back face with perspective
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ * @param {number} x_c - Center X
+ * @param {number} y_c - Center Y
+ * @param {number} shrinkK - Shrink factor
+ * @returns {number[]} [x, y] on the back face
+ */
+export function projectToBack(x, y, x_c, y_c, shrinkK) {
+    return [
+        x_c + (x - x_c) * shrinkK,
+        y_c + (y - y_c) * shrinkK
+    ];
+}
