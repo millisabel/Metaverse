@@ -37,10 +37,10 @@ export class ExploreSetup extends BaseSetup {
         };
 
         this.COMMON_GLOW_PROPS = {
-            pulse: { speed: 0, intensity: 0, sync: false },
+            pulse: { speed: 0.01, intensity: 0.01, sync: false },
             movement: { enabled: false },
             opacity: { min: 0.1, max: 0.9 },
-            scale: { min: 1, max: 1 }
+            scale: { min: 0.8, max: 1.2 }
         };
 
         this.exploreScene = null;
@@ -67,24 +67,24 @@ export class ExploreSetup extends BaseSetup {
         const y_c = gridHeight / 2;
         const [backX, backY] = projectToBack(gridWidth / 2, gridHeight / 2, x_c, y_c, shrinkK);
         const gridOffset = { x: -gridWidth / 2, y: -gridHeight / 2, z: -45 };
-        const offsetX = gridWidth * 0.5;
+        const offsetX = gridWidth * 0.7;
 
         const glowConfigs = [
             {
                 color: 0x7A42F4,
-                size: Math.max(gridWidth, gridHeight) * 2,
+                size: Math.max(gridWidth, gridHeight) * 3,
                 position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
                 ...this.COMMON_GLOW_PROPS
             },
             {
                 color: 0xC94BFF,
-                size: Math.max(gridWidth, gridHeight) * 3,
+                size: Math.max(gridWidth, gridHeight) * 4,
                 position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 2 },
                 ...this.COMMON_GLOW_PROPS
             },
             {
                 color: 0x7A42F4,
-                size: Math.max(gridWidth, gridHeight) * 4,
+                size: Math.max(gridWidth, gridHeight) * 5,
                 position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 3 },
                 ...this.COMMON_GLOW_PROPS
             }
@@ -96,7 +96,6 @@ export class ExploreSetup extends BaseSetup {
             size: { min: Math.min(...glowConfigs.map(g => g.size)), max: Math.max(...glowConfigs.map(g => g.size)) },
             opacity: { min: Math.min(...glowConfigs.map(g => g.opacity.min)), max: Math.max(...glowConfigs.map(g => g.opacity.max)) },
             scale: { min: Math.min(...glowConfigs.map(g => g.scale?.min ?? 1)), max: Math.max(...glowConfigs.map(g => g.scale?.max ?? 1)) },
-            pulse: glowConfigs[0].pulse,
             movement: glowConfigs[0].movement,
             initialPositions: glowConfigs.map(g => g.position)
         };

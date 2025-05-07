@@ -316,6 +316,121 @@ export class ExploreScene extends AnimationController {
         rightWall.rotation.y = -Math.PI / 2;
         this.gridGroup.add(rightWall);
 
+        // === Matte-glossy transparent cells for all sides except solid wall ===
+        const cellMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.5,
+            roughness: 0.6,
+            metalness: 0.2,
+            clearcoat: 0.4,
+            clearcoatRoughness: 0.2,
+            reflectivity: 0.12,
+            side: THREE.DoubleSide
+        });
+        // Пол
+        for (let x = 0; x < this.gridWidth; x++) {
+            for (let z = 0; z < this.gridDepth; z++) {
+                const corners = [
+                    [x * this.cellSize, 0, z * this.cellSize],
+                    [(x + 1) * this.cellSize, 0, z * this.cellSize],
+                    [(x + 1) * this.cellSize, 0, (z + 1) * this.cellSize],
+                    [x * this.cellSize, 0, (z + 1) * this.cellSize]
+                ].map(([cx, cy, cz]) => {
+                    if (cz === this.gridDepth * this.cellSize) {
+                        return [...projectToBack(cx, cy, x_c, y_c, shrinkK), -cz];
+                    }
+                    return [cx, cy, -cz];
+                });
+                const vertices = new Float32Array([
+                    ...corners[0], ...corners[1], ...corners[2], ...corners[3]
+                ]);
+                const indices = [0, 1, 2, 2, 3, 0];
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                const mesh = new THREE.Mesh(geometry, cellMaterial);
+                this.gridGroup.add(mesh);
+            }
+        }
+        // Потолок
+        for (let x = 0; x < this.gridWidth; x++) {
+            for (let z = 0; z < this.gridDepth; z++) {
+                const corners = [
+                    [x * this.cellSize, height, z * this.cellSize],
+                    [(x + 1) * this.cellSize, height, z * this.cellSize],
+                    [(x + 1) * this.cellSize, height, (z + 1) * this.cellSize],
+                    [x * this.cellSize, height, (z + 1) * this.cellSize]
+                ].map(([cx, cy, cz]) => {
+                    if (cz === this.gridDepth * this.cellSize) {
+                        return [...projectToBack(cx, cy, x_c, y_c, shrinkK), -cz];
+                    }
+                    return [cx, cy, -cz];
+                });
+                const vertices = new Float32Array([
+                    ...corners[0], ...corners[1], ...corners[2], ...corners[3]
+                ]);
+                const indices = [0, 1, 2, 2, 3, 0];
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                const mesh = new THREE.Mesh(geometry, cellMaterial);
+                this.gridGroup.add(mesh);
+            }
+        }
+        // Левая стена
+        for (let y = 0; y < this.gridHeight; y++) {
+            for (let z = 0; z < this.gridDepth; z++) {
+                const corners = [
+                    [0, y * this.cellSize, z * this.cellSize],
+                    [0, (y + 1) * this.cellSize, z * this.cellSize],
+                    [0, (y + 1) * this.cellSize, (z + 1) * this.cellSize],
+                    [0, y * this.cellSize, (z + 1) * this.cellSize]
+                ].map(([cx, cy, cz]) => {
+                    if (cz === this.gridDepth * this.cellSize) {
+                        return [...projectToBack(cx, cy, x_c, y_c, shrinkK), -cz];
+                    }
+                    return [cx, cy, -cz];
+                });
+                const vertices = new Float32Array([
+                    ...corners[0], ...corners[1], ...corners[2], ...corners[3]
+                ]);
+                const indices = [0, 1, 2, 2, 3, 0];
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                const mesh = new THREE.Mesh(geometry, cellMaterial);
+                this.gridGroup.add(mesh);
+            }
+        }
+        // Задняя грань
+        for (let x = 0; x < this.gridWidth; x++) {
+            for (let y = 0; y < this.gridHeight; y++) {
+                const [p1x, p1y] = projectToBack(x * this.cellSize, y * this.cellSize, x_c, y_c, shrinkK);
+                const [p2x, p2y] = projectToBack((x + 1) * this.cellSize, y * this.cellSize, x_c, y_c, shrinkK);
+                const [p3x, p3y] = projectToBack((x + 1) * this.cellSize, (y + 1) * this.cellSize, x_c, y_c, shrinkK);
+                const [p4x, p4y] = projectToBack(x * this.cellSize, (y + 1) * this.cellSize, x_c, y_c, shrinkK);
+                const z = -depth;
+                const vertices = new Float32Array([
+                    p1x, p1y, z,
+                    p2x, p2y, z,
+                    p3x, p3y, z,
+                    p4x, p4y, z
+                ]);
+                const indices = [0, 1, 2, 2, 3, 0];
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                const mesh = new THREE.Mesh(geometry, cellMaterial);
+                this.gridGroup.add(mesh);
+            }
+        }
+        this.logger.log('Matte-glossy cells for all sides (except solid wall) added');
+
         // --- Поворот и позиционирование ---
         this.gridGroup.rotation.y = this.tunnelRotation;
         if (this.tunnelPosition) {
