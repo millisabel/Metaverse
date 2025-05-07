@@ -34,24 +34,17 @@ export class ExploreSetup extends BaseSetup {
             lineWidth: 1.5,
             borderLineWidth: 3,
             rightWallColor: 0x0B061B,
-        }
+        };
 
-        this.CONFIG_GLOW = {
-            color: 0x7A42F4,
-            size: 6,
-            opacity: { min: 0.1, max: 0.9 },
-            position: { x: 0, y: 0, z: 0 },
+        this.COMMON_GLOW_PROPS = {
             pulse: { speed: 0, intensity: 0, sync: false },
-            width: 50,
-            height: 50,
-            depth: 50,
             movement: { enabled: false },
-            scale: { min: 0.5, max: 1.2 }
-        }
+            opacity: { min: 0.1, max: 0.9 },
+            scale: { min: 1, max: 1 }
+        };
 
         this.exploreScene = null;
         this.glow = null;
-        this.deepGlow = null;
     }
 
     setupScene() {
@@ -62,6 +55,10 @@ export class ExploreSetup extends BaseSetup {
             return;
         }
 
+        this.glow = new Glow(this.container, this.getGlowOptions());
+    }
+
+    getGlowOptions() {
         const gridWidth = this.CONFIG_GRID.width * this.CONFIG_GRID.cellSize;
         const gridHeight = this.CONFIG_GRID.height * this.CONFIG_GRID.cellSize;
         const gridDepth = this.CONFIG_GRID.depth * this.CONFIG_GRID.cellSize;
@@ -71,56 +68,38 @@ export class ExploreSetup extends BaseSetup {
         const [backX, backY] = projectToBack(gridWidth / 2, gridHeight / 2, x_c, y_c, shrinkK);
         const gridOffset = { x: -gridWidth / 2, y: -gridHeight / 2, z: -45 };
         const offsetX = gridWidth * 0.5;
-        const mainGlow = {
-            color: this.CONFIG_GLOW.color,
-            size: Math.max(gridWidth, gridHeight) * 2,
-            opacity: { min: 0.1, max: 0.9 },
-            position: {
-                x: backX + gridOffset.x + offsetX,
-                y: backY + gridOffset.y,
-                z: -gridDepth + gridOffset.z - 1
+
+        const glowConfigs = [
+            {
+                color: 0x7A42F4,
+                size: Math.max(gridWidth, gridHeight) * 2,
+                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
+                ...this.COMMON_GLOW_PROPS
             },
-            pulse: { speed: 0, intensity: 0, sync: false },
-            movement: { enabled: false },
-            scale: { min: 1, max: 1 }
-        };
-        const deepGlow = {
-            color: 0xC94BFF,
-            size: Math.max(gridWidth, gridHeight) * 3,
-            opacity: { min: 0.6, max: 0.8 },
-            position: {
-                x: backX + gridOffset.x + offsetX,
-                y: backY + gridOffset.y,
-                z: -gridDepth + gridOffset.z - 2
+            {
+                color: 0xC94BFF,
+                size: Math.max(gridWidth, gridHeight) * 3,
+                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 2 },
+                ...this.COMMON_GLOW_PROPS
             },
-            pulse: { speed: 0, intensity: 0, sync: false },
-            movement: { enabled: false },
-            scale: { min: 1, max: 1 }
+            {
+                color: 0x7A42F4,
+                size: Math.max(gridWidth, gridHeight) * 4,
+                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 3 },
+                ...this.COMMON_GLOW_PROPS
+            }
+        ];
+
+        return {
+            count: glowConfigs.length,
+            colors: glowConfigs.map(g => g.color),
+            size: { min: Math.min(...glowConfigs.map(g => g.size)), max: Math.max(...glowConfigs.map(g => g.size)) },
+            opacity: { min: Math.min(...glowConfigs.map(g => g.opacity.min)), max: Math.max(...glowConfigs.map(g => g.opacity.max)) },
+            scale: { min: Math.min(...glowConfigs.map(g => g.scale?.min ?? 1)), max: Math.max(...glowConfigs.map(g => g.scale?.max ?? 1)) },
+            pulse: glowConfigs[0].pulse,
+            movement: glowConfigs[0].movement,
+            initialPositions: glowConfigs.map(g => g.position)
         };
-        // Третий блик (самый большой, насыщенный фиолетовый, глубже всех, почти не масштабируется)
-        const farGlow = {
-            color: 0x7A42F4, // насыщенный фиолетовый
-            size: Math.max(gridWidth, gridHeight) * 4,
-            opacity: { min: 0.6, max: 0.8 },
-            position: {
-                x: backX + gridOffset.x + offsetX,
-                y: backY + gridOffset.y,
-                z: -gridDepth + gridOffset.z - 3 
-            },
-            pulse: { speed: 0, intensity: 0, sync: false },
-            movement: { enabled: false },
-            scale: { min: 1, max: 1 }
-        };
-        this.glow = new Glow(this.container, {
-            count: 3,
-            colors: [mainGlow.color, deepGlow.color, farGlow.color],
-            size: { min: Math.min(mainGlow.size, deepGlow.size, farGlow.size), max: Math.max(mainGlow.size, deepGlow.size, farGlow.size) },
-            opacity: { min: Math.min(mainGlow.opacity.min, deepGlow.opacity.min, farGlow.opacity.min), max: Math.max(mainGlow.opacity.max, deepGlow.opacity.max, farGlow.opacity.max) },
-            scale: { min: Math.min(mainGlow.scale.min, deepGlow.scale.min, farGlow.scale.min), max: Math.max(mainGlow.scale.max, deepGlow.scale.max, farGlow.scale.max) },
-            movement: { enabled: false },
-            pulse: { speed: 0, intensity: 0, sync: false },
-            initialPositions: [mainGlow.position, deepGlow.position, farGlow.position]
-        });
     }
 
     setupGrid(container, options) {
