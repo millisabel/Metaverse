@@ -26,7 +26,7 @@
             right: 25%;
             bottom: 0;
             transform: translateX(50%);
-            z-index: 2;
+            z-index: -1;
             width: 70vw;
         }
 
@@ -34,7 +34,7 @@
             left: 50%;
             bottom: 15%;
             transform: translateX(-50%);
-            z-index: 1;
+            z-index: -1;
             width: 50vw;
         }
 

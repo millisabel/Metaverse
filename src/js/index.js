@@ -38,6 +38,8 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('AnimationObserverCSS');
+    Logger.disableLoggerFor('VRMarketSetup');
+    Logger.disableLoggerFor('CharacterFloatingBadge');
 } else {
     Logger.disableGlobalLogging();
 }
