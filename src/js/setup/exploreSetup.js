@@ -1,6 +1,6 @@
 import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { ExploreScene } from '../components/three/exploreScene';
-import { SingleGlow  } from '../components/three/singleGlow';
+import { Glow } from '../components/three/glow';
 import { projectToBack } from '../utilsThreeD/utilsThreeD';
 
 export class ExploreSetup extends BaseSetup {
@@ -51,6 +51,7 @@ export class ExploreSetup extends BaseSetup {
 
         this.exploreScene = null;
         this.glow = null;
+        this.deepGlow = null;
     }
 
     setupScene() {
@@ -69,24 +70,57 @@ export class ExploreSetup extends BaseSetup {
         const y_c = gridHeight / 2;
         const [backX, backY] = projectToBack(gridWidth / 2, gridHeight / 2, x_c, y_c, shrinkK);
         const gridOffset = { x: -gridWidth / 2, y: -gridHeight / 2, z: -45 };
-        const offsetX = gridWidth * 0.2; // смещение вправо на 25% ширины задней стороны
-        const glowPosition = {
-            x: backX + gridOffset.x + offsetX,
-            y: backY + gridOffset.y,
-            z: -gridDepth + gridOffset.z - 1
+        const offsetX = gridWidth * 0.5;
+        const mainGlow = {
+            color: this.CONFIG_GLOW.color,
+            size: Math.max(gridWidth, gridHeight) * 2,
+            opacity: { min: 0.1, max: 0.9 },
+            position: {
+                x: backX + gridOffset.x + offsetX,
+                y: backY + gridOffset.y,
+                z: -gridDepth + gridOffset.z - 1
+            },
+            pulse: { speed: 0, intensity: 0, sync: false },
+            movement: { enabled: false },
+            scale: { min: 1, max: 1 }
         };
-        const glowSize = Math.max(gridWidth, gridHeight) * 5;
-        const glowOptions = {
-            ...this.CONFIG_GLOW,
-            position: glowPosition,
-            size: glowSize
+        const deepGlow = {
+            color: 0xC94BFF,
+            size: Math.max(gridWidth, gridHeight) * 3,
+            opacity: { min: 0.6, max: 0.8 },
+            position: {
+                x: backX + gridOffset.x + offsetX,
+                y: backY + gridOffset.y,
+                z: -gridDepth + gridOffset.z - 2
+            },
+            pulse: { speed: 0, intensity: 0, sync: false },
+            movement: { enabled: false },
+            scale: { min: 1, max: 1 }
         };
-        this.setupGlow(
-            this.exploreScene.scene,
-            this.exploreScene.renderer,
-            this.container,
-            glowOptions
-        );
+        // Третий блик (самый большой, насыщенный фиолетовый, глубже всех, почти не масштабируется)
+        const farGlow = {
+            color: 0x7A42F4, // насыщенный фиолетовый
+            size: Math.max(gridWidth, gridHeight) * 4,
+            opacity: { min: 0.6, max: 0.8 },
+            position: {
+                x: backX + gridOffset.x + offsetX,
+                y: backY + gridOffset.y,
+                z: -gridDepth + gridOffset.z - 3 
+            },
+            pulse: { speed: 0, intensity: 0, sync: false },
+            movement: { enabled: false },
+            scale: { min: 1, max: 1 }
+        };
+        this.glow = new Glow(this.container, {
+            count: 3,
+            colors: [mainGlow.color, deepGlow.color, farGlow.color],
+            size: { min: Math.min(mainGlow.size, deepGlow.size, farGlow.size), max: Math.max(mainGlow.size, deepGlow.size, farGlow.size) },
+            opacity: { min: Math.min(mainGlow.opacity.min, deepGlow.opacity.min, farGlow.opacity.min), max: Math.max(mainGlow.opacity.max, deepGlow.opacity.max, farGlow.opacity.max) },
+            scale: { min: Math.min(mainGlow.scale.min, deepGlow.scale.min, farGlow.scale.min), max: Math.max(mainGlow.scale.max, deepGlow.scale.max, farGlow.scale.max) },
+            movement: { enabled: false },
+            pulse: { speed: 0, intensity: 0, sync: false },
+            initialPositions: [mainGlow.position, deepGlow.position, farGlow.position]
+        });
     }
 
     setupGrid(container, options) {
@@ -95,11 +129,6 @@ export class ExploreSetup extends BaseSetup {
             sceneInstance.initScene();
         }
         return sceneInstance;
-    }
-
-    setupGlow(scene, renderer, container, options) {
-        this.glow = new SingleGlow (scene, renderer, container, options
-        );
     }
 
     update() {
