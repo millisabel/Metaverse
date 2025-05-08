@@ -485,7 +485,7 @@ console.log("options", options);
      */
     _addLights() {
         // Ambient light for soft global illumination
-        const ambient = new THREE.AmbientLight(0xffffff, 0.22);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambient);
         // Directional light for main highlights
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -495,6 +495,8 @@ console.log("options", options);
         const pointLight = new THREE.PointLight(0xffffff, 0.4, 100);
         pointLight.position.set(-5, 10, 20);
         this.scene.add(pointLight);
+        const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        bottomLight.position.set(0, -10, 10);
         // Tunnel directional light for depth effect
         const width = this.gridWidth * this.cellSize;
         const height = this.gridHeight * this.cellSize;
@@ -504,6 +506,7 @@ console.log("options", options);
         tunnelLight.target.position.set(width / 2, height / 2, -depth / 2);
         this.scene.add(tunnelLight);
         this.scene.add(tunnelLight.target);
+        this.scene.add(bottomLight);
     }
 
     /**
@@ -587,13 +590,10 @@ console.log("options", options);
         const height = gridHeight;
         boxConfigs.forEach((cfg, i) => {
             const geometry = new THREE.BoxGeometry(cfg.size.w, cfg.size.h, cfg.size.d, 16, 4, 16);
-            const material = new THREE.MeshPhysicalMaterial({
+            const material = new THREE.MeshStandardMaterial({
                 color: cfg.color,
-                metalness: 0.8,
-                roughness: 0.1,
-                clearcoat: 1,
-                clearcoatRoughness: 0.05,
-                reflectivity: 0.7,
+                metalness: 0.1,
+                roughness: 0.7,
                 opacity: 1,
                 transparent: false
             });
@@ -622,7 +622,7 @@ console.log("options", options);
             const glossMesh = new THREE.Mesh(glossGeometry, glossMaterial);
             glossMesh.position.set(0, cfg.size.h / 2 + 0.01, 0);
             glossMesh.rotation.x = -Math.PI / 2;
-            mesh.add(glossMesh);
+            // mesh.add(glossMesh);
             // Добавляем параметры вращения
             const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
             const rotationSpeed = 0.15 + Math.random() * 0.3; // рад/сек
