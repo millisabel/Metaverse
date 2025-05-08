@@ -38,17 +38,17 @@ export class ExploreScene extends AnimationController {
     }
 
     /**
-     * Генерирует 3D-сетку тоннеля и добавляет в gridGroup
-     * Включает: сетку, стены, пол, потолок, заднюю и правую грань, прозрачные ячейки
+     * Generates the 3D tunnel grid, positions it, and adds it to the scene.
+     * Includes: grid, walls, floor, ceiling, back and right faces, transparent cells.
      * @private
      */
     _createTunnel() {
-        // Цвета для сетки и рамки
-        const GRID_COLOR = 0x8F70FF; // основной фиолетовый для линий
-        const BORDER_COLOR = 0x7F5CFF; // насыщенный фиолетовый для рамки
+        // Colors for grid and borders
+        const GRID_COLOR = 0x8F70FF; // main purple for lines
+        const BORDER_COLOR = 0x7F5CFF; // saturated purple for borders
         const RIGHT_WALL_COLOR = this.rightWallColor;
 
-        // Параметры сетки
+        // Grid parameters
         const width = this.gridWidth * this.cellSize;
         const height = this.gridHeight * this.cellSize;
         const depth = this.gridDepth * this.cellSize;
@@ -56,8 +56,7 @@ export class ExploreScene extends AnimationController {
         const y_c = height / 2;
         const shrinkK = this.shrinkK;
 
-        // projectToBack теперь из утилов
-        // Вспомогательная функция для добавления линии с перспективой и цветом
+        // Helper to add a line with perspective and color
         const addLinePerspective = (start, end, isBorder = false, colorOverride = null) => {
             const s = [...start];
             const e = [...end];
@@ -82,14 +81,14 @@ export class ExploreScene extends AnimationController {
             const line = new THREE.Line(geometry, material);
             this.gridGroup.add(line);
         };
-        // === Генерация линий сетки ===
-        // Углы пола
+        // --- Grid lines generation ---
+        // Floor corners
         const frontLeft = [0, 0, 0];
         const frontRight = [width, 0, 0];
         const backLeft = [...projectToBack(0, 0, x_c, y_c, shrinkK), -depth];
         const backRight = [...projectToBack(width, 0, x_c, y_c, shrinkK), -depth];
 
-        // Горизонтальные линии
+        // Horizontal floor lines
         for (let x = 0; x <= this.gridWidth; x++) {
             let t = x / this.gridWidth;
             let start = lerpVec3(frontLeft, frontRight, t);
@@ -110,8 +109,7 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(line);
             }
         }
-
-        // Вертикальные линии пола (по z)
+        // Vertical floor lines (z direction)
         for (let z = 0; z <= this.gridDepth; z++) {
             let t = z / this.gridDepth;
             let left = lerpVec3([0, 0, 0], [...projectToBack(0, 0, x_c, y_c, shrinkK), -depth], t);
@@ -128,14 +126,12 @@ export class ExploreScene extends AnimationController {
             const line = new THREE.Line(geometry, material);
             this.gridGroup.add(line);
         }
-
-        // Потолок
+        // Ceiling
         const ceilFrontLeft = [0, height, 0];
         const ceilFrontRight = [width, height, 0];
         const ceilBackLeft = [...projectToBack(0, height, x_c, y_c, shrinkK), -depth];
         const ceilBackRight = [...projectToBack(width, height, x_c, y_c, shrinkK), -depth];
-
-        // Горизонтальные линии потолка
+        // Horizontal ceiling lines
         for (let x = 0; x <= this.gridWidth; x++) {
             let t = x / this.gridWidth;
             let start = lerpVec3(ceilFrontLeft, ceilFrontRight, t);
@@ -156,7 +152,7 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(line);
             }
         }
-        // Вертикальные линии потолка (по z)
+        // Vertical ceiling lines (z direction)
         for (let z = 0; z <= this.gridDepth; z++) {
             let t = z / this.gridDepth;
             let left = lerpVec3([0, height, 0], [...projectToBack(0, height, x_c, y_c, shrinkK), -depth], t);
@@ -173,14 +169,12 @@ export class ExploreScene extends AnimationController {
             const line = new THREE.Line(geometry, material);
             this.gridGroup.add(line);
         }
-
-        // Левая стена
+        // Left wall
         const leftFrontBottom = [0, 0, 0];
         const leftFrontTop = [0, height, 0];
         const leftBackBottom = [...projectToBack(0, 0, x_c, y_c, shrinkK), -depth];
         const leftBackTop = [...projectToBack(0, height, x_c, y_c, shrinkK), -depth];
-
-        // Горизонтальные линии левой стены
+        // Horizontal left wall lines
         for (let y = 0; y <= this.gridHeight; y++) {
             let t = y / this.gridHeight;
             let start = lerpVec3(leftFrontBottom, leftFrontTop, t);
@@ -201,7 +195,7 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(line);
             }
         }
-        // Вертикальные линии левой стены
+        // Vertical left wall lines
         for (let z = 0; z <= this.gridDepth; z++) {
             let t = z / this.gridDepth;
             let start = lerpVec3(leftFrontBottom, leftBackBottom, t);
@@ -218,8 +212,7 @@ export class ExploreScene extends AnimationController {
             const line = new THREE.Line(geometry, material);
             this.gridGroup.add(line);
         }
-
-        // Правая стена (x = width) — только рамка, теперь с перспективой
+        // Right wall (x = width) — only border, with perspective
         const rightFrontBottom = [width, 0, 0];
         const rightFrontTop = [width, height, 0];
         const rightBackBottom = [...projectToBack(width, 0, x_c, y_c, shrinkK), -depth];
@@ -228,8 +221,7 @@ export class ExploreScene extends AnimationController {
         addLinePerspective(rightFrontTop, rightBackTop, true, BORDER_COLOR);
         addLinePerspective(rightBackTop, rightBackBottom, true, BORDER_COLOR);
         addLinePerspective(rightBackBottom, rightFrontBottom, true, BORDER_COLOR);
-
-        // Задняя грань (z = -depth)
+        // Back face (z = -depth)
         for (let x = 0; x <= this.gridWidth; x++) {
             let x0 = x * this.cellSize;
             let [x1, y1] = projectToBack(x0, 0, x_c, y_c, shrinkK);
@@ -270,14 +262,13 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(line);
             }
         }
-
-        // === Границы тоннеля (рамка) ---
-        // Передняя грань (рамка)
-        addLinePerspective([0, 0, 0], [width, 0, 0], true, BORDER_COLOR);      // нижняя
-        addLinePerspective([width, 0, 0], [width, height, 0], true, BORDER_COLOR); // правая
-        addLinePerspective([width, height, 0], [0, height, 0], true, BORDER_COLOR); // верхняя
-        addLinePerspective([0, height, 0], [0, 0, 0], true, BORDER_COLOR);      // левая
-        // Задняя грань (рамка)
+        // --- Tunnel borders (frame) ---
+        // Front face (frame)
+        addLinePerspective([0, 0, 0], [width, 0, 0], true, BORDER_COLOR);      // bottom
+        addLinePerspective([width, 0, 0], [width, height, 0], true, BORDER_COLOR); // right
+        addLinePerspective([width, height, 0], [0, height, 0], true, BORDER_COLOR); // top
+        addLinePerspective([0, height, 0], [0, 0, 0], true, BORDER_COLOR);      // left
+        // Back face (frame)
         let [x0b, y0b] = projectToBack(0, 0, x_c, y_c, shrinkK);
         let [x1b, y1b] = projectToBack(width, 0, x_c, y_c, shrinkK);
         let [x2b, y2b] = projectToBack(width, height, x_c, y_c, shrinkK);
@@ -286,15 +277,13 @@ export class ExploreScene extends AnimationController {
         addLinePerspective([x1b, y1b, -depth], [x2b, y2b, -depth], true, BORDER_COLOR);
         addLinePerspective([x2b, y2b, -depth], [x3b, y3b, -depth], true, BORDER_COLOR);
         addLinePerspective([x3b, y3b, -depth], [x0b, y0b, -depth], true, BORDER_COLOR);
-
-        // === Корректировка нижней линии пола и задней грани ===
-        // Нижняя линия пола (y = 0)
+        // --- Floor and back face correction ---
+        // Bottom floor line (y = 0)
         let [x1f, y1f] = projectToBack(0, 0, x_c, y_c, shrinkK);
         let [x2f, y2f] = projectToBack(width, 0, x_c, y_c, shrinkK);
-        // Нижняя линия задней грани (y = 0)
+        // Bottom back face line (y = 0)
         addLinePerspective([x1f, y1f, -depth], [x2f, y2f, -depth], true, 0xffffff);
-
-        // === Заглушка за синей стороной (right wall fill) ===
+        // --- Right wall fill (solid wall) ---
         const rightWallGeometry = new THREE.PlaneGeometry(depth, height);
         const rightWallMaterial = new THREE.MeshBasicMaterial({
             color: RIGHT_WALL_COLOR,
@@ -306,15 +295,14 @@ export class ExploreScene extends AnimationController {
             polygonOffsetUnits: 1
         });
         const rightWall = new THREE.Mesh(rightWallGeometry, rightWallMaterial);
-        // x = width + 0.1, центр по y и z
+        // x = width + 0.1, center by y and z
         rightWall.position.set(width + 0.1, height / 2, -depth / 2);
-        // Поворот по оси Y
+        // Rotate by Y axis
         rightWall.rotation.y = -Math.PI / 2;
         this.gridGroup.add(rightWall);
-
-        // === Matte-glossy transparent cells for all sides except solid wall ===
+        // --- Matte-glossy transparent cells for all sides except solid wall ---
         const cellMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x6a4fd4, // чуть темнее
+            color: 0x6a4fd4, // slightly darker
             transparent: true,
             opacity: 0.28,
             roughness: 0.6,
@@ -324,7 +312,7 @@ export class ExploreScene extends AnimationController {
             reflectivity: 0.12,
             side: THREE.DoubleSide
         });
-        // Пол
+        // Floor cells
         for (let x = 0; x < this.gridWidth; x++) {
             for (let z = 0; z < this.gridDepth; z++) {
                 const corners = [
@@ -350,7 +338,7 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(mesh);
             }
         }
-        // Потолок
+        // Ceiling cells
         for (let x = 0; x < this.gridWidth; x++) {
             for (let z = 0; z < this.gridDepth; z++) {
                 const corners = [
@@ -376,7 +364,7 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(mesh);
             }
         }
-        // Левая стена
+        // Left wall cells
         for (let y = 0; y < this.gridHeight; y++) {
             for (let z = 0; z < this.gridDepth; z++) {
                 const corners = [
@@ -402,7 +390,7 @@ export class ExploreScene extends AnimationController {
                 this.gridGroup.add(mesh);
             }
         }
-        // Задняя грань
+        // Back face cells
         for (let x = 0; x < this.gridWidth; x++) {
             for (let y = 0; y < this.gridHeight; y++) {
                 const [p1x, p1y] = projectToBack(x * this.cellSize, y * this.cellSize, x_c, y_c, shrinkK);
@@ -426,45 +414,53 @@ export class ExploreScene extends AnimationController {
             }
         }
         this.logger.log('Matte-glossy cells for all sides (except solid wall) added');
-    }
 
-    /**
-     * Генерирует 3D-сетку тоннеля и добавляет в сцену
-     */
-    setupScene() {
-        this.logger.log('setupScene called');
-        this.gridGroup = new THREE.Group();
-        // Вынесено создание тоннеля
-        this._createTunnel();
-        // --- Поворот и позиционирование ---
-        const width = this.gridWidth * this.cellSize;
-        const height = this.gridHeight * this.cellSize;
+        // Set rotation and position for the tunnel group
         this.gridGroup.rotation.y = this.tunnelRotation;
         if (this.tunnelPosition) {
             this.gridGroup.position.set(...this.tunnelPosition);
         } else {
             this.gridGroup.position.set(-width / 2, -height / 2, -45);
         }
-        // Добавляем сетку в сцену
+        // Add tunnel group to the scene
         this.scene.add(this.gridGroup);
-        this.logger.log('Grid group added to scene');
-        // --- Оптимальное освещение сцены ---
+    }
+
+    /**
+     * Adds all lights to the scene: ambient, directional, point, and tunnel light.
+     * @private
+     */
+    _addLights() {
+        // Ambient light for soft global illumination
         const ambient = new THREE.AmbientLight(0xffffff, 0.22);
         this.scene.add(ambient);
+        // Directional light for main highlights
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
         dirLight.position.set(10, 20, 30);
         this.scene.add(dirLight);
+        // Point light for additional local lighting
         const pointLight = new THREE.PointLight(0xffffff, 0.4, 100);
         pointLight.position.set(-5, 10, 20);
         this.scene.add(pointLight);
-        // --- Направленный свет внутрь тоннеля ---
+        // Tunnel directional light for depth effect
+        const width = this.gridWidth * this.cellSize;
+        const height = this.gridHeight * this.cellSize;
+        const depth = this.gridDepth * this.cellSize;
         const tunnelLight = new THREE.DirectionalLight(0xffffff, 1.1);
         tunnelLight.position.set(-10, height / 2, 40);
-        tunnelLight.target.position.set(width / 2, height / 2, -(this.gridDepth * this.cellSize) / 2);
+        tunnelLight.target.position.set(width / 2, height / 2, -depth / 2);
         this.scene.add(tunnelLight);
         this.scene.add(tunnelLight.target);
-        // ---
-        // Добавляем объекты в тоннель
+    }
+
+    /**
+     * Generates the 3D tunnel scene, adds tunnel, lights, and objects.
+     */
+    setupScene() {
+        this.logger.log('setupScene called');
+        this.gridGroup = new THREE.Group();
+        this._createTunnel();
+        this._addLights();
         this.addTunnelObjects();
     }
 
