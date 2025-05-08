@@ -274,6 +274,32 @@ export class ExploreScene extends AnimationController {
         addLinePerspective([width, 0, 0], [width, height, 0], true, FRONT_BORDER_COLOR); // right
         addLinePerspective([width, height, 0], [0, height, 0], true, FRONT_BORDER_COLOR); // top
         addLinePerspective([0, height, 0], [0, 0, 0], true, FRONT_BORDER_COLOR);      // left
+
+        // --- Glow effect for front frame: add a second layer of lines with lighter color and more thickness ---
+        const GLOW_COLOR = 0xE0D7FF; // light glow color
+        const GLOW_OPACITY = 0.5;
+        const GLOW_LINE_WIDTH = (this.borderLineWidth || 3) * 2.2;
+        const addGlowLine = (start, end) => {
+            const s = [...start];
+            const e = [...end];
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(...s),
+                new THREE.Vector3(...e)
+            ]);
+            const material = new THREE.LineBasicMaterial({
+                color: GLOW_COLOR,
+                linewidth: GLOW_LINE_WIDTH,
+                transparent: true,
+                opacity: GLOW_OPACITY
+            });
+            const line = new THREE.Line(geometry, material);
+            this.gridGroup.add(line);
+        };
+        // Add glow lines for each front frame edge
+        addGlowLine([0, 0, 0], [width, 0, 0]);      // bottom
+        addGlowLine([width, 0, 0], [width, height, 0]); // right
+        addGlowLine([width, height, 0], [0, height, 0]); // top
+        addGlowLine([0, height, 0], [0, 0, 0]);      // left
         // Back face (frame) - use borderColor
         let [x0b, y0b] = projectToBack(0, 0, x_c, y_c, shrinkK);
         let [x1b, y1b] = projectToBack(width, 0, x_c, y_c, shrinkK);
