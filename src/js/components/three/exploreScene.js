@@ -514,6 +514,8 @@ console.log("options", options);
         if (!Array.isArray(imageObjects) || imageObjects.length === 0) return;
         const loader = new THREE.TextureLoader();
         const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
+        const width = gridWidth;
+        const height = gridHeight;
         imageObjects.forEach((obj, idx) => {
             if (!obj || typeof obj !== 'object') return;
             const size = obj.size || { w: 1, h: 1 };
@@ -527,10 +529,19 @@ console.log("options", options);
                         opacity: 0 
                     });
                     const mesh = new THREE.Mesh(geometry, material);
-                    const pos = obj.position || { x: gridWidth * -0.1, y: gridHeight * 0, z: -gridDepth * 0.1 };
+                    // Генерируем стартовую позицию в пределах front face тоннеля, не ближе чем 30% к правой стороне
+                    let pos;
+                    if (obj.position) {
+                        pos = obj.position;
+                    } else {
+                        const x = -width / 2 + Math.random() * (width / 2); // от левой границы до центра
+                        const y = -height / 2 + Math.random() * height;     // по всей высоте тоннеля
+                        const z = 0;
+                        pos = { x, y, z };
+                    }
                     mesh.position.set(pos.x, pos.y, pos.z);
                     mesh.name = obj.name || `image_object_${idx}`;
-                    mesh.scale.set(0, 0, 1); 
+                    mesh.scale.set(10, 10, 1); 
                     this.scene.add(mesh);
                     // Добавляем параметры вращения
                     const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
@@ -553,7 +564,6 @@ console.log("options", options);
                         freqA: 0.7 + Math.random() * 0.3 + idx * 0.07,
                         freqB: 0.8 + Math.random() * 0.3 + idx * 0.09,
                         moveStart: null,
-                        // Новое:
                         rotationAxis,
                         rotationSpeed,
                         rotationPhase
@@ -572,8 +582,9 @@ console.log("options", options);
      * @param {Array} boxConfigs - Array of objects: { color: number, size: {w: number, h: number, d: number}, position?: {x: number, y: number, z: number} }
      */
     addTunnelBoxes(boxConfigs) {
-        console.log("boxConfigs", boxConfigs);
         const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
+        const width = gridWidth;
+        const height = gridHeight;
         boxConfigs.forEach((cfg, i) => {
             const geometry = new THREE.BoxGeometry(cfg.size.w, cfg.size.h, cfg.size.d, 16, 4, 16);
             const material = new THREE.MeshPhysicalMaterial({
@@ -586,12 +597,20 @@ console.log("options", options);
                 opacity: 1,
                 transparent: false
             });
-            // Start position (if provided), else center
-            const pos = cfg.position || { x: gridWidth * -0.1, y: gridHeight * 0, z: -gridDepth * 0.1 };
+            // Генерируем стартовую позицию в пределах front face тоннеля, не ближе чем 30% к правой стороне
+            let pos;
+            if (cfg.position) {
+                pos = cfg.position;
+            } else {
+                const x = -width / 2 + Math.random() * (width / 2); // от левой границы до центра
+                const y = -height / 2 + Math.random() * height;     // по всей высоте тоннеля
+                const z = 0;
+                pos = { x, y, z };
+            }
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(pos.x, pos.y, pos.z);
             mesh.rotation.x = 0;
-            mesh.scale.set(0, 0, 1);
+            mesh.scale.set(1, 1, 1); // scale 1 для лучшей видимости
             this.scene.add(mesh);
             // Add highlight (gloss) as a thin white plane on top
             const glossGeometry = new THREE.PlaneGeometry(cfg.size.w * 0.8, cfg.size.d * 0.7);
@@ -625,7 +644,6 @@ console.log("options", options);
                 freqA: 0.7 + Math.random() * 0.3 + i * 0.07,
                 freqB: 0.8 + Math.random() * 0.3 + i * 0.09,
                 moveStart: null,
-                // Новое:
                 rotationAxis,
                 rotationSpeed,
                 rotationPhase
@@ -658,7 +676,10 @@ console.log("options", options);
             } else if (obj.state === 'fading-in') {
                 const t = Math.min(obj.timer / obj.durationFadeIn, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? t * 0.98 : t;
-                obj.mesh.scale.set(t, t, 1);
+                const minScale = 0.5; // минимальный scale в конце анимации
+                const maxScale = 2;  // стартовый scale
+                const scale = maxScale - (maxScale - minScale) * t;
+                obj.mesh.scale.set(scale, scale, 1);
                 // Плавное появление — вращение не применяем
                 if (t >= 1) {
                     obj.state = 'moving';
@@ -677,7 +698,10 @@ console.log("options", options);
                 obj.mesh.position.x = baseX + Math.sin(now * obj.freqA + i) * obj.floatA;
                 obj.mesh.position.y = baseY + Math.cos(now * obj.freqB + i * 0.5) * obj.floatB;
                 obj.mesh.position.z = baseZ;
-                const scale = 1 - t;
+                // const scale = 1 - t;
+                const minScale = 0.7; // минимальный scale в конце анимации
+                const maxScale = 2;  // стартовый scale
+                const scale = maxScale - (maxScale - minScale) * t;
                 obj.mesh.scale.set(scale, scale, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0.98 * (1 - t * 0.2) : 1 - t * 0.2;
                 // Новое: плавное вращение

@@ -8,7 +8,7 @@ export class ExploreSetup extends BaseSetup {
         super('explore-img', 'ExploreSetup', {
             camera: {
                 fov: 75,
-                position: { x: 0, y: 0, z: 80 },
+                position: { x: 0, y: 0, z: 0 },
                 lookAt: { x: 0, y: 0, z: 0 }
             },
             renderer: {
