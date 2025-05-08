@@ -532,6 +532,10 @@ console.log("options", options);
                     mesh.name = obj.name || `image_object_${idx}`;
                     mesh.scale.set(0, 0, 1); 
                     this.scene.add(mesh);
+                    // Добавляем параметры вращения
+                    const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
+                    const rotationSpeed = 0.2 + Math.random() * 0.4; // рад/сек
+                    const rotationPhase = Math.random() * Math.PI * 2;
                     this.tunnelItems.push({
                         type: 'image',
                         mesh,
@@ -548,7 +552,11 @@ console.log("options", options);
                         floatB: 0.35 + Math.random() * 0.15,
                         freqA: 0.7 + Math.random() * 0.3 + idx * 0.07,
                         freqB: 0.8 + Math.random() * 0.3 + idx * 0.09,
-                        moveStart: null
+                        moveStart: null,
+                        // Новое:
+                        rotationAxis,
+                        rotationSpeed,
+                        rotationPhase
                     });
                 },
                 undefined,
@@ -596,6 +604,10 @@ console.log("options", options);
             glossMesh.position.set(0, cfg.size.h / 2 + 0.01, 0);
             glossMesh.rotation.x = -Math.PI / 2;
             mesh.add(glossMesh);
+            // Добавляем параметры вращения
+            const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
+            const rotationSpeed = 0.15 + Math.random() * 0.3; // рад/сек
+            const rotationPhase = Math.random() * Math.PI * 2;
             this.tunnelItems.push({
                 type: 'box',
                 mesh,
@@ -612,7 +624,11 @@ console.log("options", options);
                 floatB: 0.35 + Math.random() * 0.15,
                 freqA: 0.7 + Math.random() * 0.3 + i * 0.07,
                 freqB: 0.8 + Math.random() * 0.3 + i * 0.09,
-                moveStart: null
+                moveStart: null,
+                // Новое:
+                rotationAxis,
+                rotationSpeed,
+                rotationPhase
             });
         });
     }
@@ -631,6 +647,10 @@ console.log("options", options);
                 obj.mesh.position.set(obj.start.x, obj.start.y, obj.start.z);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0 : 0;
                 obj.mesh.scale.set(0, 0, 1);
+                // Сброс вращения
+                obj.mesh.rotation.x = 0;
+                obj.mesh.rotation.y = 0;
+                obj.mesh.rotation.z = 0;
                 if (obj.timer >= obj.delay) {
                     obj.state = 'fading-in';
                     obj.timer = 0;
@@ -639,6 +659,7 @@ console.log("options", options);
                 const t = Math.min(obj.timer / obj.durationFadeIn, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? t * 0.98 : t;
                 obj.mesh.scale.set(t, t, 1);
+                // Плавное появление — вращение не применяем
                 if (t >= 1) {
                     obj.state = 'moving';
                     obj.timer = 0;
@@ -659,6 +680,11 @@ console.log("options", options);
                 const scale = 1 - t;
                 obj.mesh.scale.set(scale, scale, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0.98 * (1 - t * 0.2) : 1 - t * 0.2;
+                // Новое: плавное вращение
+                if (obj.rotationAxis && obj.rotationSpeed) {
+                    const angle = Math.sin(now * 0.7 + obj.rotationPhase) * 0.2 + (now * obj.rotationSpeed);
+                    obj.mesh.rotation[obj.rotationAxis] = angle;
+                }
                 // Repulsion for all items
                 for (let j = 0; j < this.tunnelItems.length; j++) {
                     if (i === j) continue;
@@ -704,7 +730,7 @@ console.log("options", options);
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }
-        // Unified animation update for all tunnel items
+        
         if (this.tunnelItems && this.tunnelItems.length) {
             this.updateTunnelObjects(delta || 0.016);
         }
