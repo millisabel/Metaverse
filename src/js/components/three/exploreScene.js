@@ -46,6 +46,20 @@ export class ExploreScene extends AnimationController {
     }
 
     /**
+     * Returns tunnel grid dimensions and center positions.
+     * @private
+     */
+    _getTunnelDimensions() {
+        const gridWidth = this.gridWidth * this.cellSize;
+        const gridHeight = this.gridHeight * this.cellSize;
+        const gridDepth = this.gridDepth * this.cellSize;
+        const localCenter = new THREE.Vector3(gridWidth / 1.4, gridHeight / 2, -gridDepth / 2);
+        this.gridGroup.updateMatrixWorld(true);
+        const worldCenter = localCenter.clone().applyMatrix4(this.gridGroup.matrixWorld);
+        return { gridWidth, gridHeight, gridDepth, localCenter, worldCenter };
+    }
+
+    /**
      * Generates the 3D tunnel grid, positions it, and adds it to the scene.
      * Includes: grid, walls, floor, ceiling, back and right faces, transparent cells.
      * @private
@@ -493,13 +507,7 @@ export class ExploreScene extends AnimationController {
      */
     addTunnelImageObjects(imageObjects) {
         const loader = new THREE.TextureLoader();
-        const gridWidth = this.gridWidth * this.cellSize;
-        const gridHeight = this.gridHeight * this.cellSize;
-        const gridDepth = this.gridDepth * this.cellSize;
-        // Center of the tunnel in world coordinates
-        const localCenter = new THREE.Vector3(gridWidth / 1.4, gridHeight / 2, -gridDepth / 2);
-        this.gridGroup.updateMatrixWorld(true);
-        const worldCenter = localCenter.clone().applyMatrix4(this.gridGroup.matrixWorld);
+        const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
         imageObjects.forEach((obj, idx) => {
             loader.load(
                 obj.file,
@@ -549,13 +557,7 @@ export class ExploreScene extends AnimationController {
      * @param {Array} boxConfigs - Array of objects: { color: number, size: {w: number, h: number, d: number}, position?: {x: number, y: number, z: number} }
      */
     addTunnelBoxes(boxConfigs) {
-        const gridWidth = this.gridWidth * this.cellSize;
-        const gridHeight = this.gridHeight * this.cellSize;
-        const gridDepth = this.gridDepth * this.cellSize;
-        // Center of the tunnel in world coordinates
-        const localCenter = new THREE.Vector3(gridWidth / 1.4, gridHeight / 2, -gridDepth / 2);
-        this.gridGroup.updateMatrixWorld(true);
-        const worldCenter = localCenter.clone().applyMatrix4(this.gridGroup.matrixWorld);
+        const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
         boxConfigs.forEach((cfg, i) => {
             const geometry = new THREE.BoxGeometry(cfg.size.w, cfg.size.h, cfg.size.d, 16, 4, 16);
             const material = new THREE.MeshPhysicalMaterial({
