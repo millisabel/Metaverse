@@ -564,6 +564,7 @@ console.log("options", options);
      * @param {Array} boxConfigs - Array of objects: { color: number, size: {w: number, h: number, d: number}, position?: {x: number, y: number, z: number} }
      */
     addTunnelBoxes(boxConfigs) {
+        console.log("boxConfigs", boxConfigs);
         const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
         boxConfigs.forEach((cfg, i) => {
             const geometry = new THREE.BoxGeometry(cfg.size.w, cfg.size.h, cfg.size.d, 16, 4, 16);
@@ -696,14 +697,7 @@ console.log("options", options);
         this._addLights();
         // Example usage: pass configs from outside in real use
         this.addTunnelImageObjects(this.imageConfigs);
-        this.addTunnelBoxes([
-            { color: 0x7A42F4, size: { w: 1, h: 0.3, d: 4 } },
-            { color: 0xF00AFE, size: { w: 1, h: 0.3, d: 4 } },
-            { color: 0xC06829, size: { w: 1, h: 0.3, d: 4 } },
-            { color: 0xC94BFF, size: { w: 1, h: 0.3, d: 4 } },
-            { color: 0x7A42F4, size: { w: 1, h: 0.3, d: 4 } },
-            { color: 0xF00AFE, size: { w: 1, h: 0.3, d: 4 } }
-        ]);
+        this.addTunnelBoxes(this.boxConfigs);
     }
 
     update(delta) {

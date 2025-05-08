@@ -41,6 +41,15 @@ export class ExploreSetup extends BaseSetup {
             { file: './assets/images/explore_3D/objects/object_picture.png', size: { w: 1.8, h: 1.8 } }
         ];
 
+        this.BOX_CONFIGS = [
+            { color: 0x7A42F4, size: { w: 1, h: 0.2, d: 3 } },
+            { color: 0x4642F4, size: { w: 0.7, h: 0.3, d: 2.5 } },
+            { color: 0xF00AFE, size: { w: 1.2, h: 0.5, d: 4 } },
+            { color: 0x56FFEB, size: { w: 0.5, h: 0.1, d: 2 } },
+            { color: 0xe6cf12, size: { w: 1.5, h: 0.5, d: 4 } },
+            { color: 0xff5722, size: { w: 0.4, h: 0.1, d: 2.5 } },
+        ];
+
         this.CONFIG_GRID = {
             width: 4,
             height: 6,
@@ -54,10 +63,6 @@ export class ExploreSetup extends BaseSetup {
             imageConfigs: this.IMAGE_CONFIGS,
             boxConfigs: this.BOX_CONFIGS
         };
-
-        this.BOX_CONFIGS = [
-            
-        ];
 
         this.exploreScene = null;
         this.glow = null;
