@@ -23,7 +23,7 @@ export class ExploreScene extends AnimationController {
         super(container, options);
         this.logger = createLogger('ExploreScene');
         this.logger.log('ExploreScene constructor', { options });
-
+console.log("options", options);
         this.gridWidth = options.gridWidth || 4;
         this.gridHeight = options.gridHeight || 6;
         this.gridDepth = options.gridDepth || 8;
@@ -35,7 +35,7 @@ export class ExploreScene extends AnimationController {
         this.tunnelRotation = options.tunnelRotation !== undefined ? options.tunnelRotation : -Math.PI / 8;
         this.tunnelPosition = options.tunnelPosition || null; 
 
-        this.borderColor = options.borderColor !== undefined ? options.borderColor : 0xFFFFFF;
+        this.gridColor = options.gridColor !== undefined ? options.gridColor : 0xFFFFFF;
         this.rightWallColor = options.rightWallColor !== undefined ? options.rightWallColor : 0x000000;
         // Set front border color for the front frame of the tunnel
         this.frontBorderColor = options.frontBorderColor !== undefined ? options.frontBorderColor : 0xA18FFF;
@@ -43,6 +43,9 @@ export class ExploreScene extends AnimationController {
         this.gridGroup = null;
         // Unified array for all tunnel items (images and boxes)
         this.tunnelItems = [];
+
+        this.imageConfigs = options.imageConfigs || [];
+        this.boxConfigs = options.boxConfigs || [];
     }
 
     /**
@@ -66,7 +69,7 @@ export class ExploreScene extends AnimationController {
      */
     _createTunnel() {
         // Colors for grid and borders
-        const GRID_COLOR = this.borderColor;
+        const GRID_COLOR = this.gridColor;
         const RIGHT_WALL_COLOR = this.rightWallColor;
         const FRONT_BORDER_COLOR = this.frontBorderColor;
 
@@ -79,7 +82,7 @@ export class ExploreScene extends AnimationController {
         const shrinkK = this.shrinkK;
 
         // Helper to add a line with perspective and color
-        const addLinePerspective = (start, end, isBorder = false, colorOverride = null) => {
+        const addLinePerspective = (start, end, isBorder = false, colorOverride) => {
             const s = [...start];
             const e = [...end];
             if (s[2] === -depth) {
@@ -90,12 +93,14 @@ export class ExploreScene extends AnimationController {
                 const [x, y] = projectToBack(e[0], e[1], x_c, y_c, shrinkK);
                 e[0] = x; e[1] = y;
             }
+            // Явно задаём цвет: если не передан, используем this.gridColor
+            const color = (typeof colorOverride !== 'undefined') ? colorOverride : this.gridColor;
             const geometry = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(...s),
                 new THREE.Vector3(...e)
             ]);
             const material = new THREE.LineBasicMaterial({
-                color: colorOverride || (isBorder ? 0x7F5CFF : GRID_COLOR),
+                color: color,
                 linewidth: isBorder ? this.borderLineWidth : this.lineWidth,
                 transparent: false,
                 opacity: 1
@@ -117,7 +122,7 @@ export class ExploreScene extends AnimationController {
             let end = lerpVec3(backLeft, backRight, t);
             for (let z = 0; z < this.gridDepth; z++) {
                 const material = new THREE.LineBasicMaterial({
-                    color: GRID_COLOR,
+                    color: this.gridColor,
                     transparent: false,
                     opacity: 1
                 });
@@ -137,7 +142,7 @@ export class ExploreScene extends AnimationController {
             let left = lerpVec3([0, 0, 0], [...projectToBack(0, 0, x_c, y_c, shrinkK), -depth], t);
             let right = lerpVec3([width, 0, 0], [...projectToBack(width, 0, x_c, y_c, shrinkK), -depth], t);
             const material = new THREE.LineBasicMaterial({
-                color: GRID_COLOR,
+                color: this.gridColor,
                 transparent: false,
                 opacity: 1
             });
@@ -239,10 +244,10 @@ export class ExploreScene extends AnimationController {
         const rightFrontTop = [width, height, 0];
         const rightBackBottom = [...projectToBack(width, 0, x_c, y_c, shrinkK), -depth];
         const rightBackTop = [...projectToBack(width, height, x_c, y_c, shrinkK), -depth];
-        addLinePerspective(rightFrontBottom, rightFrontTop, true, 0x7F5CFF);
-        addLinePerspective(rightFrontTop, rightBackTop, true, 0x7F5CFF);
-        addLinePerspective(rightBackTop, rightBackBottom, true, 0x7F5CFF);
-        addLinePerspective(rightBackBottom, rightFrontBottom, true, 0x7F5CFF);
+        addLinePerspective(rightFrontBottom, rightFrontTop, true, GRID_COLOR);
+        addLinePerspective(rightFrontTop, rightBackTop, true, GRID_COLOR);
+        addLinePerspective(rightBackTop, rightBackBottom, true, GRID_COLOR);
+        addLinePerspective(rightBackBottom, rightFrontBottom, true, GRID_COLOR);
         // Back face (z = -depth)
         for (let x = 0; x <= this.gridWidth; x++) {
             let x0 = x * this.cellSize;
@@ -503,27 +508,29 @@ export class ExploreScene extends AnimationController {
 
     /**
      * Adds image objects (PlaneGeometry with texture) to the tunnel.
-     * @param {Array} imageObjects - Array of objects: { file: string, size: {w: number, h: number}, position?: {x: number, y: number, z: number} }
+     * @param {Array} imageObjects - Array of objects: { file: string, size?: {w: number, h: number}, position?: {x: number, y: number, z: number} }
      */
     addTunnelImageObjects(imageObjects) {
+        if (!Array.isArray(imageObjects) || imageObjects.length === 0) return;
         const loader = new THREE.TextureLoader();
         const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
         imageObjects.forEach((obj, idx) => {
+            if (!obj || typeof obj !== 'object') return;
+            const size = obj.size || { w: 1, h: 1 };
             loader.load(
                 obj.file,
                 texture => {
-                    const geometry = new THREE.PlaneGeometry(obj.size.w, obj.size.h);
+                    const geometry = new THREE.PlaneGeometry(size.w, size.h);
                     const material = new THREE.MeshBasicMaterial({
                         map: texture,
                         transparent: true,
-                        opacity: 0 // start transparent
+                        opacity: 0 
                     });
                     const mesh = new THREE.Mesh(geometry, material);
-                    // Start position (if provided), else center
                     const pos = obj.position || { x: gridWidth * -0.1, y: gridHeight * 0, z: -gridDepth * 0.1 };
                     mesh.position.set(pos.x, pos.y, pos.z);
                     mesh.name = obj.name || `image_object_${idx}`;
-                    mesh.scale.set(0, 0, 1); // start scale 0
+                    mesh.scale.set(0, 0, 1); 
                     this.scene.add(mesh);
                     this.tunnelItems.push({
                         type: 'image',
@@ -688,13 +695,7 @@ export class ExploreScene extends AnimationController {
         this._createTunnel();
         this._addLights();
         // Example usage: pass configs from outside in real use
-        this.addTunnelImageObjects([
-            { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 1, h: 1 } },
-            { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 1, h: 1 } },
-            { file: './assets/images/explore_3D/objects/object_money.png', size: { w: 1, h: 1 } },
-            { file: './assets/images/explore_3D/objects/object_link.png', size: { w: 1, h: 1 } },
-            { file: './assets/images/explore_3D/objects/object_picture.png', size: { w: 1, h: 1 } }
-        ]);
+        this.addTunnelImageObjects(this.imageConfigs);
         this.addTunnelBoxes([
             { color: 0x7A42F4, size: { w: 1, h: 0.3, d: 4 } },
             { color: 0xF00AFE, size: { w: 1, h: 0.3, d: 4 } },

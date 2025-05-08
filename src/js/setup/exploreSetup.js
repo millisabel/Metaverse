@@ -26,6 +26,21 @@ export class ExploreSetup extends BaseSetup {
             GLOW: '-1'
         };
 
+        this.COMMON_GLOW_PROPS = {
+            pulse: { speed: 0.05, intensity: 0.05, sync: false },
+            movement: { enabled: false },
+            opacity: { min: 0.1, max: 0.9 },
+            scale: { min: 0.8, max: 1.2 }
+        };
+
+        this.IMAGE_CONFIGS = [
+            { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 2, h: 2 } },
+            { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 2, h: 2 } },
+            { file: './assets/images/explore_3D/objects/object_money.png', size: { w: 1, h: 1 } },
+            { file: './assets/images/explore_3D/objects/object_link.png', size: { w: 1.5, h: 1.5 } },
+            { file: './assets/images/explore_3D/objects/object_picture.png', size: { w: 1.8, h: 1.8 } }
+        ];
+
         this.CONFIG_GRID = {
             width: 4,
             height: 6,
@@ -34,16 +49,15 @@ export class ExploreSetup extends BaseSetup {
             lineWidth: 1.5,
             borderLineWidth: 3,
             rightWallColor: 0x1e0b39,
-            borderColor: 0x7F5CFF,
+            gridColor: 0x7F5CFF,
             frontBorderColor: 0xA18FFF,
+            imageConfigs: this.IMAGE_CONFIGS,
+            boxConfigs: this.BOX_CONFIGS
         };
 
-        this.COMMON_GLOW_PROPS = {
-            pulse: { speed: 0.05, intensity: 0.05, sync: false },
-            movement: { enabled: false },
-            opacity: { min: 0.1, max: 0.9 },
-            scale: { min: 0.8, max: 1.2 }
-        };
+        this.BOX_CONFIGS = [
+            
+        ];
 
         this.exploreScene = null;
         this.glow = null;
