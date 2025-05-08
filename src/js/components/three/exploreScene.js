@@ -38,12 +38,11 @@ export class ExploreScene extends AnimationController {
     }
 
     /**
-     * Генерирует 3D-сетку тоннеля и добавляет в сцену
+     * Генерирует 3D-сетку тоннеля и добавляет в gridGroup
+     * Включает: сетку, стены, пол, потолок, заднюю и правую грань, прозрачные ячейки
+     * @private
      */
-    setupScene() {
-        this.logger.log('setupScene called');
-        this.gridGroup = new THREE.Group();
-
+    _createTunnel() {
         // Цвета для сетки и рамки
         const GRID_COLOR = 0x8F70FF; // основной фиолетовый для линий
         const BORDER_COLOR = 0x7F5CFF; // насыщенный фиолетовый для рамки
@@ -57,9 +56,7 @@ export class ExploreScene extends AnimationController {
         const y_c = height / 2;
         const shrinkK = this.shrinkK;
 
-        // --- Перспективное сжатие ячеек ---
         // projectToBack теперь из утилов
-
         // Вспомогательная функция для добавления линии с перспективой и цветом
         const addLinePerspective = (start, end, isBorder = false, colorOverride = null) => {
             const s = [...start];
@@ -85,7 +82,6 @@ export class ExploreScene extends AnimationController {
             const line = new THREE.Line(geometry, material);
             this.gridGroup.add(line);
         };
-
         // === Генерация линий сетки ===
         // Углы пола
         const frontLeft = [0, 0, 0];
@@ -430,15 +426,25 @@ export class ExploreScene extends AnimationController {
             }
         }
         this.logger.log('Matte-glossy cells for all sides (except solid wall) added');
+    }
 
+    /**
+     * Генерирует 3D-сетку тоннеля и добавляет в сцену
+     */
+    setupScene() {
+        this.logger.log('setupScene called');
+        this.gridGroup = new THREE.Group();
+        // Вынесено создание тоннеля
+        this._createTunnel();
         // --- Поворот и позиционирование ---
+        const width = this.gridWidth * this.cellSize;
+        const height = this.gridHeight * this.cellSize;
         this.gridGroup.rotation.y = this.tunnelRotation;
         if (this.tunnelPosition) {
             this.gridGroup.position.set(...this.tunnelPosition);
         } else {
             this.gridGroup.position.set(-width / 2, -height / 2, -45);
         }
-
         // Добавляем сетку в сцену
         this.scene.add(this.gridGroup);
         this.logger.log('Grid group added to scene');
@@ -454,7 +460,7 @@ export class ExploreScene extends AnimationController {
         // --- Направленный свет внутрь тоннеля ---
         const tunnelLight = new THREE.DirectionalLight(0xffffff, 1.1);
         tunnelLight.position.set(-10, height / 2, 40);
-        tunnelLight.target.position.set(width / 2, height / 2, -depth / 2);
+        tunnelLight.target.position.set(width / 2, height / 2, -(this.gridDepth * this.cellSize) / 2);
         this.scene.add(tunnelLight);
         this.scene.add(tunnelLight.target);
         // ---
