@@ -34,6 +34,8 @@ export class ExploreSetup extends BaseSetup {
             lineWidth: 1.5,
             borderLineWidth: 3,
             rightWallColor: 0x1e0b39,
+            borderColor: 0x7F5CFF,
+            frontBorderColor: 0xA18FFF,
         };
 
         this.COMMON_GLOW_PROPS = {

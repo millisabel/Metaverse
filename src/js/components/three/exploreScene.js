@@ -23,6 +23,7 @@ export class ExploreScene extends AnimationController {
         super(container, options);
         this.logger = createLogger('ExploreScene');
         this.logger.log('ExploreScene constructor', { options });
+
         this.gridWidth = options.gridWidth || 4;
         this.gridHeight = options.gridHeight || 6;
         this.gridDepth = options.gridDepth || 8;
@@ -33,7 +34,12 @@ export class ExploreScene extends AnimationController {
         this.cellSizeBack = options.cellSizeBack || 1;
         this.tunnelRotation = options.tunnelRotation !== undefined ? options.tunnelRotation : -Math.PI / 8;
         this.tunnelPosition = options.tunnelPosition || null; 
+
+        this.borderColor = options.borderColor !== undefined ? options.borderColor : 0xFFFFFF;
         this.rightWallColor = options.rightWallColor !== undefined ? options.rightWallColor : 0x000000;
+        // Set front border color for the front frame of the tunnel
+        this.frontBorderColor = options.frontBorderColor !== undefined ? options.frontBorderColor : 0xA18FFF;
+        
         this.gridGroup = null;
     }
 
@@ -44,9 +50,9 @@ export class ExploreScene extends AnimationController {
      */
     _createTunnel() {
         // Colors for grid and borders
-        const GRID_COLOR = 0x8F70FF; // main purple for lines
-        const BORDER_COLOR = 0x7F5CFF; // saturated purple for borders
+        const GRID_COLOR = this.borderColor;
         const RIGHT_WALL_COLOR = this.rightWallColor;
+        const FRONT_BORDER_COLOR = this.frontBorderColor;
 
         // Grid parameters
         const width = this.gridWidth * this.cellSize;
@@ -73,7 +79,7 @@ export class ExploreScene extends AnimationController {
                 new THREE.Vector3(...e)
             ]);
             const material = new THREE.LineBasicMaterial({
-                color: colorOverride || (isBorder ? BORDER_COLOR : GRID_COLOR),
+                color: colorOverride || (isBorder ? 0x7F5CFF : GRID_COLOR),
                 linewidth: isBorder ? this.borderLineWidth : this.lineWidth,
                 transparent: false,
                 opacity: 1
@@ -217,10 +223,10 @@ export class ExploreScene extends AnimationController {
         const rightFrontTop = [width, height, 0];
         const rightBackBottom = [...projectToBack(width, 0, x_c, y_c, shrinkK), -depth];
         const rightBackTop = [...projectToBack(width, height, x_c, y_c, shrinkK), -depth];
-        addLinePerspective(rightFrontBottom, rightFrontTop, true, BORDER_COLOR);
-        addLinePerspective(rightFrontTop, rightBackTop, true, BORDER_COLOR);
-        addLinePerspective(rightBackTop, rightBackBottom, true, BORDER_COLOR);
-        addLinePerspective(rightBackBottom, rightFrontBottom, true, BORDER_COLOR);
+        addLinePerspective(rightFrontBottom, rightFrontTop, true, 0x7F5CFF);
+        addLinePerspective(rightFrontTop, rightBackTop, true, 0x7F5CFF);
+        addLinePerspective(rightBackTop, rightBackBottom, true, 0x7F5CFF);
+        addLinePerspective(rightBackBottom, rightFrontBottom, true, 0x7F5CFF);
         // Back face (z = -depth)
         for (let x = 0; x <= this.gridWidth; x++) {
             let x0 = x * this.cellSize;
@@ -263,20 +269,20 @@ export class ExploreScene extends AnimationController {
             }
         }
         // --- Tunnel borders (frame) ---
-        // Front face (frame)
-        addLinePerspective([0, 0, 0], [width, 0, 0], true, BORDER_COLOR);      // bottom
-        addLinePerspective([width, 0, 0], [width, height, 0], true, BORDER_COLOR); // right
-        addLinePerspective([width, height, 0], [0, height, 0], true, BORDER_COLOR); // top
-        addLinePerspective([0, height, 0], [0, 0, 0], true, BORDER_COLOR);      // left
-        // Back face (frame)
+        // Front face (frame) - use FRONT_BORDER_COLOR
+        addLinePerspective([0, 0, 0], [width, 0, 0], true, FRONT_BORDER_COLOR);      // bottom
+        addLinePerspective([width, 0, 0], [width, height, 0], true, FRONT_BORDER_COLOR); // right
+        addLinePerspective([width, height, 0], [0, height, 0], true, FRONT_BORDER_COLOR); // top
+        addLinePerspective([0, height, 0], [0, 0, 0], true, FRONT_BORDER_COLOR);      // left
+        // Back face (frame) - use borderColor
         let [x0b, y0b] = projectToBack(0, 0, x_c, y_c, shrinkK);
         let [x1b, y1b] = projectToBack(width, 0, x_c, y_c, shrinkK);
         let [x2b, y2b] = projectToBack(width, height, x_c, y_c, shrinkK);
         let [x3b, y3b] = projectToBack(0, height, x_c, y_c, shrinkK);
-        addLinePerspective([x0b, y0b, -depth], [x1b, y1b, -depth], true, BORDER_COLOR);
-        addLinePerspective([x1b, y1b, -depth], [x2b, y2b, -depth], true, BORDER_COLOR);
-        addLinePerspective([x2b, y2b, -depth], [x3b, y3b, -depth], true, BORDER_COLOR);
-        addLinePerspective([x3b, y3b, -depth], [x0b, y0b, -depth], true, BORDER_COLOR);
+        addLinePerspective([x0b, y0b, -depth], [x1b, y1b, -depth], true, this.borderColor);
+        addLinePerspective([x1b, y1b, -depth], [x2b, y2b, -depth], true, this.borderColor);
+        addLinePerspective([x2b, y2b, -depth], [x3b, y3b, -depth], true, this.borderColor);
+        addLinePerspective([x3b, y3b, -depth], [x0b, y0b, -depth], true, this.borderColor);
         // --- Floor and back face correction ---
         // Bottom floor line (y = 0)
         let [x1f, y1f] = projectToBack(0, 0, x_c, y_c, shrinkK);
