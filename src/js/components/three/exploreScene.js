@@ -534,7 +534,7 @@ console.log("options", options);
                     if (obj.position) {
                         pos = obj.position;
                     } else {
-                        const x = -width / 2 + Math.random() * (width / 2); // от левой границы до центра
+                        const x = -width / 2 + Math.random() * (width / 2);
                         const y = -height / 2 + Math.random() * height;     // по всей высоте тоннеля
                         const z = 0;
                         pos = { x, y, z };
@@ -602,7 +602,7 @@ console.log("options", options);
             if (cfg.position) {
                 pos = cfg.position;
             } else {
-                const x = -width / 2 + Math.random() * (width / 2); // от левой границы до центра
+                const x = -width / 2 + Math.random() * (width / 2);
                 const y = -height / 2 + Math.random() * height;     // по всей высоте тоннеля
                 const z = 0;
                 pos = { x, y, z };
@@ -658,6 +658,10 @@ console.log("options", options);
     updateTunnelObjects(delta) {
         if (!this.tunnelItems) return;
         const now = Date.now() * 0.001;
+        // Определяем ширину тоннеля для расчёта правой стены
+        const width = this.gridWidth * this.cellSize;
+        const rightWallX = width / 2;
+        const margin = 0.3; // минимальное расстояние до стены
         for (let i = 0; i < this.tunnelItems.length; i++) {
             const obj = this.tunnelItems[i];
             obj.timer += delta;
@@ -692,9 +696,17 @@ console.log("options", options);
                 }
             } else if (obj.state === 'moving') {
                 const t = Math.min(obj.timer / obj.durationMove, 1);
-                const baseX = THREE.MathUtils.lerp(obj.moveStart.x, obj.end.x, t);
-                const baseY = THREE.MathUtils.lerp(obj.moveStart.y, obj.end.y, t);
-                const baseZ = THREE.MathUtils.lerp(obj.moveStart.z, obj.end.z, t);
+                let baseX = THREE.MathUtils.lerp(obj.moveStart.x, obj.end.x, t);
+                let baseY = THREE.MathUtils.lerp(obj.moveStart.y, obj.end.y, t);
+                let baseZ = THREE.MathUtils.lerp(obj.moveStart.z, obj.end.z, t);
+
+                // Если объект близко к правой стене — корректируем траекторию влево
+                if (baseX > rightWallX - margin) {
+                    // Чем ближе к стене, тем сильнее корректируем влево
+                    const excess = baseX - (rightWallX - margin);
+                    baseX -= excess * 2; // или другое значение для плавности
+                }
+
                 obj.mesh.position.x = baseX + Math.sin(now * obj.freqA + i) * obj.floatA;
                 obj.mesh.position.y = baseY + Math.cos(now * obj.freqB + i * 0.5) * obj.floatB;
                 obj.mesh.position.z = baseZ;
