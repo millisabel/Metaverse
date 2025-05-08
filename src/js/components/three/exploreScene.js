@@ -532,13 +532,13 @@ console.log("options", options);
                         opacity: 0 
                     });
                     const mesh = new THREE.Mesh(geometry, material);
-                    // Генерируем стартовую позицию в пределах front face тоннеля, не ближе чем 30% к правой стороне
+                    // Always spawn at the left wall, random height
                     let pos;
                     if (obj.position) {
                         pos = obj.position;
                     } else {
-                        const x = -width / 2 + Math.random() * (width / 2);
-                        const y = -height / 2 + Math.random() * height;     // по всей высоте тоннеля
+                        const x = -width / 2; // left wall
+                        const y = -height / 2 + Math.random() * height;
                         const z = 0;
                         pos = { x, y, z };
                     }
@@ -597,13 +597,13 @@ console.log("options", options);
                 opacity: 1,
                 transparent: false
             });
-            // Генерируем стартовую позицию в пределах front face тоннеля, не ближе чем 30% к правой стороне
+            // Always spawn at the left wall, random height
             let pos;
             if (cfg.position) {
                 pos = cfg.position;
             } else {
-                const x = -width / 2 + Math.random() * (width / 2);
-                const y = -height / 2 + Math.random() * height;     // по всей высоте тоннеля
+                const x = -width / 2; // left wall
+                const y = -height / 2 + Math.random() * height;
                 const z = 0;
                 pos = { x, y, z };
             }
