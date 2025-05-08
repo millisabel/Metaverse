@@ -23,7 +23,6 @@ export class ExploreScene extends AnimationController {
         super(container, options);
         this.logger = createLogger('ExploreScene');
         this.logger.log('ExploreScene constructor', { options });
-console.log("options", options);
         this.gridWidth = options.gridWidth || 4;
         this.gridHeight = options.gridHeight || 6;
         this.gridDepth = options.gridDepth || 8;
@@ -34,16 +33,11 @@ console.log("options", options);
         this.cellSizeBack = options.cellSizeBack || 1;
         this.tunnelRotation = options.tunnelRotation !== undefined ? options.tunnelRotation : -Math.PI / 8;
         this.tunnelPosition = options.tunnelPosition || null; 
-
         this.gridColor = options.gridColor !== undefined ? options.gridColor : 0xFFFFFF;
         this.rightWallColor = options.rightWallColor !== undefined ? options.rightWallColor : 0x000000;
-        // Set front border color for the front frame of the tunnel
         this.frontBorderColor = options.frontBorderColor !== undefined ? options.frontBorderColor : 0xA18FFF;
-        
         this.gridGroup = null;
-        // Unified array for all tunnel items (images and boxes)
         this.tunnelItems = [];
-
         this.imageConfigs = options.imageConfigs || [];
         this.boxConfigs = options.boxConfigs || [];
     }
@@ -68,19 +62,16 @@ console.log("options", options);
      * @private
      */
     _createTunnel() {
-        // Colors for grid and borders
+        // Main tunnel and grid parameters
         const GRID_COLOR = this.gridColor;
         const RIGHT_WALL_COLOR = this.rightWallColor;
         const FRONT_BORDER_COLOR = this.frontBorderColor;
-
-        // Grid parameters
         const width = this.gridWidth * this.cellSize;
         const height = this.gridHeight * this.cellSize;
         const depth = this.gridDepth * this.cellSize;
         const x_c = width / 2;
         const y_c = height / 2;
         const shrinkK = this.shrinkK;
-
         // Helper to add a line with perspective and color
         const addLinePerspective = (start, end, isBorder = false, colorOverride) => {
             const s = [...start];
@@ -93,7 +84,6 @@ console.log("options", options);
                 const [x, y] = projectToBack(e[0], e[1], x_c, y_c, shrinkK);
                 e[0] = x; e[1] = y;
             }
-            // Явно задаём цвет: если не передан, используем this.gridColor
             const color = (typeof colorOverride !== 'undefined') ? colorOverride : this.gridColor;
             const geometry = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(...s),
@@ -484,20 +474,17 @@ console.log("options", options);
      * @private
      */
     _addLights() {
-        // Ambient light for soft global illumination
+        // Ambient, directional, and point lights for tunnel illumination
         const ambient = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambient);
-        // Directional light for main highlights
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
         dirLight.position.set(10, 20, 30);
         this.scene.add(dirLight);
-        // Point light for additional local lighting
         const pointLight = new THREE.PointLight(0xffffff, 0.4, 100);
         pointLight.position.set(-5, 10, 20);
         this.scene.add(pointLight);
         const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
         bottomLight.position.set(0, -10, 10);
-        // Tunnel directional light for depth effect
         const width = this.gridWidth * this.cellSize;
         const height = this.gridHeight * this.cellSize;
         const depth = this.gridDepth * this.cellSize;
@@ -532,12 +519,12 @@ console.log("options", options);
                         opacity: 0 
                     });
                     const mesh = new THREE.Mesh(geometry, material);
-                    // Always spawn at the left wall, random height
+                    // All objects spawn at the left wall, random height
                     let pos;
                     if (obj.position) {
                         pos = obj.position;
                     } else {
-                        const x = -width / 2; // left wall
+                        const x = -width / 2;
                         const y = -height / 2 + Math.random() * height;
                         const z = 0;
                         pos = { x, y, z };
@@ -546,9 +533,8 @@ console.log("options", options);
                     mesh.name = obj.name || `image_object_${idx}`;
                     mesh.scale.set(10, 10, 1); 
                     this.scene.add(mesh);
-                    // Добавляем параметры вращения
                     const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
-                    const rotationSpeed = 0.2 + Math.random() * 0.4; // рад/сек
+                    const rotationSpeed = 0.2 + Math.random() * 0.4;
                     const rotationPhase = Math.random() * Math.PI * 2;
                     this.tunnelItems.push({
                         type: 'image',
@@ -597,12 +583,12 @@ console.log("options", options);
                 opacity: 1,
                 transparent: false
             });
-            // Always spawn at the left wall, random height
+            // All boxes spawn at the left wall, random height
             let pos;
             if (cfg.position) {
                 pos = cfg.position;
             } else {
-                const x = -width / 2; // left wall
+                const x = -width / 2;
                 const y = -height / 2 + Math.random() * height;
                 const z = 0;
                 pos = { x, y, z };
@@ -610,9 +596,8 @@ console.log("options", options);
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(pos.x, pos.y, pos.z);
             mesh.rotation.x = 0;
-            mesh.scale.set(1, 1, 1); // scale 1 для лучшей видимости
+            mesh.scale.set(1, 1, 1);
             this.scene.add(mesh);
-            // Add highlight (gloss) as a thin white plane on top
             const glossGeometry = new THREE.PlaneGeometry(cfg.size.w * 0.8, cfg.size.d * 0.7);
             const glossMaterial = new THREE.MeshBasicMaterial({
                 color: 0xffffff,
@@ -623,9 +608,8 @@ console.log("options", options);
             glossMesh.position.set(0, cfg.size.h / 2 + 0.01, 0);
             glossMesh.rotation.x = -Math.PI / 2;
             // mesh.add(glossMesh);
-            // Добавляем параметры вращения
             const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
-            const rotationSpeed = 0.15 + Math.random() * 0.3; // рад/сек
+            const rotationSpeed = 0.15 + Math.random() * 0.3;
             const rotationPhase = Math.random() * Math.PI * 2;
             this.tunnelItems.push({
                 type: 'box',
@@ -658,10 +642,9 @@ console.log("options", options);
     updateTunnelObjects(delta) {
         if (!this.tunnelItems) return;
         const now = Date.now() * 0.001;
-        // Определяем ширину тоннеля для расчёта правой стены
         const width = this.gridWidth * this.cellSize;
         const rightWallX = width / 2;
-        const margin = 0.3; // минимальное расстояние до стены
+        const margin = 0.3;
         for (let i = 0; i < this.tunnelItems.length; i++) {
             const obj = this.tunnelItems[i];
             obj.timer += delta;
@@ -669,7 +652,6 @@ console.log("options", options);
                 obj.mesh.position.set(obj.start.x, obj.start.y, obj.start.z);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0 : 0;
                 obj.mesh.scale.set(0, 0, 1);
-                // Сброс вращения
                 obj.mesh.rotation.x = 0;
                 obj.mesh.rotation.y = 0;
                 obj.mesh.rotation.z = 0;
@@ -680,11 +662,10 @@ console.log("options", options);
             } else if (obj.state === 'fading-in') {
                 const t = Math.min(obj.timer / obj.durationFadeIn, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? t * 0.98 : t;
-                const minScale = 0.5; // минимальный scale в конце анимации
-                const maxScale = 2;  // стартовый scale
+                const minScale = 0.5;
+                const maxScale = 2;
                 const scale = maxScale - (maxScale - minScale) * t;
                 obj.mesh.scale.set(scale, scale, 1);
-                // Плавное появление — вращение не применяем
                 if (t >= 1) {
                     obj.state = 'moving';
                     obj.timer = 0;
@@ -699,29 +680,22 @@ console.log("options", options);
                 let baseX = THREE.MathUtils.lerp(obj.moveStart.x, obj.end.x, t);
                 let baseY = THREE.MathUtils.lerp(obj.moveStart.y, obj.end.y, t);
                 let baseZ = THREE.MathUtils.lerp(obj.moveStart.z, obj.end.z, t);
-
-                // Если объект близко к правой стене — корректируем траекторию влево
                 if (baseX > rightWallX - margin) {
-                    // Чем ближе к стене, тем сильнее корректируем влево
                     const excess = baseX - (rightWallX - margin);
-                    baseX -= excess * 2; // или другое значение для плавности
+                    baseX -= excess * 2;
                 }
-
                 obj.mesh.position.x = baseX + Math.sin(now * obj.freqA + i) * obj.floatA;
                 obj.mesh.position.y = baseY + Math.cos(now * obj.freqB + i * 0.5) * obj.floatB;
                 obj.mesh.position.z = baseZ;
-                // const scale = 1 - t;
-                const minScale = 0.7; // минимальный scale в конце анимации
-                const maxScale = 2;  // стартовый scale
+                const minScale = 0.7;
+                const maxScale = 2;
                 const scale = maxScale - (maxScale - minScale) * t;
                 obj.mesh.scale.set(scale, scale, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0.98 * (1 - t * 0.2) : 1 - t * 0.2;
-                // Новое: плавное вращение
                 if (obj.rotationAxis && obj.rotationSpeed) {
                     const angle = Math.sin(now * 0.7 + obj.rotationPhase) * 0.2 + (now * obj.rotationSpeed);
                     obj.mesh.rotation[obj.rotationAxis] = angle;
                 }
-                // Repulsion for all items
                 for (let j = 0; j < this.tunnelItems.length; j++) {
                     if (i === j) continue;
                     const other = this.tunnelItems[j];
