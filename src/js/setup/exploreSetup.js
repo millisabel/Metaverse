@@ -33,11 +33,11 @@ export class ExploreSetup extends BaseSetup {
             cellSize: 3,
             lineWidth: 1.5,
             borderLineWidth: 3,
-            rightWallColor: 0x14092b,
+            rightWallColor: 0x1e0b39,
         };
 
         this.COMMON_GLOW_PROPS = {
-            pulse: { speed: 0.01, intensity: 0.01, sync: false },
+            pulse: { speed: 0.05, intensity: 0.05, sync: false },
             movement: { enabled: false },
             opacity: { min: 0.1, max: 0.9 },
             scale: { min: 0.8, max: 1.2 }
@@ -70,6 +70,12 @@ export class ExploreSetup extends BaseSetup {
         const offsetX = gridWidth * 0.7;
 
         const glowConfigs = [
+            {
+                color: 0xC06829,
+                size: Math.max(gridWidth, gridHeight) * 2,
+                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
+                ...this.COMMON_GLOW_PROPS
+            },
             {
                 color: 0x7A42F4,
                 size: Math.max(gridWidth, gridHeight) * 3,
