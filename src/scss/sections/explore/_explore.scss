@@ -7,6 +7,8 @@
     background-color: #0A051A;
 
     &-content {
+        position: relative;
+
         display: flex;
         justify-content: start;
         align-items: center;
@@ -35,6 +37,7 @@
 
         &--right {
             position: relative;
+            z-index: 0;
 
             flex-direction: column;
             justify-content: end;
@@ -69,7 +72,7 @@
     }
 
     &-3d {
-        height: 50vh;
+        height: 30vh;
         min-height: 30vh;
 
         &-container  {
