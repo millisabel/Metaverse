@@ -2,8 +2,6 @@ import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
 import { projectToBack } from '../utilsThreeD/utilsThreeD';
-import * as THREE from 'three';
-import { AnimatedSVGMesh } from '../components/three/AnimatedSVGMesh';
 import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
 export class ExploreSetup extends BaseSetup {
@@ -21,19 +19,22 @@ export class ExploreSetup extends BaseSetup {
         });   
     
         this.CONTAINER_TYPES = {
-            EXPLORE_SCENE: 'EXPLORE_SCENE'
+            EXPLORE_SCENE: 'EXPLORE_SCENE',
+            GLOW: 'GLOW',
+            ANIMATED_SVG: 'ANIMATED_SVG'
         };
         
         this.Z_INDEX = {
             SCENE: '0',
-            GLOW: '-1'
+            GLOW: '-1',
+            ANIMATED_SVG: '-2'
         };
 
         this.COMMON_GLOW_PROPS = {
             pulse: { speed: 0.05, intensity: 0.05, sync: false },
             movement: { enabled: false },
             opacity: { min: 0.1, max: 0.9 },
-            scale: { min: 0.8, max: 1.2 }
+            scale: { min: 1, max: 1.1 }
         };
 
         this.IMAGE_CONFIGS = [
@@ -67,33 +68,51 @@ export class ExploreSetup extends BaseSetup {
             boxConfigs: this.BOX_CONFIGS
         };
 
+        this.CONFIG_ANIMATED_SVG = {
+            svgUrl: 'assets/images/explore_3D/grid_background.svg',
+            svgOptions: {
+                color: 0x7A42F4,
+                opacity: 1,
+                amp: 15,
+                waveSpeed: 0.5,
+                smoothRadius: 5,
+                freq: 1
+            }
+        };
+
         this.exploreScene = null;
         this.glow = null;
+        this.animatedSVG = null;
     }
 
     setupScene() {
-        // this.exploreScene = this.setupGrid(this.container, this.CONFIG_GRID);
+        // this.setupGrid();
+        // this.setupAnimatedSVG();
+        this.setupGlow();
+    }
 
-        // if (!this.exploreScene || !this.exploreScene.scene || !this.exploreScene.renderer) {
-        //     console.error('ExploreScene or its scene/renderer is not initialized');
-        //     return;
-        // }
+    setupGrid() {
+        const exploreSceneContainer = this.createContainer(
+            this.CONTAINER_TYPES.EXPLORE_SCENE,
+            this.Z_INDEX.SCENE
+        );
+        this.exploreScene = new ExploreScene(exploreSceneContainer, this.CONFIG_GRID);  
+    }
 
-    
-        // Добавляем анимированный SVG
-    
-        const container = document.getElementById('explore-img');
-        const svgUrl = 'assets/images/explore_3D/grid_background.svg';
+    setupAnimatedSVG() {
+        const animatedSVGContainer = this.createContainer(
+            this.CONTAINER_TYPES.ANIMATED_SVG,
+            this.Z_INDEX.ANIMATED_SVG
+        );
+        this.animatedSVG = new AnimatedSVGScene(animatedSVGContainer, this.CONFIG_ANIMATED_SVG);
+    }
 
-        const svgScene = new AnimatedSVGScene(container, {
-            svgUrl,
-            svgOptions: {
-                color: 0xff00ff,
-                opacity: 1
-            }
-        });
-
-        // this.glow = new Glow(this.container, this.getGlowOptions());
+    setupGlow() {
+        const glowContainer = this.createContainer(
+            this.CONTAINER_TYPES.GLOW,
+            this.Z_INDEX.GLOW
+        );
+        this.glow = new Glow(glowContainer, this.getGlowOptions());
     }
 
     getGlowOptions() {
@@ -119,22 +138,22 @@ export class ExploreSetup extends BaseSetup {
             },
             {
                 color: 0xF00AFE,
-                size: Math.max(gridWidth, gridHeight) * 3,
+                size: Math.max(gridWidth, gridHeight) * 4,
                 position: { 
-                    x: backX + gridOffset.x + offsetX - 4, 
-                    y: backY + gridOffset.y, 
-                    z: -gridDepth + gridOffset.z - 1 },
+                    x: backX + gridOffset.x + offsetX - 1, 
+                    y: backY + gridOffset.y + 1, 
+                    z: -gridDepth + gridOffset.z - 2 },
                 ...this.COMMON_GLOW_PROPS
             },
-            // {
-            //     color: 0x56FFEB,
-            //     size: Math.max(gridWidth, gridHeight) * 4,
-            //     position: { 
-            //         x: backX + gridOffset.x + offsetX - 4, 
-            //         y: backY + gridOffset.y, 
-            //         z: -gridDepth + gridOffset.z - 1 },
-            //     ...this.COMMON_GLOW_PROPS
-            // },
+            {
+                color: 0x56FFEB,
+                size: Math.max(gridWidth, gridHeight) * 3,
+                position: { 
+                    x: backX + gridOffset.x + offsetX - 6, 
+                    y: backY + gridOffset.y + 2, 
+                    z: -gridDepth + gridOffset.z - 3 },
+                ...this.COMMON_GLOW_PROPS
+            },
             // {
             //     color: 0x7A42F4,
             //     size: Math.max(gridWidth, gridHeight) * 5,
@@ -152,14 +171,6 @@ export class ExploreSetup extends BaseSetup {
             movement: glowConfigs[0].movement,
             initialPositions: glowConfigs.map(g => g.position)
         };
-    }
-
-    setupGrid(container, options) {
-        const sceneInstance = new ExploreScene(container, options);
-        if (typeof sceneInstance.initScene === 'function') {
-            sceneInstance.initScene();
-        }
-        return sceneInstance;
     }
 
     update() {
