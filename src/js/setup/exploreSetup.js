@@ -2,6 +2,9 @@ import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
 import { projectToBack } from '../utilsThreeD/utilsThreeD';
+import * as THREE from 'three';
+import { AnimatedSVGMesh } from '../components/three/AnimatedSVGMesh';
+import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
 export class ExploreSetup extends BaseSetup {
     constructor() {
@@ -69,14 +72,25 @@ export class ExploreSetup extends BaseSetup {
     }
 
     setupScene() {
-        this.exploreScene = this.setupGrid(this.container, this.CONFIG_GRID);
+        // this.exploreScene = this.setupGrid(this.container, this.CONFIG_GRID);
 
-        if (!this.exploreScene || !this.exploreScene.scene || !this.exploreScene.renderer) {
-            console.error('ExploreScene or its scene/renderer is not initialized');
-            return;
-        }
+        // if (!this.exploreScene || !this.exploreScene.scene || !this.exploreScene.renderer) {
+        //     console.error('ExploreScene or its scene/renderer is not initialized');
+        //     return;
+        // }
 
-        this.glow = new Glow(this.container, this.getGlowOptions());
+    
+        // Добавляем анимированный SVG
+    
+        const svgScene = new AnimatedSVGScene(this.container, {
+            svgUrl: 'assets/images/explore_3D/grid_background.svg',
+            color: 0xff00ff,
+            opacity: 1
+        });
+        
+        svgScene.initScene();
+
+        // this.glow = new Glow(this.container, this.getGlowOptions());
     }
 
     getGlowOptions() {
