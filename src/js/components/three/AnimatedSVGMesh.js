@@ -16,6 +16,8 @@ export class AnimatedSVGMesh extends THREE.Group {
         this.options = options;
         this.meshes = [];
         this.time = 0;
+        this._onResize = this.handleResize.bind(this);
+        window.addEventListener('resize', this._onResize);
         this._loadSVG(svgUrl);
         this.opacity = 1;
         this.noise2D = createNoise2D();
@@ -25,6 +27,66 @@ export class AnimatedSVGMesh extends THREE.Group {
         this.smoothRadius = options.smoothRadius !== undefined ? options.smoothRadius : 10; 
         // If the smoothing radius is too large, all displacements are averaged and the contour hardly moves.
         this.freq = options.freq !== undefined ? options.freq : 1; // count of waves
+    }
+
+    dispose() {
+        window.removeEventListener('resize', this._onResize);
+        // ... existing dispose logic ...
+    }
+
+    handleResize() {
+        this.fitToContainer();
+    }
+
+    fitToContainer() {
+        if (!this.meshes.length) return;
+
+        // 1. Сбросить позицию и масштаб перед пересчётом
+        this.position.set(0, 0, 0);
+        this.scale.set(1, 1, 1);
+
+        // 2. Получить bounding box SVG
+        const box = new THREE.Box3().setFromObject(this);
+        const width = box.max.x - box.min.x;
+        const height = box.max.y - box.min.y;
+
+        // 3. Получить размеры канваса
+        let canvasWidth = 800;
+        let canvasHeight = 600;
+        if (this.options && this.options.container) {
+            const canvas = this.options.container.querySelector('canvas');
+            if (canvas) {
+                const rect = canvas.getBoundingClientRect();
+                canvasWidth = rect.width;
+                canvasHeight = rect.height;
+            } else {
+                const rect = this.options.container.getBoundingClientRect();
+                canvasWidth = rect.width;
+                canvasHeight = rect.height;
+            }
+        }
+
+        // 4. Aspect ratio
+        const canvasAspect = canvasWidth / canvasHeight;
+        const svgAspect = width / height;
+
+        // 5. Calculate scale
+        let scale;
+        if (svgAspect > canvasAspect) {
+            scale = canvasWidth / width;
+        } else {
+            scale = canvasHeight / height;
+        }
+        scale *= 0.9;
+        this.scale.set(scale, scale, scale);
+
+        // 6. Пересчитать bounding box после масштабирования
+        box.setFromObject(this);
+
+        // 7. Центрировать SVG
+        const dx = (box.max.x + box.min.x) / 2;
+        const dy = (box.max.y + box.min.y) / 2;
+        this.position.set(-dx, -dy, 0);
     }
 
     /**
@@ -59,56 +121,8 @@ export class AnimatedSVGMesh extends THREE.Group {
                     });
                 });
 
-                // === Center SVG group only after loading ===
-                const box = new THREE.Box3().setFromObject(this);
-                const center = box.getCenter(new THREE.Vector3());
-                this.position.sub(center); 
-
-                // Recalculate bounding box after centering
-                box.setFromObject(this);
-                const width = box.max.x - box.min.x;
-                const height = box.max.y - box.min.y;
-
-                // Get canvas size
-                let canvasWidth = 800;
-                let canvasHeight = 600;
-                if (this.options && this.options.container) {
-                    const canvas = this.options.container.querySelector('canvas');
-                    if (canvas) {
-                        const rect = canvas.getBoundingClientRect();
-                        canvasWidth = rect.width;
-                        canvasHeight = rect.height;
-                    } else {
-                        const rect = this.options.container.getBoundingClientRect();
-                        canvasWidth = rect.width;
-                        canvasHeight = rect.height;
-                    }
-                }
-
-                // Aspect ratio
-                const canvasAspect = canvasWidth / canvasHeight;
-                const svgAspect = width / height;
-
-                // Calculate scale so that SVG fits completely in canvas
-                let scale;
-                if (svgAspect > canvasAspect) {
-                    scale = canvasWidth / width;
-                } else {
-                    scale = canvasHeight / height;
-                }
-                scale *= 0.9; 
-                this.scale.set(scale, scale, scale);
-
-                // Recalculate bounding box after scaling
-                box.setFromObject(this);
-
-                // Calculate shift so that bounding box is centered in canvas
-                const dx = (box.max.x + box.min.x) / 2;
-                const dy = (box.max.y + box.min.y) / 2;
-
-                // Shift group so that center of bounding box matches (0,0)
-                this.position.x -= dx;
-                this.position.y -= dy;
+                // === Центрирование и масштабирование SVG ===
+                this.fitToContainer();
             },
             undefined,
             err => {
