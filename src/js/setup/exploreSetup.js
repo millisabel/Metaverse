@@ -30,13 +30,6 @@ export class ExploreSetup extends BaseSetup {
             ANIMATED_SVG: '-2'
         };
 
-        this.COMMON_GLOW_PROPS = {
-            pulse: { speed: 0.05, intensity: 0.05, sync: false },
-            movement: { enabled: false },
-            opacity: { min: 0.1, max: 0.9 },
-            scale: { min: 1, max: 1.1 }
-        };
-
         this.IMAGE_CONFIGS = [
             { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 2, h: 2 } },
             { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 2, h: 2 } },
@@ -86,8 +79,8 @@ export class ExploreSetup extends BaseSetup {
     }
 
     setupScene() {
-        // this.setupGrid();
-        // this.setupAnimatedSVG();
+        this.setupGrid();
+        this.setupAnimatedSVG();
         this.setupGlow();
     }
 
@@ -116,6 +109,12 @@ export class ExploreSetup extends BaseSetup {
     }
 
     getGlowOptions() {
+
+        const COMMON_GLOW_PROPS = {
+            movement: { enabled: false },
+            opacity: { min: 0.1, max: 0.9 }
+        };
+
         const gridWidth = this.CONFIG_GRID.width * this.CONFIG_GRID.cellSize;
         const gridHeight = this.CONFIG_GRID.height * this.CONFIG_GRID.cellSize;
         const gridDepth = this.CONFIG_GRID.depth * this.CONFIG_GRID.cellSize;
@@ -134,43 +133,35 @@ export class ExploreSetup extends BaseSetup {
                     x: backX + gridOffset.x + offsetX, 
                     y: backY + gridOffset.y, 
                     z: -gridDepth + gridOffset.z - 1 },
-                ...this.COMMON_GLOW_PROPS
+                    scale: { min: 0.5, max: 3 },
+                    pulse: { speed: 0.1, intensity: 1, sync: false },
             },
             {
                 color: 0xF00AFE,
-                size: Math.max(gridWidth, gridHeight) * 4,
+                size: Math.max(gridWidth, gridHeight) * 2,
                 position: { 
                     x: backX + gridOffset.x + offsetX - 1, 
                     y: backY + gridOffset.y + 1, 
                     z: -gridDepth + gridOffset.z - 2 },
-                ...this.COMMON_GLOW_PROPS
+                    scale: { min: 1, max: 1.5 },
+                    pulse: { speed: 0.2, intensity: 1.5, sync: false },
             },
             {
-                color: 0x56FFEB,
+                color: 0x7A42F4,
                 size: Math.max(gridWidth, gridHeight) * 3,
                 position: { 
-                    x: backX + gridOffset.x + offsetX - 6, 
-                    y: backY + gridOffset.y + 2, 
-                    z: -gridDepth + gridOffset.z - 3 },
-                ...this.COMMON_GLOW_PROPS
-            },
-            // {
-            //     color: 0x7A42F4,
-            //     size: Math.max(gridWidth, gridHeight) * 5,
-            //     position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
-            //     ...this.COMMON_GLOW_PROPS
-            // }
+                    x: backX + gridOffset.x + offsetX, 
+                    y: backY + gridOffset.y, 
+                    z: -gridDepth + gridOffset.z - 1 },
+                    scale: { min: 1, max: 1.2 },
+                    pulse: { speed: 0.5, intensity: 2, sync: false },
+            }
         ];
-
-        return {
-            count: glowConfigs.length,
-            colors: glowConfigs.map(g => g.color),
-            size: { min: Math.min(...glowConfigs.map(g => g.size)), max: Math.max(...glowConfigs.map(g => g.size)) },
-            opacity: { min: Math.min(...glowConfigs.map(g => g.opacity.min)), max: Math.max(...glowConfigs.map(g => g.opacity.max)) },
-            scale: { min: Math.min(...glowConfigs.map(g => g.scale?.min ?? 1)), max: Math.max(...glowConfigs.map(g => g.scale?.max ?? 1)) },
-            movement: glowConfigs[0].movement,
-            initialPositions: glowConfigs.map(g => g.position)
-        };
+        const mergedGlowConfigs = glowConfigs.map(cfg => ({
+            ...COMMON_GLOW_PROPS,
+            ...cfg
+        }));
+        return {glowConfigs: mergedGlowConfigs};
     }
 
     update() {
