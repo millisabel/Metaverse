@@ -61,6 +61,8 @@
                 background-repeat: no-repeat;   
                 background-position: -30vw top;
                 background-size: 100vw auto;
+
+                animation: neon-flash 12s linear infinite;
             }
 
             &.line {
@@ -154,3 +156,13 @@
         }
     }
 }
+
+@keyframes neon-flash {
+  0%   { opacity: 1; }
+  1%   { opacity: 0; }
+  2%   { opacity: 1; }
+  3%   { opacity: 0; }
+  4%   { opacity: 1; }
+  100% { opacity: 1; }
+}
+
