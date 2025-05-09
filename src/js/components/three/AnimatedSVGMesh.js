@@ -4,12 +4,12 @@ import { ShapeGeometry } from 'three';
 import { createNoise2D } from 'simplex-noise';
 
 /**
- * Класс для загрузки и анимации SVG-контуров в Three.js
+ * Class for loading and animating SVG contours in Three.js
  */
 export class AnimatedSVGMesh extends THREE.Group {
     /**
-     * @param {string} svgUrl - Путь к SVG-файлу
-     * @param {Object} options - Опции (цвет, скорость анимации и т.д.)
+     * @param {string} svgUrl - Path to SVG file
+     * @param {Object} options - Options (color, animation speed, etc.)
      */
     constructor(svgUrl, options = {}) {
         super();
@@ -19,10 +19,16 @@ export class AnimatedSVGMesh extends THREE.Group {
         this._loadSVG(svgUrl);
         this.opacity = 1;
         this.noise2D = createNoise2D();
+        
+        this.amp = options.amp !== undefined ? options.amp : 5; 
+        this.waveSpeed = options.waveSpeed !== undefined ? options.waveSpeed : 0.25; 
+        this.smoothRadius = options.smoothRadius !== undefined ? options.smoothRadius : 10; 
+        // If the smoothing radius is too large, all displacements are averaged and the contour hardly moves.
+        this.freq = options.freq !== undefined ? options.freq : 1; // count of waves
     }
 
     /**
-     * Загружает SVG и создает Mesh/Line объекты
+     * Loads SVG and creates Mesh/Line objects
      * @param {string} url
      * @private
      */
@@ -52,19 +58,18 @@ export class AnimatedSVGMesh extends THREE.Group {
                         this.meshes.push(mesh);
                     });
                 });
-                console.log('meshes after load:', this.meshes);
 
-                // === Центрируем SVG-группу только после загрузки ===
+                // === Center SVG group only after loading ===
                 const box = new THREE.Box3().setFromObject(this);
                 const center = box.getCenter(new THREE.Vector3());
-                this.position.sub(center); // Центрируем SVG в (0,0,0)
+                this.position.sub(center); 
 
-                // Пересчитываем bounding box после центрирования
+                // Recalculate bounding box after centering
                 box.setFromObject(this);
                 const width = box.max.x - box.min.x;
                 const height = box.max.y - box.min.y;
 
-                // Получаем размеры канваса
+                // Get canvas size
                 let canvasWidth = 800;
                 let canvasHeight = 600;
                 if (this.options && this.options.container) {
@@ -79,42 +84,31 @@ export class AnimatedSVGMesh extends THREE.Group {
                         canvasHeight = rect.height;
                     }
                 }
-                console.log('[SVG] Canvas size:', canvasWidth, canvasHeight);
 
-                // Соотношение сторон
+                // Aspect ratio
                 const canvasAspect = canvasWidth / canvasHeight;
                 const svgAspect = width / height;
 
-                // Рассчитываем масштаб так, чтобы SVG вписывался в canvas полностью
+                // Calculate scale so that SVG fits completely in canvas
                 let scale;
                 if (svgAspect > canvasAspect) {
-                    // SVG шире, вписываем по ширине
                     scale = canvasWidth / width;
                 } else {
-                    // SVG выше, вписываем по высоте
                     scale = canvasHeight / height;
                 }
-                scale *= 0.9; // Уменьшаем SVG на 10%
+                scale *= 0.9; 
                 this.scale.set(scale, scale, scale);
 
-                // Пересчитываем bounding box после масштабирования
+                // Recalculate bounding box after scaling
                 box.setFromObject(this);
 
-                // Вычисляем сдвиг, чтобы bounding box был по центру canvas
+                // Calculate shift so that bounding box is centered in canvas
                 const dx = (box.max.x + box.min.x) / 2;
                 const dy = (box.max.y + box.min.y) / 2;
 
-                // Сдвигаем группу так, чтобы центр bounding box совпал с (0,0)
+                // Shift group so that center of bounding box matches (0,0)
                 this.position.x -= dx;
                 this.position.y -= dy;
-
-                // Логируем bounding box и позицию
-                console.log('[SVG] Bounding box:', box);
-                console.log('[SVG] Center:', center);
-                console.log('[SVG] Group position:', this.position);
-                console.log('[SVG] Group scale:', this.scale);
-                console.log('[SVG] SVG size:', width, height);
-                console.log('[SVG] Final scale:', this.scale);
             },
             undefined,
             err => {
@@ -124,8 +118,8 @@ export class AnimatedSVGMesh extends THREE.Group {
     }
 
     /**
-     * Анимирует контуры (например, пульсация)
-     * @param {number} delta - Время между кадрами
+     * Animates contours (e.g., pulsation)
+     * @param {number} delta - Time between frames
      */
     update(delta = 0.016) {
         this.time += delta;
@@ -134,24 +128,21 @@ export class AnimatedSVGMesh extends THREE.Group {
             const orig = mesh.userData.originalPositions;
             const count = pos.count;
     
-            // "Бегущая волна" по всему контуру
+            // "Running wave" along the contour
             const offsets = new Array(count);
-            const waveSpeed = 0.25; // скорость движения волны
-            const amp = 5; // амплитуда
             for (let i = 0; i < count; i++) {
-                // Смещаем фазу по времени, чтобы волна бежала по контуру
-                const phase = (i / count) * Math.PI * 2 + this.time * waveSpeed;
-                // Используем шум для плавности
+                // Shift phase over time to make wave move along the contour
+                const phase = (i / count) * Math.PI * 2 * this.freq + this.time * this.waveSpeed;
+                // Use noise for smoothness
                 const noiseVal = this.noise2D(Math.cos(phase), Math.sin(phase) + this.time * 0.1);
-                offsets[i] = noiseVal * amp;
+                offsets[i] = noiseVal * this.amp;
             }
     
-            // Сглаживаем с большим радиусом (например, 8 соседей)
+            // Smooth with radius set in options
             const smoothOffsets = new Array(count);
-            const smoothRadius = 8;
             for (let i = 0; i < count; i++) {
                 let sum = 0, n = 0;
-                for (let k = -smoothRadius; k <= smoothRadius; k++) {
+                for (let k = -this.smoothRadius; k <= this.smoothRadius; k++) {
                     const idx = (i + k + count) % count;
                     sum += offsets[idx];
                     n++;
@@ -159,7 +150,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                 smoothOffsets[i] = sum / n;
             }
     
-            // Применяем сглаженные смещения по нормали
+            // Apply smoothed offsets to the normal
             for (let i = 0; i < count; i++) {
                 const x0 = orig[i * 3];
                 const y0 = orig[i * 3 + 1];
