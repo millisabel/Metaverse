@@ -92,29 +92,38 @@ export class ExploreSetup extends BaseSetup {
 
         const glowConfigs = [
             {
-                color: 0xC06829,
-                size: Math.max(gridWidth, gridHeight) * 2,
-                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
+                color: 0xFFFFFF,
+                size: Math.max(gridWidth, gridHeight) * 1,
+                position: { 
+                    x: backX + gridOffset.x + offsetX, 
+                    y: backY + gridOffset.y, 
+                    z: -gridDepth + gridOffset.z - 1 },
                 ...this.COMMON_GLOW_PROPS
             },
             {
-                color: 0x7A42F4,
+                color: 0xF00AFE,
                 size: Math.max(gridWidth, gridHeight) * 3,
-                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
+                position: { 
+                    x: backX + gridOffset.x + offsetX - 4, 
+                    y: backY + gridOffset.y, 
+                    z: -gridDepth + gridOffset.z - 1 },
                 ...this.COMMON_GLOW_PROPS
             },
-            {
-                color: 0xC94BFF,
-                size: Math.max(gridWidth, gridHeight) * 4,
-                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 2 },
-                ...this.COMMON_GLOW_PROPS
-            },
-            {
-                color: 0x7A42F4,
-                size: Math.max(gridWidth, gridHeight) * 5,
-                position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 3 },
-                ...this.COMMON_GLOW_PROPS
-            }
+            // {
+            //     color: 0x56FFEB,
+            //     size: Math.max(gridWidth, gridHeight) * 4,
+            //     position: { 
+            //         x: backX + gridOffset.x + offsetX - 4, 
+            //         y: backY + gridOffset.y, 
+            //         z: -gridDepth + gridOffset.z - 1 },
+            //     ...this.COMMON_GLOW_PROPS
+            // },
+            // {
+            //     color: 0x7A42F4,
+            //     size: Math.max(gridWidth, gridHeight) * 5,
+            //     position: { x: backX + gridOffset.x + offsetX, y: backY + gridOffset.y, z: -gridDepth + gridOffset.z - 1 },
+            //     ...this.COMMON_GLOW_PROPS
+            // }
         ];
 
         return {
