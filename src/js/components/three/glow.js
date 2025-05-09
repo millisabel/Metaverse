@@ -15,6 +15,8 @@ export class Glow extends AnimationController {
             }
         });
 
+        this.glowConfigs = options.glowConfigs || null;
+
         this.options = {
             count: options.count || 5,
             colors: options.colors || ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
@@ -50,6 +52,8 @@ export class Glow extends AnimationController {
         this.glows = [];
         
         this.init();
+
+        console.log(this.options);
     }
 
     setupScene() {
@@ -70,6 +74,23 @@ export class Glow extends AnimationController {
     }
 
     createGlows() {
+        if (this.glowConfigs && Array.isArray(this.glowConfigs)) {
+            this.glowConfigs.forEach((cfg, i) => {
+                const glow = new SingleGlow(
+                    this.scene,
+                    this.renderer,
+                    this.container,
+                    cfg
+                );
+                this.glows.push(glow);
+                this.logger.log(`Glow ${i + 1} created (custom config)`, {
+                    custom: cfg,
+                    conditions: ['glow-created-individual']
+                });
+            });
+            return;
+        }
+
         const colors = [...this.options.colors];
         if (this.options.randomizeColors) {
             for (let i = colors.length - 1; i > 0; i--) {
