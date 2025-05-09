@@ -82,13 +82,16 @@ export class ExploreSetup extends BaseSetup {
     
         // Добавляем анимированный SVG
     
-        const svgScene = new AnimatedSVGScene(this.container, {
-            svgUrl: 'assets/images/explore_3D/grid_background.svg',
-            color: 0xff00ff,
-            opacity: 1
+        const container = document.getElementById('explore-img');
+        const svgUrl = 'assets/images/explore_3D/grid_background.svg';
+
+        const svgScene = new AnimatedSVGScene(container, {
+            svgUrl,
+            svgOptions: {
+                color: 0xff00ff,
+                opacity: 1
+            }
         });
-        
-        svgScene.initScene();
 
         // this.glow = new Glow(this.container, this.getGlowOptions());
     }
