@@ -1,9 +1,6 @@
 // Utils
 import { Logger } from './utils/logger';
 
-// Observer CSS
-// import AnimationObserverCSS from './utils/animationObserver_CSS';
-
 // Setup
 import { initHero } from './setup/heroSetup';
 import { initAbout } from "./setup/aboutSetup";
@@ -18,7 +15,6 @@ import { initSlider } from './components/common/slider';
 import initModal from './components/common/modal';
 
 // 3D components
-// import { initDynamics3D } from './components/three/dynamics3d';
 import { initSocialCards } from './components/three/socialCards';
 
 if (process.env.NODE_ENV === 'development') {
@@ -35,7 +31,7 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Glow');
-    // Logger.disableLoggerFor('SingleGlow');
+    Logger.disableLoggerFor('SingleGlow');
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('AnimationObserverCSS');
@@ -44,22 +40,18 @@ if (process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('ExploreSetup');
     Logger.disableLoggerFor('ExploreScene');     
     Logger.disableLoggerFor('AnimationController_3D');
+    Logger.disableLoggerFor('AnimationController');
 } else {
     Logger.disableGlobalLogging();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Create a logger instance
-    // const observer = new AnimationObserverCSS();
-
     initHero();
     initAbout();
     initRoadmap();
     initDynamics();
     initVRMarket();
     initExplore();
-
-    // initDynamics3D();
     initSocialCards();
 
     // Initialize UI components

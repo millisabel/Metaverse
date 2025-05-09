@@ -52,8 +52,6 @@ export class Glow extends AnimationController {
         this.glows = [];
         
         this.init();
-
-        console.log(this.options);
     }
 
     setupScene() {
