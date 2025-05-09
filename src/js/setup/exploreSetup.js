@@ -6,7 +6,7 @@ import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
 export class ExploreSetup extends BaseSetup {
     constructor() {
-        super('explore-img', 'ExploreSetup', {
+        super('explore-3d', 'ExploreSetup', {
             camera: {
                 fov: 75,
                 position: { x: 0, y: 0, z: 0 },
