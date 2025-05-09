@@ -55,7 +55,7 @@ export class CameraController {
 
     /**
      * Initialize the camera with container dimensions
-     * Creates a new THREE.PerspectiveCamera and sets initial position and orientation
+     * Creates a new THREE.PerspectiveCamera or THREE.OrthographicCamera and sets initial position and orientation
      * @param {HTMLElement} container - Container element for calculating aspect ratio
      * @public
      */
@@ -71,13 +71,25 @@ export class CameraController {
         const rect = container.getBoundingClientRect();
         this.aspect = rect.width / rect.height;
 
-        // Create camera
-        this.camera = new THREE.PerspectiveCamera(
-            this.options.fov,
-            this.aspect,
-            this.options.near,
-            this.options.far
-        );
+        // --- Поддержка OrthographicCamera ---
+        if (this.options.type === 'orthographic') {
+            // Опции для ortho-камеры
+            const left = this.options.left !== undefined ? this.options.left : -rect.width / 2;
+            const right = this.options.right !== undefined ? this.options.right : rect.width / 2;
+            const top = this.options.top !== undefined ? this.options.top : rect.height / 2;
+            const bottom = this.options.bottom !== undefined ? this.options.bottom : -rect.height / 2;
+            const near = this.options.near !== undefined ? this.options.near : -1000;
+            const far = this.options.far !== undefined ? this.options.far : 1000;
+            this.camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
+        } else {
+            // PerspectiveCamera по умолчанию
+            this.camera = new THREE.PerspectiveCamera(
+                this.options.fov,
+                this.aspect,
+                this.options.near,
+                this.options.far
+            );
+        }
 
         // Set initial position
         this.setPosition(this.options.position);
@@ -165,7 +177,15 @@ export class CameraController {
         const rect = container.getBoundingClientRect();
         this.aspect = rect.width / rect.height;
         
-        this.camera.aspect = this.aspect;
+        if (this.camera.isPerspectiveCamera) {
+            this.camera.aspect = this.aspect;
+        } else if (this.camera.isOrthographicCamera) {
+            // Пересчитываем ortho-границы
+            this.camera.left = this.options.left !== undefined ? this.options.left : -rect.width / 2;
+            this.camera.right = this.options.right !== undefined ? this.options.right : rect.width / 2;
+            this.camera.top = this.options.top !== undefined ? this.options.top : rect.height / 2;
+            this.camera.bottom = this.options.bottom !== undefined ? this.options.bottom : -rect.height / 2;
+        }
         this.camera.updateProjectionMatrix();
 
         this.logger.log('Camera resized', {
