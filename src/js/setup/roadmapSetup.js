@@ -42,7 +42,7 @@ export class RoadmapSetup extends BaseSetup {
             },
             movement: {
                 enabled: true,
-                speed: isMobile() ? 0.2 : 0.001,
+                speed: 0.001,
                 range: {
                     x: 1,
                     y: 0.9,
@@ -58,7 +58,7 @@ export class RoadmapSetup extends BaseSetup {
                 max: 1.2
             },
             pulse: {
-                speed: isMobile() ? 0.1 : 0.1,
+                speed: 0.1,
                 intensity: 0.3,
                 sync: false
             },
