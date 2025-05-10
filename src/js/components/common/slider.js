@@ -7,14 +7,6 @@ export function initSlider() {
     const fill = document.querySelector('.about .carousel-indicators-fill');
     const handle = document.querySelector('.about .carousel-indicators-handle');
 
-    console.log(carouselElement);
-    console.log(totalSlides);
-    console.log(currentNumber);
-    console.log(nextButton);
-    console.log(track);
-    console.log(fill);
-    console.log(handle);
-
     let isDragging = false;
     let startX = 0;
     let startLeft = 0;
