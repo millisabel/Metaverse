@@ -69,7 +69,7 @@
                 <div class="col-12 col-lg-6 line line-cyan" data-aos="fade-up" data-aos-delay="200">
                     <div class="about-content">
                         <!-- Slider -->
-                        <div id="aboutCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-touch="true" data-bs-interval="5000">
+                        <div id="aboutCarousel" class="carousel carousel-about slide" data-bs-ride="carousel" data-bs-touch="true" data-bs-interval="5000">
                             <div class="carousel-inner">
                                 <!-- Slide 1 -->
                                 <div class="carousel-item active">
@@ -148,8 +148,8 @@
                     <div class="roadmap-circle roadmap-circle-1"></div>
                     <h3 class="roadmap-quarter-title">Q1 Governance Token Launch on BSC (BCMETA)</h3>
                     <ul class="roadmap-quarter-list">
-                        <li>Launch Date Jan 5th, 2022 Contract Audit</li>
-                        <li>Technical Competition on Jan 25th, 2022</li>
+                        <li>Launch Date Jan 5th, <span data-year="currentYear"></span></li>
+                        <li>Technical Competition on Jan 25th, <span data-year="currentYear"></span></li>
                         <li>3D Telegram Members, C-Level CMS Storage</li>
                         <li>Application test CEX Listings</li>
                         <li>CoreDEX Listing - Fair/5th, Website Revamp</li>
@@ -640,10 +640,40 @@
                 <h2 class="text-uppercase" data-aos="fade-up" data-aos-delay="100">QUESTIONS</h2>
             </div>
             <div class="row">
-                <div class="social-cards-container d-flex justify-content-center align-items-center overflow-hidden">
+                <!-- <div class="social-cards-container d-flex justify-content-center align-items-center overflow-hidden"> -->
 <!-- 3D cards will be added through JavaScript -->
-            </div> 
-            <div class="social-cards-controls"></div>
+            <!-- </div>  -->
+            <!-- <div class="social-cards-controls"></div> -->
+            <div id="carouselSocial" class="carousel carousel-social slide">
+                <div class="carousel-inner">
+                  <div class="carousel-item active">
+                    1
+                  </div>
+                  <div class="carousel-item">
+                    2
+                  </div>
+                  <div class="carousel-item">
+                    3
+                  </div>
+                  <div class="carousel-item">
+                    4
+                  </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselSocial" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Предыдущий</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselSocial" data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Следующий</span>
+                </button>
+                
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+              </div>
             </div>
         </div>
     </section>
@@ -700,7 +730,7 @@
             <!-- Copyright -->
             <div class="row mt-5 pt-4 border-top border-secondary">
                 <div class="col-12 text-center">
-                    <p class="text-secondary mb-0">© <span id="currentYear"></span> Your Company. All rights reserved.</p>
+                    <p class="text-secondary mb-0">© <span data-year="currentYear"></span> Your Company. All rights reserved.</p>
                 </div>
             </div>
         </div>

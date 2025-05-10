@@ -136,3 +136,18 @@ export function getRandomColor() {
 export function getRandomValue(min, max) {
     return Math.random() * (max - min) + min;
 }
+
+// updateCopyrightYear ============================================
+/**
+ * Updates the copyright year
+ * @returns {void}
+ */
+export function updateCopyrightYear(selector) {
+    const currentYear = new Date().getFullYear();
+    const copyrightYearElement = document.querySelectorAll(selector);
+    copyrightYearElement.forEach(element => {
+        element.textContent = currentYear;
+    });
+}
+
+
