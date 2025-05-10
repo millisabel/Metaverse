@@ -56,11 +56,11 @@ export class SocialSetup extends BaseSetup {
         ];
 
         this.GLOW_CONFIG = {
-            count: isMobile() ? 3 : 6,
+            count: isMobile() ? 4 : 8,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB', '#396eb3', '#693391', '#368084', '#873987'],
             size: {
-                min: isMobile() ? 0.5 : 1,
-                max: isMobile() ? 1.5 : 3
+                min: isMobile() ? 1 : 2,
+                max: isMobile() ? 2 : 4
             },
             movement: {
                 enabled: true,
@@ -77,11 +77,11 @@ export class SocialSetup extends BaseSetup {
             },
             scale: {
                 min: 0.8,
-                max: 3
+                max: 2
             },
             pulse: {
-                speed: 0.1,
-                intensity: 0.3,
+                speed: 0.2,
+                intensity: 0.1,
                 sync: false
             },
             zIndex: this.Z_INDEX.GLOW

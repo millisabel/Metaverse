@@ -37,9 +37,9 @@ export class SocialCard extends AnimationController {
         this.handleClick = this.handleClick.bind(this);
         this.animate = this.animate.bind(this);
 
-        this.amplitude = 0.2;
+        this.amplitude = 0.1;
         this.rotationAmplitude = 0.1;
-        this.amplitudeZ = 0.2;
+        this.amplitudeZ = 0.1;
     }
 
     setupScene() {
