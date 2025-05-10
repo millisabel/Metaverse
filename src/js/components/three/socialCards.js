@@ -1,323 +1,206 @@
 import * as THREE from 'three';
+import { createLogger } from '../../utils/logger';
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
 
-// Social media cards data
-const socialCards = [
-  { id: 'twitter', name: 'TWITTER', texture: 'assets/images/social/twitter.png', color: 0x56FFEB },
-  { id: 'telegram', name: 'TELEGRAM', texture: 'assets/images/social/telegram.png', color: 0xF00AFE },
-  { id: 'youtube', name: 'YOUTUBE', texture: 'assets/images/social/youtube.png', color: 0x4642F4 },
-  { id: 'discord', name: 'DISCORD', texture: 'assets/images/social/discord.png', color: 0x7A42F4 }
-];
+/**
+ * SocialCard - 3D card for social section
+ * @class
+ * @extends AnimationController
+ */
+export class SocialCard extends AnimationController {
+    /**
+     * @param {HTMLElement} container - DOM element for rendering card
+     * @param {Object} options - card parameters (data, size, etc.)
+     * @param {Object} options.data - social network data (id, name, texture, color)
+     * @param {number} options.cardWidth - card width
+     * @param {number} options.cardHeight - card height
+     */
+    constructor(container, options = {}) {
+        super(container, options);
+        this.container = container;
+        this.options = options;
+        this.data = options.data;
+        this.isHovered = false;
+        this.animationOffset = Math.random() * Math.PI * 2;
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.mesh = null;
+        this.animationFrameId = null;
+        this.initialized = false;
 
-// Card dimensions and parameters
-const CARD_HEIGHT = 350;
-const CARD_ASPECT_RATIO = 0.7;
-const CARD_WIDTH = CARD_HEIGHT * CARD_ASPECT_RATIO;
-const CARD_GAP = 40;
+        this.logger = createLogger('SocialCard');
+        this.name = this.data.name;
+        
+        this.handleMouseEnter = this.handleMouseEnter.bind(this);
+        this.handleMouseLeave = this.handleMouseLeave.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+        this.animate = this.animate.bind(this);
 
-class Card {
-  constructor(data, index, totalCards) {
-    this.data = data;
-    this.index = index;
-    this.totalCards = totalCards;
-    this.isHovered = false;
-    this.animationOffset = Math.random() * Math.PI * 2;
-    this.container = document.createElement('div');
-    this.container.className = 'social-card';
-    this.container.style.cssText = `
-      position: absolute;
-      width: ${CARD_WIDTH}px;
-      height: ${CARD_HEIGHT}px;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    `;
+        this.amplitude = 0.2;
+        this.rotationAmplitude = 0.1;
+        this.amplitudeZ = 0.2;
+    }
 
-    // Setup Three.js
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(60, CARD_WIDTH / CARD_HEIGHT, 0.1, 1000);
-    this.camera.position.z = 300;
+    setupScene() {
+      const loader = new THREE.TextureLoader();
+      loader.load(this.data.texture, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+  
+          const material = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              opacity: 1,
+              side: THREE.FrontSide,
+          });
 
-    this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance"
-    });
-    this.renderer.setSize(CARD_WIDTH, CARD_HEIGHT);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.container.appendChild(this.renderer.domElement);
-
-    // Load texture and create mesh
-    const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(data.texture);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      // metalness: 0.0,
-      // roughness: 0.3,
-      // emissive: new THREE.Color(data.color),
-      // emissiveIntensity: 2.5,
-      transparent: true,
-      opacity: 1,
-      side: THREE.FrontSide
-    });
-
-    const geometry = new THREE.PlaneGeometry(CARD_WIDTH * 0.8, CARD_HEIGHT * 0.8);
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.scene.add(this.mesh);
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2);
-    this.scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
-    directionalLight.position.set(1, 1, 1);
-    this.scene.add(directionalLight);
-
-    const pointLight = new THREE.PointLight(data.color, 10, 300);
-    pointLight.position.set(0, 0, 50);
-    this.scene.add(pointLight);
-
-    // Event listeners
-    this.container.addEventListener('mouseenter', () => this.isHovered = true);
-    this.container.addEventListener('mouseleave', () => this.isHovered = false);
-    this.container.addEventListener('click', () => {
-      // Здесь можно добавить обработку клика по карточке
-      console.log(`Clicked ${data.name}`);
-    });
-
-    this.animate = this.animate.bind(this);
-    this.animationFrameId = null;
+          const geometry = new THREE.PlaneGeometry(2, 3);
+          this.mesh = new THREE.Mesh(geometry, material);
+          this.scene.add(this.mesh);
+          this.setupLight();
+  
+          this.container.addEventListener('mouseenter', this.handleMouseEnter);
+          this.container.addEventListener('mouseleave', this.handleMouseLeave);
+          this.container.addEventListener('click', this.handleClick);
+  
+          this.initialized = true;
+          this.name = this.data.name;
+          this.logger.log({ conditions: ['init'], message: `SocialCard ${this.data.name} initialized` });
+          this.startAnimation();
+      });
   }
 
-  setDesktopPosition() {
-    const totalWidth = (this.totalCards * CARD_WIDTH) + ((this.totalCards - 1) * CARD_GAP);
-    const startX = -totalWidth / 2;
-    const x = startX + (this.index * (CARD_WIDTH + CARD_GAP)) + (CARD_WIDTH / 2);
-    
-    this.container.style.transform = `translateX(${x}px)`;
-    this.container.style.opacity = '1';
-  }
-
-  setMobilePosition(currentSlide) {
-    const distance = Math.abs(this.index - currentSlide);
-    const x = (this.index - currentSlide) * (CARD_WIDTH + CARD_GAP);
-    
-    this.container.style.transform = `translateX(${x}px)`;
-    this.container.style.opacity = distance === 0 ? '1' : '0.3';
-    
-    if (distance > 1) {
-      this.container.style.visibility = 'hidden';
-    } else {
-      this.container.style.visibility = 'visible';
-    }
-  }
-
-  startAnimation() {
-    if (!this.animationFrameId) {
-      this.animate();
-    }
-  }
-
-  stopAnimation() {
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
-    }
-  }
-
-  animate() {
-    if (!this.container.isConnected) {
-      this.stopAnimation();
-      return;
+    setupLight() {
+      const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+      this.scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+      directionalLight.position.set(1, 1, 1);
+      this.scene.add(directionalLight);
+      const pointLight = new THREE.PointLight(this.data.color, 10, 300);
+      pointLight.position.set(0, 0, 50);
+      this.scene.add(pointLight);
     }
 
-    const time = Date.now() * 0.001;
-
-    if (!this.isHovered) {
-      this.mesh.rotation.y = Math.sin(time * 0.5 + this.animationOffset) * 0.1;
-      this.mesh.position.y = Math.sin(time + this.animationOffset) * 5;
-    } else {
-      this.mesh.rotation.y += (0 - this.mesh.rotation.y) * 0.1;
-      this.mesh.position.y += (0 - this.mesh.position.y) * 0.1;
+    /**
+     * Loading texture as Promise
+     * @param {string} url
+     * @returns {Promise<THREE.Texture>}
+     */
+    loadTexture(url) {
+        return new Promise((resolve, reject) => {
+            const loader = new THREE.TextureLoader();
+            loader.load(url, resolve, undefined, reject);
+        });
     }
 
-    this.renderer.render(this.scene, this.camera);
-    this.animationFrameId = requestAnimationFrame(this.animate);
-  }
-
-  dispose() {
-    this.stopAnimation();
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
-    if (this.mesh.material.map) this.mesh.material.map.dispose();
-    this.renderer.dispose();
-  }
-}
-
-export const initSocialCards = () => {
-  const containerSection = document.getElementById('social');
-  if (!containerSection) return;
-
-  const container = document.querySelector('.social-cards-container');
-
-  // Create cards
-  const cards = socialCards.map((data, index) => 
-    new Card(data, index, socialCards.length)
-  );
-
-  // Add cards to container
-  cards.forEach(card => container.appendChild(card.container));
-
-  // Mobile controls
-  const mobileControls = document.querySelector('.social-cards-controls');
-  mobileControls.innerHTML = `
-    <button class="prev-btn" aria-label="Previous slide">←</button>
-    <div class="indicators">
-      ${cards.map((_, i) => `<button class="indicator${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="Go to slide ${i + 1}"></button>`).join('')}
-    </div>
-    <button class="next-btn" aria-label="Next slide">→</button>
-  `;
-
-  let currentSlide = 0;
-  let autoSlideInterval = null;
-  let autoSlideDelay = 3000; // Увеличиваем интервал до 5 секунд
-  let isAutoPlayPaused = false;
-
-  const updateSlide = (index, smooth = true) => {
-    currentSlide = index;
-    cards.forEach(card => {
-      if (smooth) {
-        card.container.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-      } else {
-        card.container.style.transition = 'none';
-      }
-      card.setMobilePosition(currentSlide);
-    });
-    
-    const indicators = mobileControls.querySelectorAll('.indicator');
-    indicators.forEach((indicator, i) => {
-      indicator.classList.toggle('active', i === currentSlide);
-      indicator.setAttribute('aria-pressed', i === currentSlide);
-    });
-  };
-
-  const nextSlide = () => {
-    if (isAutoPlayPaused) return;
-    updateSlide((currentSlide + 1) % cards.length);
-  };
-
-  const prevSlide = () => {
-    if (isAutoPlayPaused) return;
-    updateSlide((currentSlide - 1 + cards.length) % cards.length);
-  };
-
-  const startAutoSlide = () => {
-    if (autoSlideInterval) clearInterval(autoSlideInterval);
-    if (!isAutoPlayPaused) {
-      autoSlideInterval = setInterval(nextSlide, autoSlideDelay);
-    }
-  };
-
-  const pauseAutoSlide = () => {
-    isAutoPlayPaused = true;
-    if (autoSlideInterval) {
-      clearInterval(autoSlideInterval);
-      autoSlideInterval = null;
-    }
-  };
-
-  const resumeAutoSlide = () => {
-    isAutoPlayPaused = false;
-    startAutoSlide();
-  };
-
-  // Touch events for mobile swipe
-  let touchStartX = 0;
-  let touchEndX = 0;
-
-  container.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    pauseAutoSlide();
-  }, { passive: true });
-
-  container.addEventListener('touchmove', (e) => {
-    touchEndX = e.touches[0].clientX;
-  }, { passive: true });
-
-  container.addEventListener('touchend', () => {
-    const swipeDistance = touchEndX - touchStartX;
-    if (Math.abs(swipeDistance) > 50) { // Минимальное расстояние для свайпа
-      if (swipeDistance > 0) {
-        prevSlide();
-      } else {
-        nextSlide();
-      }
-    }
-    setTimeout(resumeAutoSlide, 3000); // Возобновляем автопрокрутку через 3 секунды после свайпа
-  });
-
-  // Mobile controls event listeners
-  mobileControls.querySelector('.prev-btn').addEventListener('click', () => {
-    prevSlide();
-    pauseAutoSlide();
-    setTimeout(resumeAutoSlide, 3000);
-  });
-
-  mobileControls.querySelector('.next-btn').addEventListener('click', () => {
-    nextSlide();
-    pauseAutoSlide();
-    setTimeout(resumeAutoSlide, 3000);
-  });
-
-  mobileControls.querySelectorAll('.indicator').forEach((indicator, index) => {
-    indicator.addEventListener('click', () => {
-      updateSlide(index);
-      pauseAutoSlide();
-      setTimeout(resumeAutoSlide, 3000);
-    });
-  });
-
-  // Intersection Observer
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        cards.forEach(card => card.startAnimation());
-        if (window.innerWidth < 768) {
-          resumeAutoSlide();
+    /**
+     * Start card animation
+     */
+    startAnimation() {
+        if (!this.animationFrameId) {
+            this.animate();
         }
-      } else {
-        cards.forEach(card => card.stopAnimation());
-        pauseAutoSlide();
-      }
-    });
-  }, { threshold: 0.1 });
-
-  observer.observe(containerSection);
-
-  // Handle responsive design
-  const handleResize = () => {
-    const isMobile = window.innerWidth < 768;
-    mobileControls.style.display = isMobile ? 'flex' : 'none';
-    
-    if (isMobile) {
-      updateSlide(currentSlide, false);
-      resumeAutoSlide();
-    } else {
-      pauseAutoSlide();
-      cards.forEach(card => card.setDesktopPosition());
     }
-  };
 
-  window.addEventListener('resize', handleResize);
-  handleResize();
+    /**
+     * Stop card animation
+     */
+    stopAnimation() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+    }
 
-  // Return cleanup function
-  return () => {
-    observer.disconnect();
-    if (autoSlideInterval) clearInterval(autoSlideInterval);
-    cards.forEach(card => card.dispose());
-    if (container.parentNode) container.parentNode.removeChild(container);
-    if (mobileControls.parentNode) mobileControls.parentNode.removeChild(mobileControls);
-    window.removeEventListener('resize', handleResize);
-  };
-}; 
+    /**
+     * Main animation cycle
+     */
+    animate() {
+      if (!this.container.isConnected || !this.mesh) {
+          this.stopAnimation();
+          return;
+      }
+        const time = Date.now() * 0.001;
+        const amplitude = this.amplitude; 
+        const rotationAmplitude = this.rotationAmplitude;
+        const amplitudeZ = this.amplitudeZ;
+
+        if (!this.isHovered) {
+            this.mesh.rotation.y = Math.sin(time * 0.5 + this.animationOffset) * rotationAmplitude;
+            this.mesh.position.y = Math.sin(time + this.animationOffset) * amplitude;
+            this.mesh.position.z = Math.sin(time + this.animationOffset) * amplitudeZ;
+        } else {
+            this.mesh.rotation.y += (0 - this.mesh.rotation.y) * 0.1;
+            this.mesh.position.y += (0 - this.mesh.position.y) * 0.1;
+            this.mesh.position.z += (0 - this.mesh.position.z) * 0.1;
+        }
+        this.renderer.render(this.scene, this.camera);
+        this.animationFrameId = requestAnimationFrame(this.animate);
+    }
+
+    handleResize() {
+      if (!this.renderer || !this.camera || !this.mesh) return;
+  
+      // Get new container sizes
+      const rect = this.container.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+  
+      this.renderer.setSize(width, height);
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+  
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+  
+      // (Optional) Recreate geometry if needed
+      // this.mesh.geometry.dispose();
+      // this.mesh.geometry = new THREE.PlaneGeometry(2, 3); // or other sizes
+  }
+
+    /**
+     * Cleaning up card resources
+     */
+    dispose() {
+        this.stopAnimation();
+        if (this.mesh) {
+            this.mesh.geometry.dispose();
+            if (this.mesh.material.map) this.mesh.material.map.dispose();
+            this.mesh.material.dispose();
+        }
+        if (this.renderer) {
+            this.renderer.dispose();
+        }
+        // Remove canvas from DOM
+        if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode) {
+            this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+        }
+        // Remove event handlers
+        this.container.removeEventListener('mouseenter', this.handleMouseEnter);
+        this.container.removeEventListener('mouseleave', this.handleMouseLeave);
+        this.container.removeEventListener('click', this.handleClick);
+        this.logger.log({ conditions: ['dispose'], message: `SocialCard ${this.data.name} disposed` });
+    }
+
+    /**
+     * Mouseenter handler
+     */
+    handleMouseEnter() {
+        this.isHovered = true;
+    }
+
+    /**
+     * Mouseleave handler
+     */
+    handleMouseLeave() {
+        this.isHovered = false;
+    }
+
+    /**
+     * Click handler
+     */
+    handleClick() {
+        // You can add a link transition or other logic
+        this.logger.log({ conditions: ['click'], message: `Clicked ${this.data.name}` });
+    }
+} 
