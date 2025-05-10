@@ -23,23 +23,13 @@ export class RoadmapSetup extends BaseSetup {
             GLOW: '-1',
         };
 
-        this.glow = null;
-    }
-
-    setupScene() {
-        // create glow 
-        const glowContainer = this.createContainer(
-            this.CONTAINER_TYPES.GLOW, 
-            this.Z_INDEX.GLOW
-        );
-        
-        this.glow = new Glow(glowContainer, {
+        this.GLOW_CONFIG = {
             count: isMobile() ? 3 : 10,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             size: {
                 min: isMobile() ? 0.2 : 0.5,
                 max: isMobile() ? 1.5 : 3
-            },
+            },                      
             movement: {
                 enabled: true,
                 speed: 0.001,
@@ -63,7 +53,18 @@ export class RoadmapSetup extends BaseSetup {
                 sync: false
             },
             zIndex: this.Z_INDEX.GLOW
-        });
+        };
+
+    }
+
+    setupScene() {
+        // create glow 
+        const glowContainer = this.createContainer(
+            this.CONTAINER_TYPES.GLOW, 
+            this.Z_INDEX.GLOW
+        );
+        
+        this.glow = new Glow(glowContainer, this.GLOW_CONFIG);
 
         // initialize roadmap
         new Roadmap(this.container, {
