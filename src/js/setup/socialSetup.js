@@ -1,5 +1,7 @@
 import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { SocialCard } from '../components/three/socialCards';
+import { Glow } from "../components/three/glow";
+import { isMobile } from '../utils/utils';
 
 export class SocialSetup extends BaseSetup {
     constructor() {
@@ -12,8 +14,14 @@ export class SocialSetup extends BaseSetup {
             }
         });
 
+        this.CONTAINER_TYPES = {
+            SOCIAL: 'SOCIAL ',
+            GLOW: 'GLOW',
+        };
+
         this.Z_INDEX = {
-            SOCIAL: '1'
+            SOCIAL: '1',
+            GLOW: '-1',
         };
 
         this.SOCIAL_CARDS = [
@@ -47,7 +55,41 @@ export class SocialSetup extends BaseSetup {
             }
         ];
 
+        this.GLOW_CONFIG = {
+            count: isMobile() ? 3 : 6,
+            colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB', '#396eb3', '#693391', '#368084', '#873987'],
+            size: {
+                min: isMobile() ? 0.5 : 1,
+                max: isMobile() ? 1.5 : 3
+            },
+            movement: {
+                enabled: true,
+                speed: 0.001,
+                range: {
+                    x: 1,
+                    y: 0.9,
+                    z: 0.3
+                }
+            },
+            opacity: {
+                min: 0.1,
+                max: 0.3
+            },
+            scale: {
+                min: 0.8,
+                max: 3
+            },
+            pulse: {
+                speed: 0.1,
+                intensity: 0.3,
+                sync: false
+            },
+            zIndex: this.Z_INDEX.GLOW
+        };
+
+
         this.socialCardsInstances = [];
+        this.glow = null;
     }
 
     async setupScene() {
@@ -66,6 +108,13 @@ export class SocialSetup extends BaseSetup {
 
         this._boundHandleResizeAll = this.handleResizeAll.bind(this);
         window.addEventListener('resize', this._boundHandleResizeAll);
+
+        const glowContainer = this.createContainer(
+            this.CONTAINER_TYPES.GLOW, 
+            this.Z_INDEX.GLOW
+        );
+        
+        this.glow = new Glow(glowContainer, this.GLOW_CONFIG);
     }
 
     createSocialCard(parent,cardData, i) {  
@@ -99,10 +148,19 @@ export class SocialSetup extends BaseSetup {
     }
 
     update() {
+        if (this.glow) {
+            this.glow.update();
+        }
         
     }
 
     cleanup() {
+        if (this.glow) {
+            this.cleanupContainer(this.CONTAINER_TYPES.GLOW);
+            this.glow = null;
+        }
+        
+
         if (this.socialCardsInstances && this.socialCardsInstances.length) {
             this.socialCardsInstances.forEach(card => {
                 if (card && typeof card.dispose === 'function') {
