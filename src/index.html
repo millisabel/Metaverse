@@ -69,7 +69,7 @@
                 <div class="col-12 col-lg-6 line line-cyan" data-aos="fade-up" data-aos-delay="200">
                     <div class="about-content">
                         <!-- Slider -->
-                        <div id="aboutCarousel" class="carousel carousel-about slide" data-bs-ride="carousel" data-bs-touch="true" data-bs-interval="5000">
+                        <div id="aboutCarousel" class="carousel slide carousel-about" data-bs-ride="carousel" data-bs-touch="true" data-bs-interval="5000">
                             <div class="carousel-inner">
                                 <!-- Slide 1 -->
                                 <div class="carousel-item active">
@@ -104,31 +104,27 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>  
-                        <!-- Custom Slider Indicator -->
-                        <div class="carousel-indicators-custom">
-                            <div class="carousel-indicators-track">
-                                <div class="carousel-indicators-fill"></div>
-                                <div class="carousel-indicators-handle"></div>
+                            <!-- Custom Slider Indicator -->
+                            <div class="carousel-indicators-custom">
+                                <div class="carousel-indicators-track">
+                                    <div class="carousel-indicators-fill"></div>
+                                    <div class="carousel-indicators-handle"></div>
+                                </div>
                             </div>
-                        </div>
-                        <!-- Sliders Controls -->
-                        <div class="carousel-controls">
-                             <div class="carousel-controls-buttons d-flex align-items-center justify-content-between">
-                                <!-- <button class="carousel-control-prev position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button> -->
-                                <p class="d-flex gap-2 mb-0">
-                                    <span>1</span>
-                                    <span class="text-uppercase">Chapter</span>
-                                </p>
-                                <button class="carousel-control-next position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
-                             </div>
-                        </div>
+                            <!-- Sliders Controls -->
+                            <div class="carousel-controls">
+                                <div class="carousel-controls-buttons d-flex align-items-center justify-content-between">
+                                    <p class="d-flex gap-2 mb-0">
+                                        <span>1</span>
+                                        <span class="text-uppercase">Chapter</span>
+                                    </p>
+                                    <button class="carousel-control-next position-static" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-number" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>  
                     </div>
                 </div>
             </div>
@@ -644,7 +640,7 @@
 <!-- 3D cards will be added through JavaScript -->
             <!-- </div>  -->
             <!-- <div class="social-cards-controls"></div> -->
-            <div id="carouselSocial" class="carousel carousel-social slide">
+            <div id="carouselSocial" class="carousel carousel-social slide" data-bs-ride="carousel" data-bs-interval="10000">
                 <div class="carousel-inner">
                   <div class="carousel-item active">
                     1
@@ -659,20 +655,23 @@
                     4
                   </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselSocial" data-bs-slide="prev">
-                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                  <span class="visually-hidden">Предыдущий</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselSocial" data-bs-slide="next">
-                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <div class="carousel-control">
+                    <button class="carousel-control-prev" type="button"  data-bs-target="#carouselSocial" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Предыдущий</span>
+                    </button>
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselSocial" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#carouselSocial" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#carouselSocial" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#carouselSocial" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    </div>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselSocial" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
                   <span class="visually-hidden">Следующий</span>
-                </button>
-                
-                <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    </button>
                 </div>
+    
               </div>
             </div>
         </div>

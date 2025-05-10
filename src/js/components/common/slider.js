@@ -1,11 +1,19 @@
 export function initSlider() {
     const carouselElement = document.getElementById('aboutCarousel');
-    const totalSlides = document.querySelectorAll('#aboutCarousel .carousel-item').length;
-    const currentNumber = document.querySelector('.carousel-controls-buttons p span:first-child');
-    const nextButton = document.querySelector('.carousel-control-next');
-    const track = document.querySelector('.carousel-indicators-track');
-    const fill = document.querySelector('.carousel-indicators-fill');
-    const handle = document.querySelector('.carousel-indicators-handle');
+    const totalSlides = document.querySelectorAll('.about .carousel-item').length;
+    const currentNumber = document.querySelector('.about .carousel-controls-buttons p span:first-child');
+    const nextButton = document.querySelector('.about .carousel-control-next');
+    const track = document.querySelector('.about .carousel-indicators-track');
+    const fill = document.querySelector('.about .carousel-indicators-fill');
+    const handle = document.querySelector('.about .carousel-indicators-handle');
+
+    console.log(carouselElement);
+    console.log(totalSlides);
+    console.log(currentNumber);
+    console.log(nextButton);
+    console.log(track);
+    console.log(fill);
+    console.log(handle);
 
     let isDragging = false;
     let startX = 0;
