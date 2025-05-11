@@ -32,6 +32,33 @@ import { AnimationObserverCSS } from "../../utils/animationObserver_CSS";
  * });
  */
 
+export function animateNavItems(navItems, navbarAnimateClass) {
+    navItems.forEach(item => {
+      item.classList.remove(navbarAnimateClass);
+      item.style.opacity = '0';
+      if (item._onAnimationEnd) {
+        item.removeEventListener('animationend', item._onAnimationEnd);
+        delete item._onAnimationEnd;
+      }
+    });
+  
+    const animateNext = (index) => {
+      if (index >= navItems.length) return;
+      const item = navItems[index];
+      item.classList.add(navbarAnimateClass);
+  
+      const onAnimationEnd = () => {
+        item.removeEventListener('animationend', onAnimationEnd);
+        delete item._onAnimationEnd;
+        animateNext(index + 1);
+      };
+      item._onAnimationEnd = onAnimationEnd;
+      item.addEventListener('animationend', onAnimationEnd);
+    };
+  
+    animateNext(0);
+  }
+
 export const initializeNavbar = (selectors) => {
     const navbar = document.querySelector(selectors.NAVBAR_SELECTOR);
     const navItems = document.querySelectorAll(selectors.NAVBAR_ITEMS_SELECTOR);
@@ -61,26 +88,6 @@ export const initializeNavbar = (selectors) => {
         }
     };
 
-    // Navbar items animation ===
-    const animateNavItems = () => {
-        navItems.forEach(item => item.classList.remove(navbarAnimateClass));
-        navItems.forEach(item => item.style.opacity = '0');
-
-        const animateNext = (index) => {
-            if (index >= navItems.length) return;
-            const item = navItems[index];
-            item.classList.add(navbarAnimateClass);
-
-            const onAnimationEnd = () => {
-                item.removeEventListener('animationend', onAnimationEnd);
-                animateNext(index + 1);
-            };
-            item.addEventListener('animationend', onAnimationEnd);
-        };
-
-        animateNext(0);
-    };
-
     // Navbar links click ===
     const handleNavLinks = () => {
         navLinks.forEach(link => {
@@ -107,7 +114,9 @@ export const initializeNavbar = (selectors) => {
     // Initialize ===
     const init = () => {
         if (isMobile(1400)) {
-            navbarCollapseClass.addEventListener('shown.bs.collapse', animateNavItems);
+            navbarCollapseClass.addEventListener('shown.bs.collapse', () => {
+                animateNavItems(navItems, navbarAnimateClass);
+            });
             navbarCollapseClass.addEventListener('hide.bs.collapse', () => {
                 navItems.forEach(item => {
                     item.classList.remove(navbarAnimateClass);
@@ -115,7 +124,9 @@ export const initializeNavbar = (selectors) => {
                 });
             });
         } else {
-            window.addEventListener('DOMContentLoaded', animateNavItems);
+            window.addEventListener('DOMContentLoaded', () => {
+                animateNavItems(navItems, navbarAnimateClass);
+            });
         }
         handleNavLinks();
 
