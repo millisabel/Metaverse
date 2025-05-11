@@ -6,8 +6,8 @@
  * Checks if device is mobile
  * @returns {boolean} True if device is mobile
  */
-export function isMobile() {
-    return window.innerWidth <= 768;
+export function isMobile(size = 768) {
+    return window.innerWidth <= size;
 }
 
 //  createContainer ===============================================
@@ -140,6 +140,7 @@ export function getRandomValue(min, max) {
 // updateCopyrightYear ============================================
 /**
  * Updates the copyright year
+ * @param {string} selector - Selector for the copyright year element
  * @returns {void}
  */
 export function updateCopyrightYear(selector) {
