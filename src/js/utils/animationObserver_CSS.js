@@ -44,6 +44,8 @@ export class AnimationObserverCSS {
         /** @type {string} */
         this.currentSection = '';
 
+        this.handleResize = this.handleResize.bind(this);
+
         this.init();
     }
 
@@ -55,6 +57,8 @@ export class AnimationObserverCSS {
         this.setupIntersectionObserver();
         this.setupMutationObserver();
         this.setupSectionObserver();
+
+        window.addEventListener('resize', this.handleResize);
 
         this.logger.log({
             conditions: ['init'],
@@ -193,6 +197,34 @@ export class AnimationObserverCSS {
                 this.onActiveSectionChange(activeId);
             }
         }
+    }
+
+    /**
+     * Handles window resize events to clean up and reinitialize observers.
+     */
+    handleResize() {
+        this.cleanupObservers();
+        this.collectElements();
+        this.setupIntersectionObserver();
+        this.setupSectionObserver();
+        this.logger.log({ conditions: ['resize'], functionName: 'handleResize' });
+    }
+
+    /**
+     * Cleans up all observers.
+     */
+    cleanupObservers() {
+        if (this.intersectionObserver) this.intersectionObserver.disconnect();
+        if (this.sectionObserver) this.sectionObserver.disconnect();
+    }
+
+    /**
+     * Disposes of all observers.
+     */
+    dispose() {
+        window.removeEventListener('resize', this.handleResize);
+        this.cleanupObservers();
+        if (this.mutationObserver) this.mutationObserver.disconnect();
     }
 }
 
