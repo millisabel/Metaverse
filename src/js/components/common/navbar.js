@@ -1,116 +1,134 @@
-// Navbar functionality
-export const initNavbar = () => {
-    const navbar = document.querySelector('.navbar');
-    const navLinks = document.querySelectorAll('.navbar .nav-link');
-    const sections = document.querySelectorAll('section');
+import { isMobile } from "../../utils/utils";
+import { AnimationObserverCSS } from "../../utils/animationObserver_CSS";
+
+/**
+ * Initializes the navigation bar: handles active section highlighting, menu item animation,
+ * navbar transparency on scroll, and navigation link click behavior.
+ *
+ * @param {Object} selectors - An object containing all required CSS selectors and class names.
+ * @param {string} selectors.NAVBAR_SELECTOR - Selector for the main navbar element.
+ * @param {string} selectors.NAVBAR_ITEMS_SELECTOR - Selector for all navbar menu items (li).
+ * @param {string} selectors.NAVBAR_LINKS_SELECTOR - Selector for all navbar links (a).
+ * @param {string} selectors.NAVBAR_COLLAPSE_CLASS - Selector for the collapsible menu container.
+ * @param {string} selectors.NAVBAR_LINKS_ACTIVE_CLASS - Class name for the active nav link.
+ * @param {string} selectors.NAVBAR_SCROLL_CLASS - Class name to apply when navbar is scrolled.
+ * @param {string} selectors.NAVBAR_ANIMATE_CLASS - Class name for animating nav items.
+ * @param {string} selectors.NAVBAR_SHOW_MENU_CLASS - Class name indicating the menu is open (Bootstrap).
+ * @param {string} selectors.NAVBAR_LISTENER_EVENT_SHOW - Event name for showing the mobile menu (e.g. 'show.bs.collapse').
+ * @param {string} selectors.NAVBAR_LISTENER_EVENT_HIDE - Event name for hiding the mobile menu (e.g. 'hide.bs.collapse').
+ *
+ * @example
+ * initializeNavbar({
+ *   NAVBAR_SELECTOR: '.navbar',
+ *   NAVBAR_ITEMS_SELECTOR: '.navbar-nav .nav-item',
+ *   NAVBAR_LINKS_SELECTOR: '.navbar .nav-link',
+ *   NAVBAR_COLLAPSE_CLASS: '.navbar-collapse',
+ *   NAVBAR_LINKS_ACTIVE_CLASS: 'active',
+ *   NAVBAR_SCROLL_CLASS: 'navbar-scrolled',
+ *   NAVBAR_ANIMATE_CLASS: 'navbar-animate-in',
+ *   NAVBAR_SHOW_MENU_CLASS: 'show',
+ *   NAVBAR_LISTENER_EVENT_SHOW: 'show.bs.collapse',
+ *   NAVBAR_LISTENER_EVENT_HIDE: 'hide.bs.collapse'
+ * });
+ */
+
+export const initializeNavbar = (selectors) => {
+    const navbar = document.querySelector(selectors.NAVBAR_SELECTOR);
+    const navItems = document.querySelectorAll(selectors.NAVBAR_ITEMS_SELECTOR);
+    const navLinks = document.querySelectorAll(selectors.NAVBAR_LINKS_SELECTOR);
+    const navbarCollapseClass = document.querySelector(selectors.NAVBAR_COLLAPSE_CLASS);
+    const navbarActiveClass = selectors.NAVBAR_LINKS_ACTIVE_CLASS;
+    const navbarScrollClass = selectors.NAVBAR_SCROLL_CLASS;
+    const navbarAnimateClass = selectors.NAVBAR_ANIMATE_CLASS;
+    const navbarShowMenuClass = selectors.NAVBAR_SHOW_MENU_CLASS;
+
     const scrollThreshold = 50;
-    const navbarCollapse = document.querySelector('.navbar-collapse');
-    const navItems = document.querySelectorAll('.navbar-nav .nav-item');
-    const logo = document.querySelector('.navbar-brand-logo');
 
-    // Проверка возможности отрисовки SVG
-    const checkSVGSupport = () => {
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        svg.appendChild(path);
-        return svg.getBBox && path.getTotalLength;
-    };
+    // Active section ===
+    new AnimationObserverCSS(
+        ['.star', '.game-character--badge'],
+        (activeSectionId) => {
+            highlightActiveNavLink(navLinks, activeSectionId, navbarActiveClass);
+        }
+    );
 
-    // Установка запасного логотипа
-    const setFallbackLogo = () => {
-        const logoContainer = document.querySelector('.navbar-brand');
-        if (logoContainer) {
-            logoContainer.innerHTML = '<img src="assets/icons/Logo.svg" alt="Logo" width="48" height="48">';
+    // Navbar transparency ===
+    const handleNavbarTransparency = () => {
+        if (window.scrollY > scrollThreshold) {
+            navbar.classList.add(navbarScrollClass);
+        } else {
+            navbar.classList.remove(navbarScrollClass);
         }
     };
 
-    // Проверка поддержки SVG при инициализации
-    if (!checkSVGSupport()) {
-        setFallbackLogo();
-    }
+    // Navbar items animation ===
+    const animateNavItems = () => {
+        navItems.forEach(item => item.classList.remove(navbarAnimateClass));
+        navItems.forEach(item => item.style.opacity = '0');
 
-    // AOS attribute management
-    const handleAOSAttributes = () => {
-        const isMobile = window.innerWidth < 992; // Bootstrap lg breakpoint
-        navItems.forEach(item => {
-            if (isMobile) {
-                item.removeAttribute('data-aos');
-                item.removeAttribute('data-aos-delay');
-            } else {
-                const index = Array.from(navItems).indexOf(item);
-                item.setAttribute('data-aos', 'fade-down');
-                item.setAttribute('data-aos-delay', `${(index + 1) * 100}`);
-            }
-        });
+        const animateNext = (index) => {
+            if (index >= navItems.length) return;
+            const item = navItems[index];
+            item.classList.add(navbarAnimateClass);
+
+            const onAnimationEnd = () => {
+                item.removeEventListener('animationend', onAnimationEnd);
+                animateNext(index + 1);
+            };
+            item.addEventListener('animationend', onAnimationEnd);
+        };
+
+        animateNext(0);
     };
 
-    // Handle navigation links click
+    // Navbar links click ===
     const handleNavLinks = () => {
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                navLinks.forEach(l => l.classList.remove('active'));
-                e.target.classList.add('active');
+                navLinks.forEach(l => l.classList.remove(navbarActiveClass));
+                e.target.classList.add(navbarActiveClass);
 
-                if (navbarCollapse.classList.contains('show')) {
-                    bootstrap.Collapse.getInstance(navbarCollapse).hide();
+                if (navbarCollapseClass.classList.contains(navbarShowMenuClass)) {
+                    bootstrap.Collapse.getInstance(navbarCollapseClass).hide();
                 }
             });
         });
     };
 
-    // Handle scroll-based active section
-    const handleActiveSection = () => {
-        let current = '';
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            
-            if (window.scrollY >= (sectionTop - sectionHeight / 3)) {
-                current = section.getAttribute('id');
-            }
-        });
-
+    function highlightActiveNavLink(navLinks, activeSectionId, activeClass = navbarActiveClass) {
         navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
+            link.classList.remove(activeClass);
+            if (link.getAttribute('href') === `#${activeSectionId}`) {
+                link.classList.add(activeClass);
             }
         });
-    };
+    }
 
-    // Handle navbar transparency
-    const handleNavbarTransparency = () => {
-        if (window.scrollY > scrollThreshold) {
-            navbar.classList.add('navbar-scrolled');
-        } else {
-            navbar.classList.remove('navbar-scrolled');
-        }
-    };
-
-    // Initialize all navbar functionality
+    // Initialize ===
     const init = () => {
-        handleAOSAttributes();
+        if (isMobile(1400)) {
+            navbarCollapseClass.addEventListener('shown.bs.collapse', animateNavItems);
+            navbarCollapseClass.addEventListener('hide.bs.collapse', () => {
+                navItems.forEach(item => {
+                    item.classList.remove(navbarAnimateClass);
+                    item.style.opacity = '0';
+                });
+            });
+        } else {
+            window.addEventListener('DOMContentLoaded', animateNavItems);
+        }
         handleNavLinks();
-        handleNavbarTransparency();
 
-        // Add scroll event listener with throttle
+        // Scroll only for navbar transparency!
         let ticking = false;
         window.addEventListener('scroll', () => {
             if (!ticking) {
                 window.requestAnimationFrame(() => {
-                    handleActiveSection();
                     handleNavbarTransparency();
                     ticking = false;
                 });
                 ticking = true;
             }
-        });
-
-        // Window resize handler
-        window.addEventListener('resize', () => {
-            handleAOSAttributes();
-            AOS.refresh();
         });
     };
 
