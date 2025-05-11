@@ -30,6 +30,7 @@ export class NavbarSetup {
         });
 
         this.initNavbar();
+        this.initNavbarToggler();
     }
 
     initNavbar() {
@@ -38,6 +39,15 @@ export class NavbarSetup {
             functionName: 'initNavbar'
         });
         initializeNavbar(this.NAVBAR_SELECTORS);
+    }
+
+    initNavbarToggler() {
+        const navbarToggler = document.querySelector('.navbar-toggler');
+        if (navbarToggler) {
+            navbarToggler.addEventListener('mouseup', (e) => {
+                navbarToggler.blur();
+            });
+        }
     }
 }
 
