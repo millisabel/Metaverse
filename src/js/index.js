@@ -76,14 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // initSocial();
 
     // Initialize UI components
-    // initModal();
+    initModal();
+    updateCopyrightYear('[data-year="currentYear"]');
     // initSlider();
-    // updateCopyrightYear('[data-year="currentYear"]');
 });
 
-/**
- * @param {Array<string|HTMLElement>} animationTargets - Селекторы (строки) или элементы для отслеживания анимаций.
- *        Для псевдоэлементов передаётся только родительский элемент или его селектор.
- * @param {function(string):void} [onActiveSectionChange] - Коллбэк при смене активной секции (опционально).
- * @param {NodeList|Element[]} [sections] - Секции для Intersection Observer (опционально).
- */
