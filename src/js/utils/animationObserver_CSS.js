@@ -1,185 +1,198 @@
-import {createLogger, Logger} from "./logger";
+import {createLogger} from "./logger";
 
+/**
+ * AnimationObserverCSS
+ *
+ * Universal class for observing visibility and animation state of DOM elements.
+ * - Accepts an array of selectors (strings) or DOM elements to track CSS animations.
+ * - Pauses animation when elements are out of viewport, resumes when visible.
+ * - Supports dynamic DOM changes via MutationObserver.
+ * - Can track active sections for navigation highlighting (e.g., navbar).
+ *
+ * @class
+ * @example
+ * new AnimationObserverCSS([
+ *   '.star', '.game-character--badge'
+ * ], (activeSectionId) => {
+ *   // Highlight nav link logic
+ * });
+ */
 export class AnimationObserverCSS {
-    constructor() {
-        this.observedElements = new Map();
-        this.observer = null;
-        this.intersectionObserver = null;
-        this.resizeObserver = null;
-        this.initialized = false;
-        this.debug = false;
+    /**
+     * @constructor
+     * @param {Array<string|HTMLElement>} targets - Array of selectors (strings) or DOM elements to observe for animation.
+     * @param {function(string):void} [onActiveSectionChange] - Callback for active section change (optional).
+     * @param {NodeList|Element[]} [sections] - Sections for section observer (optional, defaults to all <section>).
+     */
+    constructor(targets = [], onActiveSectionChange = null, sections = null) {
+        /** @type {string} */
+        this.name = 'AnimationObserverCSS';
+        /** @type {ReturnType<typeof createLogger>} */
+        this.logger = createLogger(this.name);
 
-        this.logger = createLogger('AnimationObserverCSS');
+        /** @type {Array<string|HTMLElement>} */
+        this.targets = targets;
+        /** @type {function(string):void|null} */
+        this.onActiveSectionChange = onActiveSectionChange;
+        /** @type {Set<HTMLElement>} */
+        this.observedElements = new Set();
+        /** @type {HTMLElement[]} */
+        this.elements = [];
 
-        const style = document.createElement('style');
-        style.textContent = `
-            [data-animation-paused="true"] {
-                animation-play-state: paused !important;
-            }
-        `;
-        document.head.appendChild(style);
+        /** @type {HTMLElement[]} */
+        this.sections = Array.from(sections || document.querySelectorAll('section'));
+        /** @type {string} */
+        this.currentSection = '';
+
         this.init();
     }
 
+    /**
+     * Initializes the observer: collects elements, sets up IntersectionObserver, MutationObserver, and section observer.
+     */
     init() {
+        this.collectElements();
         this.setupIntersectionObserver();
         this.setupMutationObserver();
-        this.initializeElements();
-    }
+        this.setupSectionObserver();
 
-    initializeElements() {
-        requestAnimationFrame(() => {
-            document.querySelectorAll('*').forEach(element => {
-                this.checkElement(element);
-            });
-            this.initialized = true;
+        this.logger.log({
+            conditions: ['init'],
+            functionName: 'init'
         });
-    }
-
-    checkElement(element) {
-        if (element.hasAttribute('data-aos')) return;
-
-        const styles = [
-            window.getComputedStyle(element),
-            window.getComputedStyle(element, ':before'),
-            window.getComputedStyle(element, ':after')
-        ];
-
-        styles.forEach((style, index) => {
-            if (this.hasAnimation(style)) {
-
-                const animationData = {
-                    element,
-                    pseudoElement: index === 0 ? null : index === 1 ? ':before' : ':after',
-                    animation: {
-                        name: style.animationName,
-                        duration: style.animationDuration,
-                        delay: style.animationDelay
-                    }
-                };
-
-                this.trackAnimation(animationData);
-                this.pauseAnimation(element);
-                this.intersectionObserver.observe(element);
+        this.logger.log(this.targets, {
+            type: 'success',
+            conditions: ['init'],
+            functionName: 'init',
+            customData: {
+                elements: this.elements
             }
         });
     }
 
+    /**
+     * Collects all elements to be observed based on selectors or direct DOM elements.
+     * Removes duplicates.
+     */
+    collectElements() {
+        let elements = [];
+        this.targets.forEach(target => {
+            if (typeof target === 'string') {
+                elements.push(...document.querySelectorAll(target));
+            } else if (target instanceof HTMLElement) {
+                elements.push(target);
+            }
+        });
+        this.elements = Array.from(new Set(elements));
+    }
+
+    /**
+     * Sets up IntersectionObserver for all tracked elements to pause/resume animation based on visibility.
+     */
     setupIntersectionObserver() {
-        this.intersectionObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach(entry => {
-                    const element = entry.target;
-                    const isVisible = entry.isIntersecting;
+        this.intersectionObserver = new IntersectionObserver(this.handleIntersect.bind(this), {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+        this.elements.forEach(el => this.intersectionObserver.observe(el));
+    }
 
-                    // First change the animation state
-                    if (isVisible) {
-                        this.startAnimation(element);
-                        element.style.willChange = 'transform, opacity';
-                    } else {
-                        this.pauseAnimation(element);
-                        element.style.willChange = 'auto';
-                    }
-
-                    const isPaused = element.getAttribute('data-animation-paused') === 'true';
-
-                    this.logger.log(element,
-                        {
-                            conditions: [
-                                 isVisible ? 'visible' : 'hidden',
-                                 isPaused ? 'paused' : 'running'],
-                            trackType: [ 'animation'],
-                            functionName: 'setupIntersectionObserver',
-                        }
-                    );
+    /**
+     * Handles IntersectionObserver events for tracked elements.
+     * @param {IntersectionObserverEntry[]} entries
+     */
+    handleIntersect(entries) {
+        entries.forEach(entry => {
+            const el = entry.target;
+            if (entry.isIntersecting) {
+                this.startAnimation(el);
+                this.logger.log(el, { 
+                    conditions: ['visible', 'running'], 
+                    functionName: 'handleIntersect' 
                 });
-            },
-            {
-                threshold: 0.1,
-                rootMargin: '50px'
+            } else {
+                this.pauseAnimation(el);
+                this.logger.log(el, { 
+                    conditions: ['hidden', 'paused'], 
+                    functionName: 'handleIntersect' 
+                });
             }
-        );
+        });
     }
 
+    /**
+     * Sets animation state to running for the element.
+     * @param {HTMLElement} el
+     */
+    startAnimation(el) {
+        el.style.animationPlayState = 'running';
+        el.setAttribute('data-animation-paused', 'false');
+    }
+
+    /**
+     * Sets animation state to paused for the element.
+     * @param {HTMLElement} el
+     */
+    pauseAnimation(el) {
+        el.style.animationPlayState = 'paused';
+        el.setAttribute('data-animation-paused', 'true');
+    }
+
+    /**
+     * Sets up MutationObserver to track new elements added to the DOM that match the tracked selectors.
+     */
     setupMutationObserver() {
-        this.observer = new MutationObserver((mutations) => {
+        this.mutationObserver = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) {
-                            this.checkElement(node);
-                            node.querySelectorAll('*').forEach(child => this.checkElement(child));
-                        }
-                    });
-                }
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) {
+                        this.targets.forEach(target => {
+                            if (typeof target === 'string' && node.matches(target)) {
+                                this.intersectionObserver.observe(node);
+                                this.elements.push(node);
+                            }
+                        });
+                    }
+                });
             });
         });
-
-        this.observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        this.mutationObserver.observe(document.body, { childList: true, subtree: true });
     }
 
-    setupResizeObserver() {
-        this.resizeObserver = new ResizeObserver((entries) => {
-            entries.forEach(entry => {
-                const element = entry.target;
-                this.handleResize(element);
+    /**
+     * Sets up IntersectionObserver for sections to track which section is currently active (for navigation highlighting).
+     */
+    setupSectionObserver() {
+        this.sectionObserver = new IntersectionObserver(this.handleSectionIntersect.bind(this), {
+            threshold: 0.3 // Can be adjusted
+        });
+        this.sections.forEach(section => this.sectionObserver.observe(section));
+    }
+
+    /**
+     * Handles IntersectionObserver events for sections, determines the most visible section and triggers callback.
+     * @param {IntersectionObserverEntry[]} entries
+     */
+    handleSectionIntersect(entries) {
+        let maxRatio = 0;
+        let activeId = '';
+        entries.forEach(entry => {
+            if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
+                maxRatio = entry.intersectionRatio;
+                activeId = entry.target.getAttribute('id');
+            }
+        });
+        if (activeId && activeId !== this.currentSection) {
+            this.currentSection = activeId;
+            this.logger.log({
+                conditions: ['active-section'],
+                functionName: 'handleSectionIntersect',
+                customData: { activeId }
             });
-        });
-
-        this.observedElements.forEach((data, element) => {
-            this.resizeObserver.observe(element);
-        });
-    }
-
-    handleResize(element) {
-        if (!this.initialized) return;
-
-        const animationData = this.observedElements.get(element);
-        if (!animationData) return;
-
-        this.logger.log(element, {
-            conditions: ['resize'],
-            trackType: ['resize'],
-            functionName: 'handleResize'
-        });
-    }
-
-    hasAnimation(style) {
-        return style.animationName !== 'none' &&
-            style.animationDuration !== '0s' &&
-            style.animationName !== '';
-    }
-
-    trackAnimation(animationData) {
-        const { element } = animationData;
-        this.observedElements.set(element, animationData);
-    }
-
-    startAnimation(element) {
-        if (!this.initialized) return;
-        element.style.animationPlayState = 'running';
-        element.setAttribute('data-animation-paused', 'false');
-    }
-
-    pauseAnimation(element) {
-        element.style.animationPlayState = 'paused';
-        element.setAttribute('data-animation-paused', 'true');
-    }
-
-    disconnect() {
-        if (this.observer) {
-            this.observer.disconnect();
+            if (typeof this.onActiveSectionChange === 'function') {
+                this.onActiveSectionChange(activeId);
+            }
         }
-        if (this.intersectionObserver) {
-            this.intersectionObserver.disconnect();
-        }
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-        }
-        this.observedElements.clear();
     }
 }
 
