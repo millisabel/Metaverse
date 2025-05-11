@@ -74,10 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // initVRMarket();
     // initExplore();
     // initSocial();
+    // initSlider();
 
     // Initialize UI components
     initModal();
     updateCopyrightYear('[data-year="currentYear"]');
-    // initSlider();
 });
 
