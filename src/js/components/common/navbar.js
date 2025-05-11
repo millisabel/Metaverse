@@ -143,5 +143,31 @@ export const initializeNavbar = (selectors) => {
         });
     };
 
+    window.addEventListener('resize', () => {
+        const navItems = document.querySelectorAll(selectors.NAVBAR_ITEMS_SELECTOR);
+        const isNowMobile = isMobile(1400);
+    
+        navItems.forEach(item => {
+            item.classList.remove(navbarAnimateClass);
+            item.style.opacity = '';
+            item.style.animationPlayState = '';
+            item.removeAttribute('data-animation-paused');
+            if (item._onAnimationEnd) {
+                item.removeEventListener('animationend', item._onAnimationEnd);
+                delete item._onAnimationEnd;
+            }
+        });
+    
+        if (navbarCollapseClass.classList.contains('show')) {
+            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapseClass)
+                || new bootstrap.Collapse(navbarCollapseClass, {toggle: false});
+            bsCollapse.hide();
+        }
+    
+        if (!isNowMobile) {
+            animateNavItems(navItems, navbarAnimateClass);
+        }
+    });
+
     init();
 }; 
