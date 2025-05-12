@@ -15,15 +15,18 @@ import initModal from './components/common/modal';
 import { updateCopyrightYear } from './utils/utils';
 
 if(process.env.NODE_ENV === 'development') {
-    Logger.enableGlobalLogging(false);
-    Logger.disableLoggerFor('CameraController');
-    Logger.disableLoggerFor('ThreeDContainerManager');
-    Logger.disableLoggerFor('CanvasUtils');
-    Logger.disableLoggerFor('AnimationController');
-    Logger.disableLoggerFor('ThreeDContainerManager');
+    Logger.enableGlobalLogging();
     Logger.disableLoggerFor('AnimationObserverCSS');
+
+    // Logger.disableLoggerFor('BaseSetup');
+    // Logger.disableLoggerFor('AnimationController');
+    // Logger.disableLoggerFor('CameraController');
+    // Logger.disableLoggerFor('ThreeDContainerManager');
+    // Logger.disableLoggerFor('CanvasUtils');
+    // Logger.disableLoggerFor('ThreeDContainerManager');
     
-    Logger.disableLoggerFor('HeroSetup');
+    Logger.disableLoggerFor('NavbarSetup');
+    // Logger.disableLoggerFor('HeroSetup');
     Logger.disableLoggerFor('AboutSetup');
     Logger.disableLoggerFor('RoadmapSetup');
     Logger.disableLoggerFor('DynamicsSetup');
@@ -33,11 +36,11 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('SocialSetup');
 
     Logger.disableLoggerFor('Stars');
+    // Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Dynamics3D');
-    // Logger.disableLoggerFor('SocialCard');
-    Logger.disableLoggerFor('GalacticCloud');
+    Logger.disableLoggerFor('SocialCard');
 
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('Navbar');
@@ -51,9 +54,6 @@ else {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    Logger.log('index.js', {
-        conditions: ['DOMContentLoaded'],
-    });
 
     AOS.init({
         duration: 800,
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     initNavbar();
-    // initHero();
+    initHero();
     // initAbout();
     // initRoadmap();
     // initDynamics();

@@ -9,20 +9,8 @@ export class Stars extends AnimationController {
     constructor(container, options = {}) {
         // Initialize base class with camera options
         super(container, {
-            camera: {
-                fov: 45,
-                near: 0.1,
-                far: 2000,
-                position: { x: 0, y: 0, z: 5 },
-                lookAt: { x: 0, y: 0, z: 0 },
-                rotation: false,
-                speed: { x: 0.00002, y: 0.00002 }
-            },
-            renderer: {
-                antialias: true,
-                alpha: true,
-                powerPreference: 'high-performance'
-            }
+            containerType: options.containerType,
+            zIndex: options.zIndex,
         });
 
         // Initialize Stars specific options
