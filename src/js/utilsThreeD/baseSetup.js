@@ -1,8 +1,5 @@
 import { createLogger } from '../utils/logger';
 import { ThreeDContainerManager } from './ThreeDContainerManager';
-import * as THREE from 'three';
-import { createCanvas, updateRendererSize } from "./canvasUtils";
-import { CameraController } from './cameraController';
 
 /**
  * Base class for setting up and managing 3D scenes in sections
@@ -12,7 +9,6 @@ import { CameraController } from './cameraController';
  * - Visibility handling
  * - Animation control
  * - Resize handling
- * - Camera management
  * 
  * @class BaseSetup
  */
@@ -20,19 +16,12 @@ export class BaseSetup {
     /**
      * Creates an instance of BaseSetup
      * @param {string} containerId - ID of the container element
-     * @param {string} name - Name of the setup for logging
-     * @param {Object} options - Configuration options
-     * @param {Object} [options.camera] - Camera configuration
-     * @param {Object} [options.camera.position] - Camera position {x, y, z}
-     * @param {Object} [options.camera.lookAt] - Camera look at point {x, y, z}
-     * @param {boolean} [options.camera.rotation] - Enable camera rotation
-     * @param {Object} [options.camera.speed] - Camera rotation speed {x, y}
      */
-    constructor(containerId, name, options = {}) {
-        // Base initialization
-        this.container = document.getElementById(containerId);
-        this.name = name;
+    constructor(containerId) {
+        this.name = `(BaseSetup) ⬅ ${this.constructor.name}`;
         this.logger = createLogger(this.name);
+
+        this.container = document.getElementById(containerId);
         
         // State
         this.initialized = false;
@@ -44,18 +33,49 @@ export class BaseSetup {
         this.resizeTimeout = null;
         this.observer = null;
 
-        // Scene elements
-        this.scene = null;
-        
-        // Camera
-        this.cameraController = new CameraController(options.camera);
-        
-        // Container types and z-index (to be defined in child classes)
-        this.CONTAINER_TYPES = {};
-        this.Z_INDEX = {};
+        this.init();
+    }
 
+    init() {
+        this.logger.log({
+            functionName: 'init',
+            conditions: ['init'],
+            customData: {
+                name: this.name,
+                this: this
+            }
+        });
+        
         this.initVisibilityObserver();
         this.initResizeHandler();
+    }
+
+    /**
+     * Creates a 3D container with specified type and z-index
+     * @returns {HTMLElement} Created container
+     */
+    createContainer(name, zIndex) {
+
+        this.logger.log({
+            functionName: 'createContainer',
+            conditions: ['creating-container'],
+            customData: {
+                name: this.name,
+                zIndex: zIndex,
+            }
+        });
+
+        const manager = new ThreeDContainerManager(this.container, { 
+            name: name,
+            zIndex: zIndex
+        });
+        const container = manager.create();
+        
+        if (name) {
+            container.dataset.containerType = name;
+        }
+        
+        return container;
     }
 
     /**
@@ -112,6 +132,11 @@ export class BaseSetup {
                     setTimeout(() => {
                         if (!this.isResizing) {
                             this.animate();
+
+                            this.logger.log({
+                                conditions: ['resize'],
+                                functionName: 'initResizeHandler'
+                            });
                         }
                     }, 200);
                 }
@@ -126,45 +151,15 @@ export class BaseSetup {
     initScene() {
         if (this.initialized) return;
 
-        this.scene = new THREE.Scene();
-        
-        // Initialize camera
-        this.cameraController.init(this.container);
-        this.camera = this.cameraController.camera;
-
-        // Get the main container type
-        const mainContainerType = Object.values(this.CONTAINER_TYPES)[0] || '';
-        
-        // Add container type to the main container
-        if (mainContainerType) {
-            this.container.dataset.containerType = mainContainerType;
-        }
-
-        // Setup additional scene elements
         this.setupScene();
         
         this.initialized = true;
-    }
 
-    /**
-     * Creates a 3D container with specified type and z-index
-     * @param {string} type - Container type from CONTAINER_TYPES
-     * @param {string} zIndex - Z-index from Z_INDEX
-     * @returns {HTMLElement} Created container
-     */
-    createContainer(type, zIndex) {
-        const manager = new ThreeDContainerManager(this.container, { 
-            type: type,
-            zIndex: zIndex
+        this.logger.log({
+            type: 'success',
+            conditions: ['scene-initialized'],
+            functionName: 'initScene'
         });
-        const container = manager.create();
-        
-        // Add container type to the created container
-        if (type) {
-            container.dataset.containerType = type;
-        }
-        
-        return container;
     }
 
     /**
@@ -174,19 +169,6 @@ export class BaseSetup {
     cleanupContainer(type) {
         const manager = new ThreeDContainerManager(this.container, { type });
         manager.cleanup();
-    }
-
-    /**
-     * Handle resize event for renderer and camera
-     * @protected
-     */
-    onResize() {
-        if (this.cameraController) {
-            this.cameraController.onResize(this.container);
-        }
-        if (this.renderer && this.camera) {
-            updateRendererSize(this.renderer, this.container, this.camera);
-        }
     }
 
     /**
@@ -229,28 +211,6 @@ export class BaseSetup {
      * @public
      */
     cleanup() {
-        // Clean up renderer
-        if (this.renderer) {
-            this.renderer.dispose();
-            this.renderer.domElement.remove();
-            this.renderer = null;
-        }
-
-        // Clean up scene
-        if (this.scene) {
-            this.scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
-            this.scene = null;
-        }
-
         // Clean up other resources
         if (this.observer) {
             this.observer.disconnect();
@@ -267,28 +227,8 @@ export class BaseSetup {
             this.resizeTimeout = null;
         }
 
-        if (this.cameraController) {
-            this.cameraController.cleanup();
-            this.cameraController = null;
-        }
-
-        // Reset state
         this.initialized = false;
         this.isVisible = false;
-    }
-
-    /**
-     * Get current time and aspect ratio
-     * @returns {Object} Object containing time, aspect ratio and mobile status
-     * @protected
-     */
-    _getTimeAndAspect() {
-        const rect = this.container.getBoundingClientRect();
-        return {
-            time: performance.now() * 0.0001,
-            aspect: rect.width / rect.height,
-            isMobile: rect.width < 768
-        };
     }
 
     /**
