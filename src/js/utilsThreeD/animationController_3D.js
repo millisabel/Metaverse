@@ -2,6 +2,7 @@ import {createLogger} from "../utils/logger";
 import * as THREE from 'three';
 import {createCanvas, updateRendererSize} from "../utilsThreeD/canvasUtils";
 import { CameraController } from './cameraController';
+import { rendererManager } from './rendererManager';
 
 /**
  * Basic controller for managing Three.js animations and scene lifecycle
@@ -26,53 +27,95 @@ export class AnimationController {
      * @param {boolean} [options.renderer.alpha=true] - Enable alpha channel
      * @param {string} [options.renderer.powerPreference='high-performance'] - GPU power preference
      * @param {Object} [options.camera] - Camera configuration (passed to CameraController)
-     * @param {string} [options.containerType] - Type of container for data-container-type attribute
+     * @param {string} [options.containerName] - Type of container for data-container-type attribute
      * @param {string} [options.zIndex='2'] - Z-index for the canvas
      */
     constructor(container, options = {}) {
+        this.name = `(AnimationController) ⬅ ${this.constructor.name}`;
+        this.logger = createLogger(this.name);
+
         this.container = container;
+        if (!this.container.id) {
+            this.container.id = `threejs-container-${crypto.randomUUID()}`;
+        }
+
         this.isVisible = false;
         this.isInitialized = false;
         this.animationFrameId = null;
         this.resizeTimeout = null;
         this.observer = null;
         this.isResizing = false;
+        this.isContextLost = false;
+        this.cameraController = null;
+        this.renderer = null;
 
-        // Default options
         this.options = {
-            renderer: {
-                antialias: true,
-                alpha: true,
-                powerPreference: 'high-performance'
-            },
-            containerType: '',
-            zIndex: '2',
+            containerName: options.containerName,
+            zIndex: options.zIndex,
+            camera: options.camera,
             ...options
         };
 
-        this.name = 'AnimationController';
-        this.logger = createLogger(this.name);
-
-        // Initialize camera controller
-        this.cameraController = new CameraController(options.camera);
-
+        this.logger.log('AnimationController initialized', {
+            conditions: ['init'],
+            functionName: 'constructor',
+            customData: {
+                containerName: this.options.containerName,
+                zIndex: this.options.zIndex,
+                container: this.container,
+            }
+        });
+        
         this.init();
     }
 
     /**
-     * Initialize the controller
-     * Sets up visibility observer and resize handler
+     * Initializes the controller: dependencies, visibility observer, resize handler, and WebGL context handlers.
      * @protected
      */
     init() {
-        // Visibility observer
+        this.logger.log({
+            conditions: ['init'],
+            functionName: 'init'
+        });
+
+        this.initDependencies();
+        this.initVisibilityObserver();
+        this.initResizeHandler();
+        this.initWebGLContextHandlers();
+    }
+
+    /**
+     * Initializes camera controller and renderer.
+     * @protected
+     */
+    initDependencies() {
+        this.logger.log('Initializing dependencies', {
+            conditions: ['init'],
+            functionName: 'initDependencies'
+        });
+
+        this.cameraController = new CameraController(this.options.camera);
+        this.renderer = rendererManager.getRenderer(this.container.id, this.options.renderer);
+    }
+
+    /**
+     * Sets up IntersectionObserver to track container visibility.
+     * @protected
+     */
+    initVisibilityObserver() {
+        this.logger.log('Initializing visibility observer', {
+            conditions: ['init'],
+            functionName: 'initVisibilityObserver'
+        });
+
         this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     this.isVisible = true;
-                    this.logger.log(`AnimationController: Object is visible`, {
+                    this.logger.log('Object is visible', {
                         conditions: ['visible'],
-                        functionName: 'AnimationController: init'
+                        functionName: 'initVisibilityObserver'
                     });
                     if (!this.isInitialized) {
                         this.initScene();
@@ -82,11 +125,10 @@ export class AnimationController {
                     }
                 } else {
                     this.isVisible = false;
-                    this.logger.log(`Object is not visible`, {
+                    this.logger.log('Object is not visible', {
                         conditions: ['hidden'],
-                        functionName: 'AnimationController: init'
-                        }
-                    );
+                        functionName: 'initVisibilityObserver'
+                    });
                     this.stopAnimation();
                 }
             });
@@ -96,14 +138,24 @@ export class AnimationController {
         });
 
         this.observer.observe(this.container);
+    }
 
-        // Handle resize
+    /**
+     * Sets up window resize handler with debounce logic.
+     * @protected
+     */
+    initResizeHandler() {
+        this.logger.log('Initializing resize handler', {
+            conditions: ['init'],
+            functionName: 'initResizeHandler'
+        });
+
         window.addEventListener('resize', () => {
             if (!this.isResizing) {
                 this.isResizing = true;
                 this.logger.log({
                     conditions: ['resize-started'],
-                    functionName: 'AnimationController: init'
+                    functionName: 'initResizeHandler'
                 });
                 this.stopAnimation();
             }
@@ -111,80 +163,90 @@ export class AnimationController {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
                 this.isResizing = false;
-                this.logger.log( {
+                this.logger.log({
                     conditions: ['resize-completed'],
-                    functionName: 'AnimationController: init'
+                    functionName: 'initResizeHandler'
                 });
                 if (this.isVisible) {
                     this.onResize();
-                    // Add additional delay before starting animation
                     setTimeout(() => {
                         if (!this.isResizing) {
                             this.animate();
                         }
                     }, 200);
                 }
-            }, 300); // Increase the waiting time for the resize to complete
+            }, 300);
         });
     }
 
     /**
-     * Initialize Three.js scene
-     * Creates scene, camera, and renderer with proper container type and z-index
+     * Sets up handlers for WebGL context loss and restoration.
+     * @protected
+     */
+    initWebGLContextHandlers() {
+        this.logger.log('Initializing WebGL context handlers', {
+            conditions: ['init'],
+            functionName: 'initWebGLContextHandlers'
+        });
+
+        this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
+            event.preventDefault();
+            rendererManager.disposeAll();
+            this.isContextLost = true;
+            this.logger.error('WebGL context lost! Attempting to recover...');
+        });
+
+        this.renderer.domElement.addEventListener('webglcontextrestored', () => {
+            this.isContextLost = false;
+            this.initScene();
+            this.animate();
+        });
+    }
+
+    /**
+     * Initializes Three.js scene, camera, and renderer.
      * @protected
      */
     initScene() {
-        if (this.isInitialized) return;
-
-        this.logger.log('Scene initialization', {
-            conditions: ['initializing-scene'],
+        this.logger.log('Initializing scene', {
+            conditions: ['init'],
             functionName: 'initScene'
         });
 
-        // Create scene
+        if (this.isInitialized) return;
+
         this.scene = new THREE.Scene();
 
-        // Initialize camera
         this.cameraController.init(this.container);
         this.camera = this.cameraController.camera;
 
-        // Create renderer with proper container type and z-index
-        this.renderer = new THREE.WebGLRenderer(this.options.renderer);
         this.renderer.setClearColor(0x000000, 0);
         updateRendererSize(this.renderer, this.container, this.camera);
-        
-        // Add container type if specified
-        if (this.options.containerType) {
-            this.container.dataset.containerType = this.options.containerType;
+
+        if (this.options.containerName) {
+            this.container.dataset.containerName = this.options.containerName;
         }
         
-        // Create canvas with proper z-index and container type
         this.container.appendChild(this.renderer.domElement);
         createCanvas(this.renderer, {
             zIndex: this.options.zIndex,
-            containerType: this.options.containerType,
+            containerName: this.options.containerName,
             canvasName: this.name
         });
 
-        // Call setupScene for additional configuration
         this.setupScene();
 
         this.isInitialized = true;
+
+        this.logger.log({
+            type: 'success',
+            conditions: ['scene-initialized'],
+            functionName: 'initScene'
+        });
     }
 
     /**
-     * Setup additional scene elements
-     * To be implemented by subclasses
-     * @abstract
-     * @protected
-     */
-    setupScene() {
-        // To be implemented by subclasses
-    }
-
-    /**
-     * Handle resize event
-     * Updates renderer and camera dimensions
+     * Handles window resize: updates renderer and camera dimensions.
      * @protected
      */
     onResize() {
@@ -321,20 +383,8 @@ export class AnimationController {
         this.isInitialized = false;
         this.isVisible = false;
         this.logger.log(`Cleanup completed`);
-    }
 
-    /**
-     * Get current time and aspect ratio
-     * @returns {Object} Object containing time, aspect ratio and mobile status
-     * @protected
-     */
-    _getTimeAndAspect() {
-        const rect = this.container.getBoundingClientRect();
-        return {
-            time: performance.now() * 0.0001,
-            aspect: rect.width / rect.height,
-            isMobile: rect.width < 768
-        };
+        rendererManager.removeRenderer(this.container.id);
     }
 
     /**
