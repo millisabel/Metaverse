@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {createCanvas, updateRendererSize} from "../utilsThreeD/canvasUtils";
 import { CameraController } from './cameraController';
 import { rendererManager } from './rendererManager';
-
+ 
 /**
  * Basic controller for managing Three.js animations and scene lifecycle
  * Provides functionality for:
@@ -97,6 +97,11 @@ export class AnimationController {
 
         this.cameraController = new CameraController(this.options.camera);
         this.renderer = rendererManager.getRenderer(this.container.id, this.options.renderer);
+    
+        console.log('initDependencies renderer', this.renderer );
+        console.log('initDependencies renderer domElement', this.renderer.domElement );
+        console.log('initDependencies renderer domElement parentNode', this.renderer.domElement.parentNode );
+        console.log('initDependencies renderer domElement parentNode', this.container );
     }
 
     /**
@@ -117,6 +122,9 @@ export class AnimationController {
                         conditions: ['visible'],
                         functionName: 'initVisibilityObserver'
                     });
+
+                    console.log('initVisibilityObserver isVisible', this.isVisible );
+
                     if (!this.isInitialized) {
                         this.initScene();
                     }
@@ -130,6 +138,7 @@ export class AnimationController {
                         functionName: 'initVisibilityObserver'
                     });
                     this.stopAnimation();
+                    this.cleanup();
                 }
             });
         }, {
@@ -214,6 +223,18 @@ export class AnimationController {
         });
 
         if (this.isInitialized) return;
+
+        if (!this.renderer) {
+            console.log('initScene renderer', this.renderer );
+            this.initDependencies(); 
+        }
+
+        if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode !== this.container) {
+            console.log('initScene renderer domElement', this.renderer.domElement );
+            console.log('initScene renderer domElement parentNode', this.renderer.domElement.parentNode );
+            console.log('initScene renderer domElement parentNode', this.container );
+            this.container.appendChild(this.renderer.domElement);
+        }
 
         this.scene = new THREE.Scene();
 
@@ -331,18 +352,25 @@ export class AnimationController {
      * @param {THREE.Scene} scene - Scene to dispose
      * @public
      */
-    cleanup(renderer, scene) {
-        this.logger.log(`Starting cleanup`);
+    cleanup() {
+        this.logger.log({
+            conditions: ['cleanup'],
+            functionName: 'cleanup'
+        });
 
-        if (renderer) {
-            renderer.dispose();
-            renderer.domElement.remove();
-            renderer = null;
-            this.logger.log(`Renderer disposed`);
+        if (this.renderer) {
+            console.log('Renderer disposed');   
+            console.log(this.renderer);   
+            this.renderer.dispose();
+            if (this.renderer.domElement && this.renderer.domElement.parentNode) {
+                this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+            }
+            this.renderer = null;
+            this.logger.log(`Renderer disposed and canvas removed`);
         }
 
-        if (scene) {
-            scene.traverse((object) => {
+        if (this.scene) {
+            this.scene.traverse((object) => {
                 if (object.geometry) object.geometry.dispose();
                 if (object.material) {
                     if (Array.isArray(object.material)) {
@@ -352,14 +380,8 @@ export class AnimationController {
                     }
                 }
             });
-            scene = null;
+            this.scene = null;
             this.logger.log(`Scene disposed`);
-        }
-
-        if (this.observer) {
-            this.observer.disconnect();
-            this.observer = null;
-            this.logger.log(`Observer disconnected`);
         }
 
         if (this.animationFrameId) {
