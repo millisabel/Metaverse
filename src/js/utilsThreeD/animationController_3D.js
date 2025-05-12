@@ -358,6 +358,8 @@ export class AnimationController {
             functionName: 'cleanup'
         });
 
+        console.log('cleanup container', this.container );
+
         if (this.renderer) {
             console.log('Renderer disposed');   
             console.log(this.renderer);   
