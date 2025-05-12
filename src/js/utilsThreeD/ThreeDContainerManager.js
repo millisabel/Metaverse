@@ -1,46 +1,73 @@
 import { createLogger } from '../utils/logger';
 
 /**
- * Manages 3D scene containers with proper positioning and z-index
+ * Manages 3D scene containers with proper positioning and z-index.
+ * Responsible only for DOM container creation and cleanup.
+ * 
  * @class ThreeDContainerManager
  */
 export class ThreeDContainerManager {
     /**
-     * @param {HTMLElement} parentContainer - Parent container
-     * @param {Object} options - Container options
-     * @param {string} options.type - Container type
-     * @param {string} [options.zIndex] - z-index value
+     * @param {HTMLElement} parentContainer - Parent container for the 3D scene.
+     * @param {Object} options - Container options.
+     * @param {string} options.name - Container name/type (required, used for data attributes and debugging).
+     * @param {string} [options.zIndex] - z-index value for the container.
      */
     constructor(parentContainer, options = {}) {
-        if (!options.type) {
-            throw new Error('Type is required for ThreeDContainerManager');
+
+        if (!options.name) {
+            throw new Error('Name is required for ThreeDContainerManager');
         }
+
+        this.name = this.constructor.name;
+        this.logger = createLogger(this.name);
 
         this.parentContainer = parentContainer;
         this.options = options;
         this.container = null;
-        
-        this.name = 'ThreeDContainerManager';
-        this.logger = createLogger(this.name);
+        this.containerClassName = 'three-d-container';
+
+        this.logger.log({
+            conditions: ['init'],
+            functionName: 'constructor',
+            customData: {
+                name: this.name,
+                zIndex: this.options.zIndex,
+                parentContainer: this.parentContainer,
+                container: this.container,
+                containerClassName: this.containerClassName
+            }
+        });
     }
 
     /**
-     * Creates a new container for 3D scene
-     * @returns {HTMLElement} Created container
+     * Creates a new container for a 3D scene.
+     * @returns {HTMLElement|null} Created container or null if parent is missing.
      */
     create() {
         if (!this.parentContainer) {
-            this.logger.log('Parent container not found', 'error');
+            this.logger.log('Parent container not found', {
+                type: 'error',
+                functionName: 'create',
+            });
             return null;
         }
-
-        this.parentContainer.style.position = 'relative';
-
-        // Создаем контейнер для 3D сцены
-        this.container = document.createElement('div');
-        this.container.className = 'three-d-container';
         
-        // Устанавливаем стили для контейнера
+        if (this.container) {
+            this.logger.log('Container already exists, skipping creation.', {
+                functionName: 'create'
+            });
+            return this.container;
+        }
+
+        if (getComputedStyle(this.parentContainer).position === 'static') {
+            this.parentContainer.style.position = 'relative';
+        }
+
+        this.container = document.createElement('div');
+        this.container.className = this.containerClassName;
+        this.container.dataset.containerType = this.options.name;
+        
         Object.assign(this.container.style, {
             position: 'absolute',
             top: '0',
@@ -52,18 +79,21 @@ export class ThreeDContainerManager {
             pointerEvents: 'none'
         });
 
-        // Добавляем контейнер в родительский элемент
         this.parentContainer.appendChild(this.container);
 
-        this.logger.log('Container created', {
-            container: this.container,
-            containerSize: {
-                width: this.container.clientWidth,
+        this.logger.log({
+            conditions: ['creating-container'],
+            functionName: 'create',
+            customData: {
+                container: this.container,
+                containerSize: {
+                    width: this.container.clientWidth,
                 height: this.container.clientHeight
             },
             parentSize: {
                 width: this.parentContainer.clientWidth,
-                height: this.parentContainer.clientHeight
+                    height: this.parentContainer.clientHeight
+                }
             }
         });
 
@@ -71,11 +101,16 @@ export class ThreeDContainerManager {
     }
 
     /**
-     * Cleans up the container
+     * Cleans up the container by removing it from the DOM.
      */
     cleanup() {
         if (this.container && this.container.parentNode) {
             this.container.parentNode.removeChild(this.container);
+            this.logger.log({
+                conditions: ['removed-container'],
+                functionName: 'cleanup',
+                customData: { container: this.container }
+            });
             this.container = null;
         }
     }
