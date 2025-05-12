@@ -26,18 +26,6 @@ export class ThreeDContainerManager {
         this.options = options;
         this.container = null;
         this.containerClassName = 'three-d-container';
-
-        this.logger.log({
-            conditions: ['init'],
-            functionName: 'constructor',
-            customData: {
-                name: this.name,
-                zIndex: this.options.zIndex,
-                parentContainer: this.parentContainer,
-                container: this.container,
-                containerClassName: this.containerClassName
-            }
-        });
     }
 
     /**
@@ -66,7 +54,7 @@ export class ThreeDContainerManager {
 
         this.container = document.createElement('div');
         this.container.className = this.containerClassName;
-        this.container.dataset.containerType = this.options.name;
+        this.container.dataset.containerName = this.options.name;
         
         Object.assign(this.container.style, {
             position: 'absolute',
@@ -80,10 +68,10 @@ export class ThreeDContainerManager {
         });
 
         this.parentContainer.appendChild(this.container);
-
+        
         this.logger.log({
             conditions: ['creating-container'],
-            functionName: 'create',
+            functionName: `${this.options.name} create()`,
             customData: {
                 container: this.container,
                 containerSize: {
@@ -93,8 +81,9 @@ export class ThreeDContainerManager {
             parentSize: {
                 width: this.parentContainer.clientWidth,
                     height: this.parentContainer.clientHeight
-                }
+                },
             }
+
         });
 
         return this.container;
