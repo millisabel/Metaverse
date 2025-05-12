@@ -2,37 +2,34 @@ import * as THREE from 'three';
 import { createLogger } from '../utils/logger';
 
 /**
- * Controller for managing Three.js camera setup and behavior
- * Handles camera initialization, positioning, rotation, and cleanup
+ * Controller for managing Three.js camera setup and behavior.
+ * Handles camera initialization, positioning, rotation, resize, and cleanup.
  * 
  * @class CameraController
  */
 export class CameraController {
     /**
-     * Creates an instance of CameraController
-     * @param {Object} [options={}] - Camera configuration options
-     * @param {number} [options.fov=45] - Field of view in degrees
-     * @param {number} [options.near=0.1] - Near clipping plane
-     * @param {number} [options.far=2000] - Far clipping plane
-     * @param {Object} [options.position] - Initial camera position
-     * @param {number} [options.position.x=0] - X position
-     * @param {number} [options.position.y=0] - Y position
-     * @param {number} [options.position.z=5] - Z position
-     * @param {Object} [options.lookAt] - Point camera looks at
-     * @param {number} [options.lookAt.x=0] - X coordinate
-     * @param {number} [options.lookAt.y=0] - Y coordinate
-     * @param {number} [options.lookAt.z=0] - Z coordinate
-     * @param {boolean} [options.rotation=false] - Enable camera rotation
-     * @param {Object} [options.speed] - Camera rotation speed
-     * @param {number} [options.speed.x=0.00002] - X rotation speed
-     * @param {number} [options.speed.y=0.00002] - Y rotation speed
+     * Creates an instance of CameraController.
+     * @param {Object} [options={}] - Camera configuration options.
+     * @param {string} [options.type='perspective'] - Camera type: 'perspective' or 'orthographic'.
+     * @param {number} [options.fov=45] - Field of view in degrees (for perspective camera).
+     * @param {number} [options.near=0.1] - Near clipping plane.
+     * @param {number} [options.far=2000] - Far clipping plane.
+     * @param {Object} [options.position] - Initial camera position {x, y, z}.
+     * @param {Object} [options.lookAt] - Point camera looks at {x, y, z}.
+     * @param {boolean} [options.rotation=false] - Enable camera rotation.
+     * @param {Object} [options.speed] - Camera rotation speed {x, y}.
+     * @param {number} [options.left] - Left plane (for orthographic camera).
+     * @param {number} [options.right] - Right plane (for orthographic camera).
+     * @param {number} [options.top] - Top plane (for orthographic camera).
+     * @param {number} [options.bottom] - Bottom plane (for orthographic camera).
      */
     constructor(options = {}) {
-        this.name = 'CameraController';
+        this.name = this.constructor.name;
         this.logger = createLogger(this.name);
 
-        // Default camera options
         this.options = {
+            type: 'perspective',
             fov: 45,
             near: 0.1,
             far: 2000,
@@ -48,15 +45,17 @@ export class CameraController {
         this.isInitialized = false;
 
         this.logger.log('CameraController initialized', {
-            conditions: ['initializing-controller'],
-            functionName: 'constructor'
+            functionName: 'constructor',
+            customData: {
+                options: this.options
+            }
         });
     }
 
     /**
-     * Initialize the camera with container dimensions
-     * Creates a new THREE.PerspectiveCamera or THREE.OrthographicCamera and sets initial position and orientation
-     * @param {HTMLElement} container - Container element for calculating aspect ratio
+     * Initializes the camera with container dimensions.
+     * Creates a new THREE.PerspectiveCamera or THREE.OrthographicCamera and sets initial position and orientation.
+     * @param {HTMLElement} container - Container element for calculating aspect ratio.
      * @public
      */
     init(container) {
@@ -71,9 +70,8 @@ export class CameraController {
         const rect = container.getBoundingClientRect();
         this.aspect = rect.width / rect.height;
 
-        // --- Поддержка OrthographicCamera ---
         if (this.options.type === 'orthographic') {
-            // Опции для ortho-камеры
+            // Orthographic camera setup
             const left = this.options.left !== undefined ? this.options.left : -rect.width / 2;
             const right = this.options.right !== undefined ? this.options.right : rect.width / 2;
             const top = this.options.top !== undefined ? this.options.top : rect.height / 2;
@@ -82,19 +80,16 @@ export class CameraController {
             const far = this.options.far !== undefined ? this.options.far : 1000;
             this.camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
         } else {
-            // PerspectiveCamera по умолчанию
+            // Perspective camera setup
             this.camera = new THREE.PerspectiveCamera(
                 this.options.fov,
                 this.aspect,
                 this.options.near,
-                this.options.far
+                this.options.far,
             );
         }
 
-        // Set initial position
         this.setPosition(this.options.position);
-        
-        // Set initial lookAt
         this.setLookAt(this.options.lookAt);
 
         this.isInitialized = true;
@@ -107,68 +102,42 @@ export class CameraController {
     }
 
     /**
-     * Set camera position
-     * @param {Object} position - Position coordinates
-     * @param {number} position.x - X coordinate
-     * @param {number} position.y - Y coordinate
-     * @param {number} position.z - Z coordinate
+     * Sets camera position.
+     * @param {Object} position - Position coordinates {x, y, z}.
      * @public
      */
     setPosition(position) {
         if (!this.camera) return;
-
         Object.entries(position).forEach(([axis, value]) => {
             this.camera.position[axis] = value;
-        });
-
-        this.logger.log('Camera position updated', {
-            conditions: ['position-updated'],
-            functionName: 'setPosition',
-            position
         });
     }
 
     /**
-     * Set camera look-at point
-     * @param {Object} lookAt - Look-at coordinates
-     * @param {number} lookAt.x - X coordinate
-     * @param {number} lookAt.y - Y coordinate
-     * @param {number} lookAt.z - Z coordinate
+     * Sets camera look-at point.
+     * @param {Object} lookAt - Look-at coordinates {x, y, z}.
      * @public
      */
     setLookAt(lookAt) {
         if (!this.camera) return;
-
         this.camera.lookAt(lookAt.x, lookAt.y, lookAt.z);
-
-        this.logger.log('Camera lookAt updated', {
-            conditions: ['lookAt-updated'],
-            functionName: 'setLookAt',
-            lookAt
-        });
     }
 
     /**
-     * Update camera rotation based on speed settings
-     * Only applies if rotation is enabled in options
+     * Updates camera rotation based on speed settings.
+     * Only applies if rotation is enabled in options.
      * @public
      */
     updateRotation() {
         if (!this.camera || !this.options.rotation) return;
-
         this.camera.rotation.x += this.options.speed.x;
         this.camera.rotation.y += this.options.speed.y;
-
-        this.logger.log('Camera rotation updated', {
-            conditions: ['rotation-updated'],
-            functionName: 'updateRotation'
-        });
     }
 
     /**
-     * Handle container resize
-     * Updates camera aspect ratio and projection matrix
-     * @param {HTMLElement} container - Container element for calculating new aspect ratio
+     * Handles container resize.
+     * Updates camera aspect ratio and projection matrix.
+     * @param {HTMLElement} container - Container element for calculating new aspect ratio.
      * @public
      */
     onResize(container) {
@@ -180,7 +149,6 @@ export class CameraController {
         if (this.camera.isPerspectiveCamera) {
             this.camera.aspect = this.aspect;
         } else if (this.camera.isOrthographicCamera) {
-            // Пересчитываем ortho-границы
             this.camera.left = this.options.left !== undefined ? this.options.left : -rect.width / 2;
             this.camera.right = this.options.right !== undefined ? this.options.right : rect.width / 2;
             this.camera.top = this.options.top !== undefined ? this.options.top : rect.height / 2;
@@ -196,8 +164,8 @@ export class CameraController {
     }
 
     /**
-     * Clean up camera resources
-     * Resets camera instance and initialization state
+     * Cleans up camera resources.
+     * Resets camera instance and initialization state.
      * @public
      */
     cleanup() {
