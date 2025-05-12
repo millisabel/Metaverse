@@ -72,7 +72,7 @@ export class BaseSetup {
         const container = manager.create();
         
         if (name) {
-            container.dataset.containerType = name;
+            container.dataset.containerName = name;
         }
         
         return container;
