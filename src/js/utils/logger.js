@@ -363,7 +363,7 @@ export class Logger {
                 color: '#666666',
             },
         },
-        'cleaning-up': {
+        'cleanup': {
             icon: '🗑️',
             style: {
                 background: 'rgba(255,69,0,0)',
