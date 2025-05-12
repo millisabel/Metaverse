@@ -356,6 +356,13 @@ export class Logger {
                 color: '#666666',
             },
         },
+        'removed-container': {
+            icon: '🗑️',
+            style: {
+                background: 'rgba(128,128,128,0)',
+                color: '#666666',
+            },
+        },
         'cleaning-up': {
             icon: '🗑️',
             style: {
