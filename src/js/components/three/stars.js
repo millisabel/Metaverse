@@ -9,7 +9,7 @@ export class Stars extends AnimationController {
     constructor(container, options = {}) {
         // Initialize base class with camera options
         super(container, {
-            containerType: options.containerType,
+            containerName: options.containerName,
             zIndex: options.zIndex,
         });
 

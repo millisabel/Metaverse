@@ -237,9 +237,7 @@ export class AnimationController {
         }
         
         this.container.appendChild(this.renderer.domElement);
-        console.log('this.options.containerName', this.options.containerName);
-        console.log('this.name', this.name);
-        console.log('this.container.id', this.container.id);
+        
         createCanvas(this.renderer, {
             zIndex: this.options.zIndex,
             containerName: this.options.containerName,

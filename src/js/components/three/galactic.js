@@ -9,8 +9,10 @@ import { isMobile } from '../../utils/utils';
 import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
 
 export class GalacticCloud extends AnimationController {
-    constructor(container) {
+    constructor(container, options = {}) {
         super(container, {
+            containerName: options.containerName,
+            zIndex: options.zIndex,
             camera: {
                 fov: 60,
                 near: 0.1,
