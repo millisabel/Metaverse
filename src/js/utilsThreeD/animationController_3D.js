@@ -97,11 +97,6 @@ export class AnimationController {
 
         this.cameraController = new CameraController(this.options.camera);
         this.renderer = rendererManager.getRenderer(this.container.id, this.options.renderer);
-    
-        console.log('initDependencies renderer', this.renderer );
-        console.log('initDependencies renderer domElement', this.renderer.domElement );
-        console.log('initDependencies renderer domElement parentNode', this.renderer.domElement.parentNode );
-        console.log('initDependencies renderer domElement parentNode', this.container );
     }
 
     /**
@@ -122,8 +117,6 @@ export class AnimationController {
                         conditions: ['visible'],
                         functionName: 'initVisibilityObserver'
                     });
-
-                    console.log('initVisibilityObserver isVisible', this.isVisible );
 
                     if (!this.isInitialized) {
                         this.initScene();
@@ -225,15 +218,10 @@ export class AnimationController {
         if (this.isInitialized) return;
 
         if (!this.renderer) {
-            console.log('initScene renderer', this.renderer );
             this.initDependencies(); 
         }
 
         if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode !== this.container) {
-            console.log('initScene renderer domElement', this.renderer.domElement );
-            console.log('initScene renderer domElement parentNode', this.renderer.domElement.parentNode );
-            console.log('initScene renderer domElement parentNode', this.container );
-            this.container.appendChild(this.renderer.domElement);
         }
 
         this.scene = new THREE.Scene();
@@ -352,23 +340,17 @@ export class AnimationController {
      * @param {THREE.Scene} scene - Scene to dispose
      * @public
      */
-    cleanup() {
-        this.logger.log({
-            conditions: ['cleanup'],
-            functionName: 'cleanup'
-        });
+    cleanup(message) {
+        let logMessage = message || '';
+        logMessage += '1. starting cleanup in AnimationController\n';
 
-        console.log('cleanup container', this.container );
-
-        if (this.renderer) {
-            console.log('Renderer disposed');   
-            console.log(this.renderer);   
+        if (this.renderer) {  
             this.renderer.dispose();
             if (this.renderer.domElement && this.renderer.domElement.parentNode) {
                 this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
             }
             this.renderer = null;
-            this.logger.log(`Renderer disposed and canvas removed`);
+            logMessage += '2. Renderer disposed and canvas removed\n';
         }
 
         if (this.scene) {
@@ -383,13 +365,13 @@ export class AnimationController {
                 }
             });
             this.scene = null;
-            this.logger.log(`Scene disposed`);
+            logMessage += '3. Scene disposed\n';
         }
 
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
-            this.logger.log(`Animation stopped`);
+            logMessage += '4. Animation stopped\n';
         }
 
         if (this.resizeTimeout) {
@@ -401,12 +383,16 @@ export class AnimationController {
         if (this.cameraController) {
             this.cameraController.cleanup();
             this.cameraController = null;
-            this.logger.log(`Camera controller cleaned up`);
+            logMessage += '5. Camera controller cleaned up\n';
         }
 
         this.isInitialized = false;
         this.isVisible = false;
-        this.logger.log(`Cleanup completed`);
+        this.logger.log({
+            message: logMessage,
+            conditions: ['cleanup'],
+            functionName: 'cleanup'
+        });
 
         rendererManager.removeRenderer(this.container.id);
     }

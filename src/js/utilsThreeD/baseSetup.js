@@ -241,6 +241,15 @@ export class BaseSetup {
     }
 
     /**
+     * Handle resize event
+     * Must be implemented by child classes
+     * @abstract
+     */
+    onResize() {
+        throw new Error('onResize must be implemented by subclass');
+    }
+
+    /**
      * Update scene for animation frame
      * Must be implemented by child classes
      * @abstract

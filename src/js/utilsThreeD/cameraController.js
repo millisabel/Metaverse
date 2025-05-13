@@ -43,13 +43,6 @@ export class CameraController {
         this.camera = null;
         this.aspect = 1;
         this.isInitialized = false;
-
-        this.logger.log('CameraController initialized', {
-            functionName: 'constructor',
-            customData: {
-                options: this.options
-            }
-        });
     }
 
     /**
@@ -60,11 +53,6 @@ export class CameraController {
      */
     init(container) {
         if (this.isInitialized) return;
-
-        this.logger.log('Initializing camera', {
-            conditions: ['initializing-camera'],
-            functionName: 'init'
-        });
 
         // Calculate aspect ratio
         const rect = container.getBoundingClientRect();
@@ -95,7 +83,6 @@ export class CameraController {
         this.isInitialized = true;
 
         this.logger.log('Camera initialized', {
-            type: 'success',
             conditions: ['camera-initialized'],
             functionName: 'init'
         });
