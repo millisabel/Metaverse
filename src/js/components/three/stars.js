@@ -204,20 +204,21 @@ export class Stars extends AnimationController {
     }
 
     cleanup() {
-        super.cleanup(this.renderer, this.scene);
+        let message = `starting cleanup in ${this.constructor.name}\n`;
         
         if (this.stars) {
             this.stars.geometry.dispose();
             this.stars.material.dispose();
             this.stars = null;
-            this.logger.log(`Stars disposed`);
+            message += `${this.constructor.name} disposed\n`;
         }
+
+        super.cleanup(message);
         
         this.phases = null;
         this.isMoving = null;
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
-        this.logger.log(`Cleanup completed`);
     }
 }

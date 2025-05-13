@@ -247,36 +247,15 @@ export class GalacticCloud extends AnimationController {
     }
 
     cleanup() {
-        this.logger.log(`Starting cleanup`);
+        let message = `starting cleanup in ${this.constructor.name}\n`;
         
         if (this.composer) {
             this.composer.dispose();
             this.composer = null;
-            this.logger.log(`Composer disposed`);
+            message += 'Composer disposed\n';
         }
 
-        if (this.cameraController) {
-            this.cameraController.cleanup();
-        }
-
-        if (this.renderer) {
-            this.renderer.dispose();
-        }
-
-        if (this.scene) {
-            this.scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
-        }
-
-        this.logger.log(`Cleanup completed`);
+        super.cleanup(message);
     }
 }
 
