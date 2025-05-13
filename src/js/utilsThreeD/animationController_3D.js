@@ -360,6 +360,21 @@ export class AnimationController {
     }
 
     /**
+     * Update renderer size
+     * @description Updates the renderer size and the camera aspect ratio
+     * @param {number} width - Width of the renderer
+     * @param {number} height - Height of the renderer
+     * @protected
+     */
+    updateRendererSize(width, height) {
+        if (!this.camera || !this.renderer) return;
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+        if (this.composer) this.composer.setSize(width, height);
+    }
+
+    /**
      * Render scene
      * @protected
      */
@@ -377,6 +392,17 @@ export class AnimationController {
         if (this.cameraController && typeof this.cameraController.updateRotation === 'function') {
             this.cameraController.updateRotation();
         }
+    }
+
+    /**
+     * Update method for animation frame
+     * To be implemented by subclasses
+     * @abstract
+     * @protected
+     */
+    update() {
+        // Base method update, which will be overridden in child classes
+        throw new Error('update must be implemented by subclass');
     }
 
     /**
@@ -446,16 +472,5 @@ export class AnimationController {
         if (process.env.NODE_ENV === 'development') {
             assertNoDeadCanvas();
           }
-    }
-
-    /**
-     * Update method for animation frame
-     * To be implemented by subclasses
-     * @abstract
-     * @protected
-     */
-    update() {
-        // Base method update, which will be overridden in child classes
-        throw new Error('update must be implemented by subclass');
     }
 } 
