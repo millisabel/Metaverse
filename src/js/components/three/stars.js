@@ -74,11 +74,6 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
-
-        this.logger.log({
-            conditions: ['init'],
-            functionName: 'constructor',
-        });
     }
 
     /**
@@ -167,16 +162,16 @@ export class Stars extends AnimationController {
      * @returns {Promise<void>}
      */
     _createStars() {
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(this.starsOptions.count * 3);
-        const colors = new Float32Array(this.starsOptions.count * 3);
-        const sizes = new Float32Array(this.starsOptions.count);
-
         this.phases = new Float32Array(this.starsOptions.count);
         this.isMoving = new Float32Array(this.starsOptions.count);
         this.movePhases = new Float32Array(this.starsOptions.count);
         this.flickerSpeeds = new Float32Array(this.starsOptions.count);
         this.flickerAmplitudes = new Float32Array(this.starsOptions.count);
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(this.starsOptions.count * 3);
+        const colors = new Float32Array(this.starsOptions.count * 3);
+        const sizes = new Float32Array(this.starsOptions.count);
 
         this._initStarAttributes(positions, colors, sizes);
         setupGeometry(geometry, positions, colors, sizes);
@@ -197,6 +192,9 @@ export class Stars extends AnimationController {
         if (!this.animationFrameId) {
             this.logAnimationState('running');
         }
+
+        
+
         
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
