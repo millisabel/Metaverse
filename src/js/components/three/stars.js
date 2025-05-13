@@ -179,6 +179,53 @@ export class Stars extends AnimationController {
     }
 
     /**
+     * Update the renderer size
+     * @description Update the renderer size
+     * @returns {Promise<void>}
+     */
+    onResize() {
+        this.updateRendererSize();
+    }
+
+    /**
+     * Update the star attributes
+     * @description Update the star attributes
+     * @returns {Promise<void>}
+     */
+    _updateStarAttributes() {
+        const positions = this.stars.geometry.attributes.position.array;
+        const sizes = this.stars.geometry.attributes.size.array;
+        const depthRange = this.starsOptions.depth.range;
+    
+        for (let i = 0; i < positions.length; i += 3) {
+            const index = i / 3;
+    
+            this.phases[index] += this.flickerSpeeds[index];
+            const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
+            sizes[index] = brightness * getRandomValue(this.starsOptions.size.min, this.starsOptions.size.max);
+    
+            if (this.isMoving[index] === 1) {
+                this.movePhases[index] += this.starsOptions.movement.speed;
+                const amplitude = this.starsOptions.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
+    
+                positions[i] += Math.sin(this.movePhases[index]) * amplitude.x;
+                positions[i + 1] += Math.cos(this.movePhases[index]) * amplitude.y;
+                positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * amplitude.z;
+            }
+    
+            if (positions[i] < -depthRange) positions[i] = depthRange;
+            if (positions[i] > depthRange) positions[i] = -depthRange;
+            if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
+            if (positions[i + 1] > depthRange) positions[i + 1] = -depthRange;
+            if (positions[i + 2] < this.starsOptions.depth.z[0]) positions[i + 2] = this.starsOptions.depth.z[1];
+            if (positions[i + 2] > this.starsOptions.depth.z[1]) positions[i + 2] = this.starsOptions.depth.z[0];
+        }
+    
+        this.stars.geometry.attributes.position.needsUpdate = true;
+        this.stars.geometry.attributes.size.needsUpdate = true;
+    }
+
+    /**
      * Update the stars
      * @description Update the stars position, size, and color
      * @returns {Promise<void>}
@@ -193,43 +240,7 @@ export class Stars extends AnimationController {
             this.logAnimationState('running');
         }
 
-        
-
-        
-        const positions = this.stars.geometry.attributes.position.array;
-        const sizes = this.stars.geometry.attributes.size.array;
-        const depthRange = this.starsOptions.depth.range;
-        
-        for (let i = 0; i < positions.length; i += 3) {
-            const index = i / 3;
-            
-            this.phases[index] += this.flickerSpeeds[index];
-            const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
-            sizes[index] = brightness * getRandomValue(this.starsOptions.size.min, this.starsOptions.size.max);
-            
-            if (this.isMoving[index] === 1) {
-                this.movePhases[index] += this.starsOptions.movement.speed;
-                
-                // Use default amplitude if not specified
-                const amplitude = this.starsOptions.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
-                
-                positions[i] += Math.sin(this.movePhases[index]) * amplitude.x;
-                positions[i + 1] += Math.cos(this.movePhases[index]) * amplitude.y;
-                positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * amplitude.z;
-            }
-            
-            // Boundary checks
-            if (positions[i] < -depthRange) positions[i] = depthRange;
-            if (positions[i] > depthRange) positions[i] = -depthRange;
-            if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
-            if (positions[i + 1] > depthRange) positions[i + 1] = -depthRange;
-            if (positions[i + 2] < this.starsOptions.depth.z[0]) positions[i + 2] = this.starsOptions.depth.z[1];
-            if (positions[i + 2] > this.starsOptions.depth.z[1]) positions[i + 2] = this.starsOptions.depth.z[0];
-        }
-        
-        this.stars.geometry.attributes.position.needsUpdate = true;
-        this.stars.geometry.attributes.size.needsUpdate = true;
-        
+        this._updateStarAttributes();
         this.updateCamera();
         this.renderScene();
     }
