@@ -135,6 +135,7 @@ export class HeroSetup extends BaseSetup {
 
     cleanup() {
         let message = `starting cleanup in ${this.constructor.name}\n`;
+        
         this.cleanupContainer(CONFIG.OBJECTS.GALACTIC.containerName);
         this.cleanupContainer(CONFIG.OBJECTS.STARS.containerName);
         super.cleanup(message);
