@@ -1,56 +1,78 @@
 import * as THREE from 'three';
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
-import { createStarTexture } from '../../utilsThreeD/textureUtils';
+
 import { createLogger } from "../../utils/logger";
+import { isMobile, getRandomValue } from '../../utils/utils';
+import { createStarTexture } from '../../utilsThreeD/textureUtils';
+
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
-import { getRandomValue } from '../../utils/utils';
+
+/**
+ * Stars component
+ * @extends AnimationController
+ * @param {Object} container - Container element
+ * @param {Object} options - Options for the stars
+ * @param {string} options.containerName - Name of the container element
+ * @param {number} options.zIndex - Z-index of the stars
+ * @param {Object} options.camera - Camera object
+ */
+
+const defaultOptions = {
+    count: 4000,
+    colors: [0xFFFFFF],
+    size: {
+        min: isMobile() ? 2 : 1,
+        max: isMobile() ? 3 : 1.5,
+        attenuation: true,
+        multiplier: isMobile() ? 1.5 : 2
+    },
+    depth: {
+        range: isMobile() ? 500 : 1000,
+        z: [-300, -100]
+    },
+    movement: {
+        enabled: true,
+        probability: 0.15,
+        speed: 0.003,
+        amplitude: { x: 0.05, y: 0.05, z: 0.02 }
+    },
+    flicker: {
+        fast: {
+            probability: 0.3,
+            speed: { min: 0.05, max: 0.15 },
+            amplitude: { min: 0.5, max: 1.0 }
+        },
+        slow: {
+            speed: 0.005,
+            amplitude: 0.2
+        }
+    },
+    material: {
+        opacity: 1,
+        transparent: true,
+        blending: THREE.NormalBlending
+    },
+};
 
 export class Stars extends AnimationController {
     constructor(container, options = {}) {
-        // Initialize base class with camera options
         super(container, {
             containerName: options.containerName,
             zIndex: options.zIndex,
+            camera: options.camera,
         });
 
-        // Initialize Stars specific options
-        this.starsOptions = {
-            count: window.innerWidth < 768 ? 2500 : 5000,
-            colors: [0xFFFFFF],
-            size: {
-                min: 0.5,
-                max: 1.5,
-                attenuation: true,
-                multiplier: window.innerWidth < 768 ? 1.5 : 2
-            },
-            depth: {
-                range: window.innerWidth < 768 ? 500 : 1000,
-                z: [-300, -100]
-            },
-            movement: {
-                enabled: true,
-                probability: 0.15,
-                speed: 0.003,
-                amplitude: { x: 0.05, y: 0.05, z: 0.02 }
-            },
-            flicker: {
-                fast: {
-                    probability: 0.3,
-                    speed: { min: 0.05, max: 0.15 },
-                    amplitude: { min: 0.5, max: 1.0 }
-                },
-                slow: {
-                    speed: 0.005,
-                    amplitude: 0.2
-                }
-            },
-            material: {
-                opacity: 1,
-                transparent: true,
-                blending: THREE.NormalBlending
-            },
-            ...options
-        };
+        this.name = this.constructor.name;
+        this.logger = createLogger(this.name);
+
+        console.log('Stars constructor', {
+            containerName: options.containerName,
+            zIndex: options.zIndex,
+            options: options
+        });
+
+        this.starsOptions = AnimationController.mergeOptions(defaultOptions, options);
         
         this.stars = null;
         this.phases = null;
@@ -59,24 +81,35 @@ export class Stars extends AnimationController {
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
 
-        this.name = 'Stars';
-        this.logger = createLogger(this.name);
-
         this.logger.log({
-            conditions: ['initializing-controller'],
+            conditions: ['init'],
+            functionName: 'constructor',
         });
     }
 
+    /**
+     * Setup the stars scene
+     * @description Setup the stars scene
+     * @returns {Promise<void>}
+     */
     async setupScene() {
         this.logger.log('Setting up stars scene', {
-            conditions: ['setting-up-scene'],
+            conditions: ['initializing-scene'],
             functionName: 'setupScene'
         });
 
-        this.createStars();
+        this._createStars();
     }
 
-    initStarAttributes(positions, colors, sizes) {
+    /**
+     * Initialize the star attributes
+     * @description Initialize the star attributes
+     * @param {Float32Array} positions - Positions of the stars
+     * @param {Float32Array} colors - Colors of the stars
+     * @param {Float32Array} sizes - Sizes of the stars
+     * @returns {Promise<void>}
+     */
+    _initStarAttributes(positions, colors, sizes) {
         for (let i = 0; i < this.starsOptions.count; i++) {
             // Positions with gaussian distribution
             positions[i * 3] = gaussianRandom(0, this.starsOptions.depth.range / 3);
@@ -113,7 +146,13 @@ export class Stars extends AnimationController {
         }
     }
 
-    createStarPoints(geometry) {
+    /**
+     * Create star points
+     * @description Create star points
+     * @param {THREE.BufferGeometry} geometry - Geometry of the stars
+     * @returns {Promise<void>}
+     */
+    _createStarPoints(geometry) {
         const material = new THREE.PointsMaterial({
             vertexColors: true,
             sizeAttenuation: this.starsOptions.size?.attenuation ?? true,
@@ -121,14 +160,19 @@ export class Stars extends AnimationController {
             transparent: this.starsOptions.material?.transparent ?? true,
             opacity: this.starsOptions.material?.opacity ?? 1,
             blending: this.starsOptions.material?.blending ?? THREE.NormalBlending,
-            map: createStarTexture()
+            map: createStarTexture(this.starsOptions.texture)
         });
 
         this.stars = new THREE.Points(geometry, material);
         this.scene.add(this.stars);
     }
 
-    createStars() {
+    /**
+     * Create stars
+     * @description Create stars
+     * @returns {Promise<void>}
+     */
+    _createStars() {
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(this.starsOptions.count * 3);
         const colors = new Float32Array(this.starsOptions.count * 3);
@@ -140,35 +184,29 @@ export class Stars extends AnimationController {
         this.flickerSpeeds = new Float32Array(this.starsOptions.count);
         this.flickerAmplitudes = new Float32Array(this.starsOptions.count);
 
-        this.initStarAttributes(positions, colors, sizes);
+        this._initStarAttributes(positions, colors, sizes);
         setupGeometry(geometry, positions, colors, sizes);
-        this.createStarPoints(geometry);
+        this._createStarPoints(geometry);
     }
 
+    /**
+     * Update the stars
+     * @description Update the stars position, size, and color
+     * @returns {Promise<void>}
+     */
     update() {
-        if (!this.isVisible || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) {
-            if (this.animationFrameId) {
-                this.logger.log('Animation stopped', {
-                    conditions: ['paused'],
-                    functionName: 'update'
-                });
-            }
+        if (!this.canAnimate() || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) {
+            this.logAnimationState('paused');
             return;
         }
 
         if (!this.animationFrameId) {
-            this.logger.log('Animation started', {
-                conditions: ['running'],
-                functionName: 'update'
-            });
+            this.logAnimationState('running');
         }
         
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
         const depthRange = this.starsOptions.depth.range;
-        
-        // Update camera rotation
-        this.cameraController.updateRotation();
         
         for (let i = 0; i < positions.length; i += 3) {
             const index = i / 3;
@@ -200,9 +238,15 @@ export class Stars extends AnimationController {
         this.stars.geometry.attributes.position.needsUpdate = true;
         this.stars.geometry.attributes.size.needsUpdate = true;
         
-        this.renderer.render(this.scene, this.camera);
+        this.updateCamera();
+        this.renderScene();
     }
 
+    /**
+     * Cleanup the stars
+     * @description Cleanup the stars
+     * @returns {Promise<void>}
+     */
     cleanup() {
         let logMessage = `starting cleanup in ${this.constructor.name}\n`;
 

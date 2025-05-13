@@ -298,6 +298,13 @@ export class AnimationController {
             });
             return false;
         }
+        
+        if (!this.scene || !this.camera || !this.renderer) {
+            this.logger.log('Scene, camera, or renderer missing', {
+                functionName: 'AnimationController: canAnimate'
+            });
+            return false;
+        }
 
         return true;
     }
@@ -337,6 +344,38 @@ export class AnimationController {
                 conditions: ['animation-frame-cleanup'],
                 functionName: 'AnimationController: stopAnimation'
             });
+        }
+    }
+
+    /**
+     * Log animation state
+     * @param {string} state - State of the animation
+     * @protected
+     */
+    logAnimationState(state) {
+        this.logger.log(`Animation ${state}`, {
+            conditions: [state],
+            functionName: 'update'
+        });
+    }
+
+    /**
+     * Render scene
+     * @protected
+     */
+    renderScene() {
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+
+    /**
+     * Update camera
+     * @protected
+     */
+    updateCamera() {
+        if (this.cameraController && typeof this.cameraController.updateRotation === 'function') {
+            this.cameraController.updateRotation();
         }
     }
 
