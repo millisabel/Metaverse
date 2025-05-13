@@ -85,3 +85,26 @@ export function projectToBack(x, y, x_c, y_c, shrinkK) {
         y_c + (y - y_c) * shrinkK
     ];
 }
+
+// deepMerge =================================================
+/**
+ * Deep merges two objects
+ * @param {Object} target - Target object
+ * @param {Object} source - Source object
+ * @returns {Object} Merged object
+ */
+export function deepMerge(target, source) {
+    for (const key in source) {
+      if (
+        source[key] &&
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key])
+      ) {
+        if (!target[key]) target[key] = {};
+        deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+    return target;
+  }
