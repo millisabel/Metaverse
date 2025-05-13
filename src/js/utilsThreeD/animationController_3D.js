@@ -1,8 +1,10 @@
-import {createLogger} from "../utils/logger";
 import * as THREE from 'three';
-import {createCanvas, updateRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
+
 import { CameraController } from './cameraController';
 import { rendererManager } from './rendererManager';
+import {createLogger} from "../utils/logger";
+import {createCanvas, updateRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
+import { deepMerge } from './utilsThreeD';
  
 /**
  * Basic controller for managing Three.js animations and scene lifecycle
@@ -84,6 +86,10 @@ export class AnimationController {
         this.initResizeHandler();
         this.initWebGLContextHandlers();
     }
+
+    static mergeOptions(defaults, options) {
+        return deepMerge({ ...defaults }, options);
+      }
 
     /**
      * Initializes camera controller and renderer.
