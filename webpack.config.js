@@ -47,6 +47,10 @@ module.exports = {
         generator: {
           filename: 'assets/svg/[name][ext]'
         }
+      },
+      {
+        test: /\.(glsl|vs|fs|vert|frag)$/,
+        use: 'raw-loader'
       }
     ]
   },
