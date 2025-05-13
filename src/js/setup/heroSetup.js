@@ -19,16 +19,17 @@ const SECTION_ID = 'hero';
  * @property {Object} STARS - The stars
  * @property {Object} GALACTIC - The galactic cloud
  */
-const HERO_3D_OBJECTS = {
+const OBJECTS_3D_HERO = {
     STARS: {
         classRef: Stars,
         containerName: 'STARS',
         zIndex: 2, 
         camera: {
+            containerName: 'STARS',
             rotation: true, 
             speed: { x: 0.000002, y: 0.000002 },
         },
-        count: isMobile() ? 2000 : 4000,
+        count: isMobile() ? 2000 : 5000,
         colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
         size: {
             min: 1,
@@ -87,7 +88,7 @@ const HERO_3D_OBJECTS = {
  */
 export class HeroSetup extends Universal3DSection {
     constructor() {
-      super(SECTION_ID, HERO_3D_OBJECTS);
+      super(SECTION_ID, OBJECTS_3D_HERO);
 
       this.logger = createLogger(this.constructor.name);
 
