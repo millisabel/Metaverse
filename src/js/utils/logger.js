@@ -349,14 +349,14 @@ export class Logger {
                 color: '#228B22'
             }
         },
-        'creating-container': {
+        'creating': {
             icon: '🔧',
             style: {
                 background: 'rgba(128,128,128,0)',
                 color: '#666666',
             },
         },
-        'removed-container': {
+        'removed': {
             icon: '🗑️',
             style: {
                 background: 'rgba(128,128,128,0)',
