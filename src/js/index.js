@@ -2,7 +2,7 @@ import { Logger } from './utils/logger';
 import { AnimationObserverCSS } from './utils/animationObserver_CSS';
 // Setup
 import { initNavbar } from './setup/NavbarSetup';
-import { initHero } from './setup/heroSetup';
+import { HeroSetup } from './setup/heroSetup';
 import { initAbout } from "./setup/aboutSetup";
 import { initRoadmap } from './setup/roadmapSetup';
 import { initDynamics } from './setup/dynamicsSetup';
@@ -26,7 +26,7 @@ if(process.env.NODE_ENV === 'development') {
     // Logger.disableLoggerFor('ThreeDContainerManager');
     
     Logger.disableLoggerFor('NavbarSetup');
-    // Logger.disableLoggerFor('HeroSetup');
+    Logger.disableLoggerFor('HeroSetup');
     Logger.disableLoggerFor('AboutSetup');
     Logger.disableLoggerFor('RoadmapSetup');
     Logger.disableLoggerFor('DynamicsSetup');
@@ -35,8 +35,8 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('ExploreScene');
     Logger.disableLoggerFor('SocialSetup');
 
-    // Logger.disableLoggerFor('Stars');
-    // Logger.disableLoggerFor('GalacticCloud');
+    Logger.disableLoggerFor('Stars');
+    Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Dynamics3D');
@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     initNavbar();
-    initHero();
+    new HeroSetup();
+
     // initAbout();
     // initRoadmap();
     // initDynamics();

@@ -67,7 +67,7 @@ export class Stars extends AnimationController {
         });
     }
 
-    setupScene() {
+    async setupScene() {
         this.logger.log('Setting up stars scene', {
             conditions: ['setting-up-scene'],
             functionName: 'setupScene'

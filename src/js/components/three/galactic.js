@@ -39,7 +39,7 @@ export class GalacticCloud extends AnimationController {
         });
     }
 
-    setupScene() {
+    async setupScene() {
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
             functionName: 'setupScene'

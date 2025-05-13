@@ -73,7 +73,7 @@ export class AnimationController {
      * Initializes the controller: dependencies, visibility observer, resize handler, and WebGL context handlers.
      * @protected
      */
-    init() {
+    async init() {
         this.logger.log({
             conditions: ['init'],
             functionName: 'init'
@@ -209,7 +209,7 @@ export class AnimationController {
      * Initializes Three.js scene, camera, and renderer.
      * @protected
      */
-    initScene() {
+    async initScene() {
         this.logger.log('Initializing scene', {
             conditions: ['init'],
             functionName: 'initScene'
@@ -243,7 +243,7 @@ export class AnimationController {
             canvasName: this.name
         });
 
-        this.setupScene();
+        await this.setupScene();
 
         this.isInitialized = true;
 
