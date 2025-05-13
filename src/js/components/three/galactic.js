@@ -79,6 +79,7 @@ export class GalacticCloud extends AnimationController {
             camera: options.camera,
         });
 
+        this._isDestroyed = false;
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
 
@@ -105,10 +106,13 @@ export class GalacticCloud extends AnimationController {
      * @protected
      */
     async setupScene() {
+        this._isDestroyed = false;
         this.logger.log('Scene initialization', {
             conditions: ['init'],
             functionName: 'setupScene'
         });
+        
+        if (this._isDestroyed) return;
 
         this._createGalaxyCore();
         await this._galaxyPlane();
@@ -316,11 +320,8 @@ export class GalacticCloud extends AnimationController {
     onResize() {
         if (!this.renderer || !this.camera) return;
 
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
-
-        this.updateRendererSize(width, height);
-        this._updateCameraOrbit(0); // time = 0 — камера в "нулевой" позиции орбиты
+        this.updateRendererSize();
+        this._updateCameraOrbit(0); 
 
         if (this.galaxyPlane) {
             const planeSize = this.galaxOptions.plane.size;
@@ -340,6 +341,7 @@ export class GalacticCloud extends AnimationController {
      */
     cleanup() {
         let message = `starting cleanup in ${this.constructor.name}\n`;
+        this._isDestroyed = true;
         
         if (this.composer) {
             this.composer.dispose();
