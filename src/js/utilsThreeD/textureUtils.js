@@ -1,5 +1,15 @@
 import * as THREE from 'three';
 
+/**
+ * Create star texture
+ * @param {Object} options - Options for the star texture
+ * @param {number} [options.size=64] - Size of the star texture
+ * @param {string} [options.innerColor=rgba(255, 255, 255, 1)] - Inner color of the star texture
+ * @param {string} [options.outerColor=rgba(255, 255, 255, 0)] - Outer color of the star texture
+ * @param {string} [options.middleColor=rgba(255, 255, 255, 0.6)] - Middle color of the star texture
+ * @returns {THREE.Texture} - Star texture  
+ */
+
 export const createStarTexture = (options = {}) => {
     const {
         size = 64,
