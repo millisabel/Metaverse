@@ -11,7 +11,11 @@ const HERO_3D_OBJECTS = {
         classRef: Stars,
         containerName: 'STARS',
         zIndex: 2, 
-        count: isMobile() ? 1000 : 4000,
+        camera: {
+            rotation: true, 
+            speed: { x: 0.000002, y: 0.000002 },
+        },
+        count: isMobile() ? 2000 : 4000,
         colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
         size: {
             min: 1,
@@ -23,23 +27,12 @@ const HERO_3D_OBJECTS = {
             z: [300, -400] 
         },
         movement: {
-            enabled: true,
-            probability: 0.15,
             speed: 0.0015,
             amplitude: {
                 x: 0.01,
                 y: 0.01,
                 z: 0.01
             }
-        },
-        material: {
-            opacity: 1,
-            transparent: true
-        },
-        camera: {
-            rotation: true,
-            position: { z: -50 }, 
-            speed: { x: 0.00001, y: 0.00001 }
         },
     },
     GALACTIC: {
