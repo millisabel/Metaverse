@@ -377,14 +377,28 @@ export class AnimationController {
     }
 
     /**
+     * Get container size
+     * @returns {Object} Container size
+     * @protected
+     */
+    getContainerSize() {
+        if (!this.container) return { width: 0, height: 0 };
+        return {
+            width: this.container.clientWidth,
+            height: this.container.clientHeight
+        };
+    }
+
+    /**
      * Update renderer size
      * @description Updates the renderer size and the camera aspect ratio
      * @param {number} width - Width of the renderer
      * @param {number} height - Height of the renderer
      * @protected
      */
-    updateRendererSize(width, height) {
-        if (!this.camera || !this.renderer) return;
+    updateRendererSize() {
+        const { width, height } = this.getContainerSize();
+        if (!this.camera || !this.renderer || width === 0 || height === 0) return;
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
