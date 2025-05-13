@@ -1,4 +1,3 @@
-
 import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { createLogger } from '../utils/logger';
 
@@ -41,7 +40,7 @@ export class Universal3DSection extends BaseSetup {
         const container = this.createContainer(containerName, zIndex);
 
         if (!params.classRef) {
-            throw new Error(`classRef is not specified for 3D object "${key}"`);
+            throw new Error(`classRef is not specified for 3D object "${type}"`);
         }
 
         this.logger.log({
@@ -55,7 +54,10 @@ export class Universal3DSection extends BaseSetup {
             }
         });
     
-        return new params.classRef(container, params);
+        return new params.classRef(container, {
+            ...params,
+            camera: params.camera
+        });
     }
 
     onResize() {

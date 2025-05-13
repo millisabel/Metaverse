@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createLogger } from '../utils/logger';
+import { AnimationController } from '../utilsThreeD/animationController_3D';
 
 /**
  * Controller for managing Three.js camera setup and behavior.
@@ -37,12 +38,14 @@ export class CameraController {
             lookAt: { x: 0, y: 0, z: 0 },
             rotation: false,
             speed: { x: 0.00002, y: 0.00002 },
-            ...options
         };
+        
+        this.options = AnimationController.mergeOptions(this.options, options);
 
         this.camera = null;
         this.aspect = 1;
         this.isInitialized = false;
+
     }
 
     /**
@@ -84,8 +87,13 @@ export class CameraController {
 
         this.logger.log('Camera initialized', {
             conditions: ['camera-initialized'],
-            functionName: 'init'
+            functionName: 'init',
+            customData: {
+                camera: this.camera,
+                options: this.options
+            }
         });
+
     }
 
     /**

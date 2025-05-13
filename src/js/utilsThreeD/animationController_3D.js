@@ -4,8 +4,8 @@ import { CameraController } from './cameraController';
 import { rendererManager } from './rendererManager';
 import {createLogger} from "../utils/logger";
 import {createCanvas, updateRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
-import { deepMerge } from './utilsThreeD';
- 
+import { deepClone } from './utilsThreeD';
+
 /**
  * Basic controller for managing Three.js animations and scene lifecycle
  * Provides functionality for:
@@ -88,8 +88,25 @@ export class AnimationController {
     }
 
     static mergeOptions(defaults, options) {
-        return deepMerge({ ...defaults }, options);
-      }
+        // Сначала глубокий клон defaults, потом поверх него options (тоже глубоко)
+        const merged = deepClone(defaults);
+        function assign(target, source) {
+            for (const key in source) {
+                if (
+                    source[key] &&
+                    typeof source[key] === 'object' &&
+                    !Array.isArray(source[key])
+                ) {
+                    if (!target[key]) target[key] = {};
+                    assign(target[key], source[key]);
+                } else {
+                    target[key] = deepClone(source[key]);
+                }
+            }
+        }
+        assign(merged, options);
+        return merged;
+    }
 
     /**
      * Initializes camera controller and renderer.

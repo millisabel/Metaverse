@@ -69,6 +69,8 @@ export class ThreeDContainerManager {
 
         this.parentContainer.appendChild(this.container);
         
+        this.container.id = `threejs-container-${this.options.name}-${crypto.randomUUID()}`;
+
         this.logger.log({
             conditions: ['creating-container'],
             functionName: `${this.options.name} create()`,

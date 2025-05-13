@@ -108,3 +108,21 @@ export function deepMerge(target, source) {
     }
     return target;
   }
+
+  // deepClone =================================================
+  /**
+   * Deep clones an object
+   * @param {Object} obj - The object to clone
+   * @returns {Object} Cloned object
+   */
+  export function deepClone(obj) {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(deepClone);
+    const cloned = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            cloned[key] = deepClone(obj[key]);
+        }
+    }
+    return cloned;
+}
