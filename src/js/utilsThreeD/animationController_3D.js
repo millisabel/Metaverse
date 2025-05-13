@@ -342,7 +342,7 @@ export class AnimationController {
      */
     cleanup(message) {
         let logMessage = message || '';
-        logMessage += '1. starting cleanup in AnimationController\n';
+        logMessage += 'starting cleanup in AnimationController\n';
 
         if (this.renderer) {  
             this.renderer.dispose();
@@ -350,8 +350,8 @@ export class AnimationController {
                 this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
             }
             this.renderer = null;
-            logMessage += '2. Renderer disposed and canvas removed\n';
         }
+        logMessage += `Renderer: ${this.renderer}\n`;
 
         if (this.scene) {
             this.scene.traverse((object) => {
@@ -365,26 +365,27 @@ export class AnimationController {
                 }
             });
             this.scene = null;
-            logMessage += '3. Scene disposed\n';
         }
+        logMessage += `Scene: ${this.scene}\n`;
 
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
-            logMessage += '4. Animation stopped\n';
         }
+        logMessage += `Animation stopped: animationFrameId: ${this.animationFrameId}\n`;
 
         if (this.resizeTimeout) {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = null;
-            this.logger.log(`Resize timeout cleared`);
         }
+        logMessage += `Resize timeout: ${this.resizeTimeout}\n`;
 
         if (this.cameraController) {
             this.cameraController.cleanup();
             this.cameraController = null;
-            logMessage += '5. Camera controller cleaned up\n';
         }
+        logMessage += `Camera controller: ${this.cameraController}\n`;
+        logMessage += `Completed cleanup in AnimationController\n`;
 
         this.isInitialized = false;
         this.isVisible = false;

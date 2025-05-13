@@ -76,10 +76,11 @@ export class Universal3DSection extends BaseSetup {
 
     cleanup() {
     for (const controller of Object.values(this.controllers)) {
-        const message = `starting cleanup in ${this.constructor.name}\n`;
+        let logMessage = `starting cleanup in ${this.constructor.name}\n`;
 
         if (controller && typeof controller.cleanup === 'function') {
-                controller.cleanup(message);
+            logMessage += `controller: ${this.controllers}\n`;
+            controller.cleanup(logMessage);
             }
         }
     }
