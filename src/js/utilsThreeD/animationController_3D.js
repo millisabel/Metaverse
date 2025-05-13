@@ -1,6 +1,6 @@
 import {createLogger} from "../utils/logger";
 import * as THREE from 'three';
-import {createCanvas, updateRendererSize} from "../utilsThreeD/canvasUtils";
+import {createCanvas, updateRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
 import { CameraController } from './cameraController';
 import { rendererManager } from './rendererManager';
  
@@ -237,6 +237,9 @@ export class AnimationController {
         }
         
         this.container.appendChild(this.renderer.domElement);
+        console.log('this.options.containerName', this.options.containerName);
+        console.log('this.name', this.name);
+        console.log('this.container.id', this.container.id);
         createCanvas(this.renderer, {
             zIndex: this.options.zIndex,
             containerName: this.options.containerName,
@@ -396,6 +399,10 @@ export class AnimationController {
         });
 
         rendererManager.removeRenderer(this.container.id);
+
+        if (process.env.NODE_ENV === 'development') {
+            assertNoDeadCanvas();
+          }
     }
 
     /**

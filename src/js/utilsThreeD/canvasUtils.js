@@ -1,5 +1,8 @@
 export const createCanvas = (renderer, options = {}) => {
-    const { zIndex = '0', canvasName = '', containerType = '' } = options;
+    const { 
+        zIndex = '0', 
+        containerName = 'threejs',
+        canvasName = '',  } = options;
 
     const canvas = renderer.domElement;
 
@@ -18,13 +21,14 @@ export const createCanvas = (renderer, options = {}) => {
         willChange: 'transform'
     });
 
-    // Add data attributes
     if (canvasName) {
         canvas.dataset.canvasName = canvasName;
     }
-    if (containerType) {
-        canvas.dataset.containerType = containerType;
+    if (containerName) {
+        canvas.dataset.containerName = containerName;
     }
+
+    canvas.classList.add('threejs-canvas');
     
     return canvas;
 };
@@ -71,4 +75,26 @@ export function cleanupResources(renderer, scene) {
             }
         });
     }
+}
+
+/**
+ * Find all "dead" Three.js/WebGL canvas in DOM.
+ * @param {string} [selector='.threejs-canvas, canvas[data-container-name]'] - Selector for identifying 3D canvases
+ * @returns {HTMLCanvasElement[]} - Array of found canvas elements
+ */
+export function findDeadCanvas(selector = '.threejs-canvas, canvas[data-container-name]') {
+  return Array.from(document.querySelectorAll(selector));
+}
+
+/**
+ * Log warning if there are "dead" canvas in DOM.
+ * @param {string} [selector]
+ */
+export function assertNoDeadCanvas(selector) {
+  const deadCanvas = findDeadCanvas(selector);
+  if (deadCanvas.length > 0) {
+    console.warn(`⚠️ Found ${deadCanvas.length} dead canvas in DOM:`, deadCanvas);
+  } else {
+    console.info('✅ No dead canvas in DOM');
+  }
 }
