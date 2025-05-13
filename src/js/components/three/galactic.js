@@ -3,41 +3,42 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
 import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
+
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+
+const CONFIG_LIGHTS = {
+    ambientColor: 0x9933ff,
+    ambientIntensity: 0.5,
+    pointColor: 0xcc66ff,
+    pointIntensity: 2,
+    pointPosition: { x: isMobile() ? 0 : -4, y: 2, z: 0 }
+}
 
 export class GalacticCloud extends AnimationController {
     constructor(container, options = {}) {
         super(container, {
             containerName: options.containerName,
             zIndex: options.zIndex,
-            camera: {
-                fov: 60,
-                near: 0.1,
-                far: 1000,
-                position: { x: 0, y: 5, z: 15 },
-                lookAt: { x: 0, y: 0, z: 0 },
-                rotation: true,
-                speed: { x: 0.0002, y: 0.0002 }
-            },
-            renderer: {
-                antialias: true,
-                alpha: true,
-                powerPreference: 'high-performance'
-            }
+            camera: options.camera,
         });
+
+        this.name = this.constructor.name;
+        this.logger = createLogger(this.name);
 
         this.galaxyCore = null;
         this.spiralArms = [];
         this.composer = null;
 
-        this.name = 'GalacticCloud';
-        this.logger = createLogger(this.name);
         this.logger.log('Controller initialization', {
-            conditions: ['initializing-controller'],
-            functionName: 'constructor'
+            conditions: ['init'],
+            functionName: 'constructor',
+            customData: {
+                this: this,
+                options: options
+            }
         });
     }
 
@@ -47,26 +48,11 @@ export class GalacticCloud extends AnimationController {
             functionName: 'setupScene'
         });
 
-        const mobile = isMobile();
-        const radius = mobile ? 20 : 15;
-        const height = mobile ? -15 : 5;
-        const offsetX = mobile ? 0 : -4;
-        
-        this.cameraController.setPosition({ x: offsetX, y: height, z: radius });
-        this.cameraController.setLookAt({ x: offsetX, y: 0, z: 0 });
-
-        // Используем утилиту для добавления света
-        addDefaultLights(this.scene, {
-            ambientColor: 0x9933ff,
-            ambientIntensity: 0.5,
-            pointColor: 0xcc66ff,
-            pointIntensity: 2,
-            pointPosition: { x: offsetX, y: 2, z: 0 }
-        });
-
         this.createGalaxyCore();
         this.createSpiralArms();
         this.setupPostProcessing();
+
+        addDefaultLights(this.scene, CONFIG_LIGHTS);
     }
 
     createGalaxyCore() {

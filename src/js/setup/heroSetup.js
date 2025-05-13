@@ -43,6 +43,7 @@ const HERO_3D_OBJECTS = {
             fov: 60,
             far: 1000,
             position: { x: 0, y: 5, z: 15 },
+            rotation: true,
         }
     }
 };
