@@ -1,9 +1,9 @@
 import { createLogger } from '../utils/logger';
 import { isMobile } from "../utils/utils";
+import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
 
 import { Stars } from "../components/three/stars";
 import { GalacticCloud } from '../components/three/galactic';
-import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
 
 const SECTION_ID = 'hero';
 const HERO_3D_OBJECTS = {
@@ -56,8 +56,9 @@ const HERO_3D_OBJECTS = {
 
 export class HeroSetup extends Universal3DSection {
     constructor() {
-      // Передаём id контейнера и объект с параметрами 3D-объектов
       super(SECTION_ID, HERO_3D_OBJECTS);
+
+      this.logger = createLogger(this.constructor.name);
 
       this.logger.log({
         functionName: 'constructor',
@@ -69,6 +70,3 @@ export class HeroSetup extends Universal3DSection {
     }
   }
 
-export function initHero() {
-    const sectionHero = new HeroSetup();
-}
