@@ -66,12 +66,6 @@ export class Stars extends AnimationController {
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
 
-        console.log('Stars constructor', {
-            containerName: options.containerName,
-            zIndex: options.zIndex,
-            options: options
-        });
-
         this.starsOptions = AnimationController.mergeOptions(defaultOptions, options);
         
         this.stars = null;
