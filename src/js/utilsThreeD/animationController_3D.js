@@ -34,7 +34,7 @@ export class AnimationController {
      * @param {string} [options.containerName] - Type of container for data-container-type attribute
      * @param {string} [options.zIndex='2'] - Z-index for the canvas
      */
-    constructor(container, options = {}) {
+    constructor(container, options = {}, defaultOptions = {}) {
         this.name = `(AnimationController) ⬅ ${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
@@ -42,6 +42,15 @@ export class AnimationController {
         if (!this.container.id) {
             this.container.id = `threejs-container-${crypto.randomUUID()}`;
         }
+
+        const { objectConfig, ...restOptions } = options;
+        const mergedOptions = {
+        ...restOptions,
+        ...(objectConfig || {})
+        };
+        this.options = AnimationController.mergeOptions(defaultOptions, mergedOptions);
+
+        console.log(`${this.name}`, this.options);
 
         this.isVisible = false;
         this.isInitialized = false;
@@ -53,20 +62,16 @@ export class AnimationController {
         this.cameraController = null;
         this.renderer = null;
 
-        this.options = {
-            containerName: options.containerName,
-            zIndex: options.zIndex,
-            camera: options.camera,
-            ...options
-        };
-
         this.logger.log('AnimationController initialized', {
             conditions: ['init'],
             functionName: 'constructor',
             customData: {
+                container: this.container,
                 containerName: this.options.containerName,
                 zIndex: this.options.zIndex,
-                container: this.container,
+                camera: this.options.camera,
+                lights: this.options.lights,
+                allOptions: this.options,
             }
         });
         

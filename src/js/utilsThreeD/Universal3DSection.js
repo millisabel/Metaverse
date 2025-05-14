@@ -2,18 +2,19 @@ import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { createLogger } from '../utils/logger';
 
 export class Universal3DSection extends BaseSetup {
-    constructor(containerId, objects3D) {
+    constructor(containerId, objects3DConfig) {
         super(containerId);
 
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
 
         
-        this.objects3D = objects3D;
+        this.objects3D = objects3DConfig;
         this.controllers = {};
 
-        for (const [key, params] of Object.entries(objects3D)) {
+        for (const [key, params] of Object.entries(this.objects3D)) {
             this.controllers[key] = this.create3DController(key, params);
+            console.log('params', params);
         }
     }
   
