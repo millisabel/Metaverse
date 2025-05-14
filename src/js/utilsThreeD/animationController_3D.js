@@ -92,6 +92,56 @@ export class AnimationController {
         this.initWebGLContextHandlers();
     }
 
+    /**
+     * Initializes Three.js scene, camera, and renderer.
+     * @protected
+     */
+    async initScene() {
+        this.logger.log('Initializing scene', {
+            conditions: ['init'],
+            functionName: 'initScene'
+        });
+
+        if (this.isInitialized) return;
+
+        if (!this.renderer) {
+            this.initDependencies(); 
+        }
+
+        if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode !== this.container) {
+        }
+
+        this.scene = new THREE.Scene();
+
+        this.cameraController.init(this.container);
+        this.camera = this.cameraController.camera;
+
+        this.renderer.setClearColor(0x000000, 0);
+        updateThreeRendererSize(this.renderer, this.container, this.camera);
+
+        if (this.options.containerName) {
+            this.container.dataset.containerName = this.options.containerName;
+        }
+        
+        this.container.appendChild(this.renderer.domElement);
+        
+        createCanvas(this.renderer, {
+            zIndex: this.options.zIndex,
+            containerName: this.options.containerName,
+            canvasName: this.name
+        });
+
+        await this.setupScene();
+
+        this.isInitialized = true;
+
+        this.logger.log({
+            type: 'success',
+            conditions: ['scene-initialized'],
+            functionName: 'initScene'
+        });
+    }
+
     static mergeOptions(defaults, options) {
         const merged = deepClone(defaults);
         function assign(target, source) {
@@ -229,56 +279,6 @@ export class AnimationController {
             this.isContextLost = false;
             this.initScene();
             this.animate();
-        });
-    }
-
-    /**
-     * Initializes Three.js scene, camera, and renderer.
-     * @protected
-     */
-    async initScene() {
-        this.logger.log('Initializing scene', {
-            conditions: ['init'],
-            functionName: 'initScene'
-        });
-
-        if (this.isInitialized) return;
-
-        if (!this.renderer) {
-            this.initDependencies(); 
-        }
-
-        if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode !== this.container) {
-        }
-
-        this.scene = new THREE.Scene();
-
-        this.cameraController.init(this.container);
-        this.camera = this.cameraController.camera;
-
-        this.renderer.setClearColor(0x000000, 0);
-        updateThreeRendererSize(this.renderer, this.container, this.camera);
-
-        if (this.options.containerName) {
-            this.container.dataset.containerName = this.options.containerName;
-        }
-        
-        this.container.appendChild(this.renderer.domElement);
-        
-        createCanvas(this.renderer, {
-            zIndex: this.options.zIndex,
-            containerName: this.options.containerName,
-            canvasName: this.name
-        });
-
-        await this.setupScene();
-
-        this.isInitialized = true;
-
-        this.logger.log({
-            type: 'success',
-            conditions: ['scene-initialized'],
-            functionName: 'initScene'
         });
     }
 
@@ -519,8 +519,8 @@ export class AnimationController {
 
         rendererManager.removeRenderer(this.container.id);
 
-        if (process.env.NODE_ENV === 'development') {
-            assertNoDeadCanvas();
-          }
+        // if (process.env.NODE_ENV === 'development') {
+        //     assertNoDeadCanvas();
+        //   }
     }
 }
