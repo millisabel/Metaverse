@@ -5,16 +5,22 @@ import constellationsData from '../../data/constellations.json';
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
-import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
 
-const CONFIG_LIGHTS = {
-    ambientColor: 0xffffff,
-    ambientIntensity: 0.7,
-    pointColor: 0xffffff,
-    pointIntensity: 1.5,
-    pointPosition: { x: 0, y: 10, z: 10 }
+/**
+ * @param {Object} options
+ * @param {number} options.countConstellations - count of constellations
+ */
+const DEFAULT_OPTIONS = {
+    countConstellations: constellationsData.length,  
 };
 
+/**
+ * @param {Object} data
+ * @param {Object} data.basePosition - base position of the constellation
+ * @param {Object} data.stars - stars of the constellation
+ * @param {Object} data.connections - connections between stars
+ * @param {Object} data.color - color of the constellation
+ */
 class ConstellationGroup {
     constructor(data, starTexture) {
         this.group = new THREE.Group();
@@ -75,6 +81,10 @@ class ConstellationGroup {
         this.init(starTexture);
     }
 
+    /**
+     * @description Initialize the constellation
+     * @param {Object} starTexture
+     */
     init(starTexture) {
         this.data.stars.forEach(starData => {
             const position = new THREE.Vector3(
@@ -115,6 +125,10 @@ class ConstellationGroup {
         );
     }
 
+    /**
+     * @description Get the next star index
+     * @returns {number}
+     */
     getNextStarIndex() {
         let nextIndex;
         do {
@@ -123,6 +137,10 @@ class ConstellationGroup {
         return nextIndex;
     }
 
+    /**
+     * @description Create connection lines
+     * @returns {void}
+     */
     createConnectionLines() {
         this.data.connections.forEach(connection => {
             const lineMaterial = new THREE.LineBasicMaterial({ 
@@ -141,6 +159,10 @@ class ConstellationGroup {
         });
     }
 
+    /**
+     * @description Update rotation
+     * @returns {void}
+     */
     updateRotation() {
         this.rotationTimer += 0.016;
         this.rotationTransitionProgress += 0.01;
@@ -179,11 +201,21 @@ class ConstellationGroup {
         this.group.rotation.z += this.rotationSpeed.z;
     }
 
+    /**
+     * @description Check collision
+     * @param {Object} otherConstellation
+     * @returns {boolean}
+     */
     checkCollision(otherConstellation) {
         const distance = this.group.position.distanceTo(otherConstellation.group.position);
         return distance < this.avoidanceRadius;
     }
 
+    /**
+     * @description Update avoidance force
+     * @param {Object} otherConstellations
+     * @returns {void}
+     */
     updateAvoidanceForce(otherConstellations) {
         this.avoidanceForce.set(0, 0, 0);
         let collisionCount = 0;
@@ -208,6 +240,12 @@ class ConstellationGroup {
         }
     }
 
+    /**
+     * @description Update the constellation
+     * @param {number} time
+     * @param {Object} otherConstellations
+     * @returns {void}
+     */
     update(time, otherConstellations) {
         // Update transitions between active stars
         this.transitionProgress += this.changeSpeed * 0.01;
@@ -272,65 +310,59 @@ class ConstellationGroup {
     }
 }
 
-
+/**
+ * @param {Object} container
+ * @param {Object} options
+ * @param {Object} options.countConstellations - count of constellations
+ */
 export class Constellation extends AnimationController {
     constructor(container, options = {}) {
-        super(container, {
-            containerName: options.containerName,
-            zIndex: options.zIndex,
-            camera: {
-                fov: 75,
-                // near: 0.1,
-                far: 1000,
-                position: { x: 0, y: 0, z: 0 },
-                // lookAt: { x: 0, y: 0, z: -1 },
-                // rotation: false,
-                // speed: { x: 0, y: 0 }
-            }
-        });
+        super(container, options, DEFAULT_OPTIONS);
 
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
 
-        this.options = options;
         this.constellations = [];
         this.frame = 0;
     }
 
-
+    /**
+     * @description Setup the scene
+     * @returns {void}
+     */
     setupScene() {
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
             functionName: 'setupScene'
         });
 
-        addDefaultLights(this.scene, CONFIG_LIGHTS);
+        this._createConstellations();
+        this.setupLights(this.options.lights);
+    }
 
+    /**
+     * @description Create constellations
+     * @returns {void}
+     */
+    _createConstellations() {
         const starTexture = createStarTexture();
 
-        const count = this.options.count || constellationsData.length;
-            // Можно фильтровать или ограничивать количество созвездий
+        const count = this.options.countConstellations || constellationsData.length;
         const dataToUse = constellationsData.slice(0, count);
-
+        
         dataToUse.forEach((data) => {
-            // Можно переопределить цвет из options
-            if (this.options.color) {
-                data.color = this.options.color;
-            }
-            const constellationGroup = new ConstellationGroup(data, starTexture, this.options);
+            const constellationGroup = new ConstellationGroup(data, starTexture);
             this.scene.add(constellationGroup.group);
             this.constellations.push(constellationGroup);
         });
 
-        // constellationsData.forEach((data) => {
-        //     const constellationGroup = new ConstellationGroup(data, starTexture);
-        //     this.scene.add(constellationGroup.group);
-        //     this.constellations.push(constellationGroup);
-        // });
-
         this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
     }
 
+    /**
+     * @description Update the animation
+     * @returns {void}
+     */
     update() {
         if (!this.canAnimate()) {
             return;
@@ -354,6 +386,10 @@ export class Constellation extends AnimationController {
         }
     }
 
+    /**
+     * @description Cleanup the scene
+     * @returns {void}
+     */
     cleanup() {
         let logMessage = `starting cleanup in ${this.constructor.name}\n`;
 
