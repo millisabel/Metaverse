@@ -320,7 +320,7 @@ export class GalacticCloud extends AnimationController {
     onResize() {
         if (!this.renderer || !this.camera) return;
 
-        this.updateRendererSize();
+        super.onResize();
         this._updateCameraOrbit(0); 
 
         if (this.galaxyPlane) {
@@ -329,7 +329,7 @@ export class GalacticCloud extends AnimationController {
         }
 
         if (this.galaxyCore) {
-            this.galaxyCore.material.uniforms.resolution.value.set(width, height);
+            this.galaxyCore.material.uniforms.resolution.value.set(this.container.clientWidth, this.container.clientHeight);
         }
     }
 
