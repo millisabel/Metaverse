@@ -5,6 +5,8 @@ import { rendererManager } from './rendererManager';
 import {createLogger} from "../utils/logger";
 import {createCanvas, updateThreeRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
 import { deepClone } from './utilsThreeD';
+import { addLightsToScene, DEFAULT_LIGHTS } from './lightsUtils';
+
 
 /**
  * Basic controller for managing Three.js animations and scene lifecycle
@@ -88,7 +90,6 @@ export class AnimationController {
     }
 
     static mergeOptions(defaults, options) {
-        // Сначала глубокий клон defaults, потом поверх него options (тоже глубоко)
         const merged = deepClone(defaults);
         function assign(target, source) {
             for (const key in source) {
@@ -426,6 +427,21 @@ export class AnimationController {
     }
 
     /**
+     * Setup lights
+     * @param {Object} options - Light parameters (optional, merged with defaults)
+     * @param {number} options.ambientColor - Ambient light color
+     * @param {number} options.ambientIntensity - Ambient light intensity
+     * @param {number} options.pointColor - Point light color
+     * @param {number} options.pointIntensity - Point light intensity
+     * @param {Object} options.pointPosition - Point light position {x, y, z}
+     */
+    setupLights(options = {}) {
+        if (!this.scene) return;
+        const config = AnimationController.mergeOptions(DEFAULT_LIGHTS, options);
+        addLightsToScene(this.scene, config);
+    }
+
+    /**
      * Update method for animation frame
      * To be implemented by subclasses
      * @abstract
@@ -504,4 +520,4 @@ export class AnimationController {
             assertNoDeadCanvas();
           }
     }
-} 
+}
