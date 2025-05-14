@@ -3,11 +3,17 @@ import * as THREE from 'three';
 import constellationsData from '../../data/constellations.json';
 
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
-import { createCanvas, updateRendererSize } from '../../utilsThreeD/canvasUtils';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
-import { ThreeDContainerManager } from '../../utilsThreeD/ThreeDContainerManager';
 import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
+
+const CONFIG_LIGHTS = {
+    ambientColor: 0xffffff,
+    ambientIntensity: 0.7,
+    pointColor: 0xffffff,
+    pointIntensity: 1.5,
+    pointPosition: { x: 0, y: 10, z: 10 }
+};
 
 class ConstellationGroup {
     constructor(data, starTexture) {
@@ -67,6 +73,46 @@ class ConstellationGroup {
         this.maxScreenDistance = 200;
         
         this.init(starTexture);
+    }
+
+    init(starTexture) {
+        this.data.stars.forEach(starData => {
+            const position = new THREE.Vector3(
+                starData.x,
+                starData.y,
+                starData.z
+            );
+            const starMaterial = new THREE.PointsMaterial({
+                color: this.data.color || 0xFFFFFF,
+                size: 0.5,
+                map: starTexture,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute([position.x, position.y, position.z], 3));
+
+            const star = new THREE.Points(starGeometry, starMaterial);
+            this.stars.push({
+                position,
+                mesh: star,
+                baseSize: 0.5,
+                currentSize: 0.5
+            });
+            this.group.add(star);
+        });
+
+        // Create connections between stars
+        this.createConnectionLines();
+
+        // Set initial position of the group
+        this.group.position.set(
+            this.data.basePosition.x,
+            this.data.basePosition.y,
+            this.data.basePosition.z
+        );
     }
 
     getNextStarIndex() {
@@ -131,46 +177,6 @@ class ConstellationGroup {
         this.group.rotation.x += this.rotationSpeed.x;
         this.group.rotation.y += this.rotationSpeed.y;
         this.group.rotation.z += this.rotationSpeed.z;
-    }
-
-    init(starTexture) {
-        this.data.stars.forEach(starData => {
-            const position = new THREE.Vector3(
-                starData.x,
-                starData.y,
-                starData.z
-            );
-            const starMaterial = new THREE.PointsMaterial({
-                color: this.data.color || 0xFFFFFF,
-                size: 0.5,
-                map: starTexture,
-                transparent: true,
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending
-            });
-
-            const starGeometry = new THREE.BufferGeometry();
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute([position.x, position.y, position.z], 3));
-
-            const star = new THREE.Points(starGeometry, starMaterial);
-            this.stars.push({
-                position,
-                mesh: star,
-                baseSize: 0.5,
-                currentSize: 0.5
-            });
-            this.group.add(star);
-        });
-
-        // Create connections between stars
-        this.createConnectionLines();
-
-        // Set initial position of the group
-        this.group.position.set(
-            this.data.basePosition.x,
-            this.data.basePosition.y,
-            this.data.basePosition.z
-        );
     }
 
     checkCollision(otherConstellation) {
@@ -266,32 +272,31 @@ class ConstellationGroup {
     }
 }
 
+
 export class Constellation extends AnimationController {
-    constructor(container) {
+    constructor(container, options = {}) {
         super(container, {
+            containerName: options.containerName,
+            zIndex: options.zIndex,
             camera: {
                 fov: 75,
-                near: 0.1,
+                // near: 0.1,
                 far: 1000,
                 position: { x: 0, y: 0, z: 0 },
-                lookAt: { x: 0, y: 0, z: -1 },
-                rotation: false,
-                speed: { x: 0, y: 0 }
-            },
-            renderer: {
-                antialias: true,
-                alpha: true,
-                powerPreference: 'high-performance'
+                // lookAt: { x: 0, y: 0, z: -1 },
+                // rotation: false,
+                // speed: { x: 0, y: 0 }
             }
         });
-        this.constellations = [];
-        this.backgroundStars = null;
-        this.frame = 0;
-        this.name = 'Constellation';
+
+        this.name = this.constructor.name;
         this.logger = createLogger(this.name);
-        this.CONTAINER_TYPE = 'ABOUT_CONSTELLATION';
-        this.Z_INDEX = '2';
+
+        this.options = options;
+        this.constellations = [];
+        this.frame = 0;
     }
+
 
     setupScene() {
         this.logger.log('Scene initialization', {
@@ -299,30 +304,31 @@ export class Constellation extends AnimationController {
             functionName: 'setupScene'
         });
 
-        // Добавляем свет через утилиту
-        addDefaultLights(this.scene, {
-            ambientColor: 0xffffff,
-            ambientIntensity: 0.7,
-            pointColor: 0xffffff,
-            pointIntensity: 1.5,
-            pointPosition: { x: 0, y: 10, z: 10 }
-        });
+        addDefaultLights(this.scene, CONFIG_LIGHTS);
 
         const starTexture = createStarTexture();
-        constellationsData.forEach((data) => {
-            const constellationGroup = new ConstellationGroup(data, starTexture);
+
+        const count = this.options.count || constellationsData.length;
+            // Можно фильтровать или ограничивать количество созвездий
+        const dataToUse = constellationsData.slice(0, count);
+
+        dataToUse.forEach((data) => {
+            // Можно переопределить цвет из options
+            if (this.options.color) {
+                data.color = this.options.color;
+            }
+            const constellationGroup = new ConstellationGroup(data, starTexture, this.options);
             this.scene.add(constellationGroup.group);
             this.constellations.push(constellationGroup);
         });
 
-        // Add fog for depth effect
-        this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
-    }
+        // constellationsData.forEach((data) => {
+        //     const constellationGroup = new ConstellationGroup(data, starTexture);
+        //     this.scene.add(constellationGroup.group);
+        //     this.constellations.push(constellationGroup);
+        // });
 
-    cleanup() {
-        this.constellations = [];
-        this.backgroundStars = null;
-        super.cleanup();
+        this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
     }
 
     update() {
@@ -331,11 +337,7 @@ export class Constellation extends AnimationController {
         }
 
         if (!this.animationFrameId) {
-            this.logger.log('Starting update cycle', {
-                conditions: ['running'],
-                functionName: 'update',
-                trackType: 'animation'
-            });
+            this.logAnimationState('running');
         }
 
         if (this.frame % 2 === 0) {
@@ -351,20 +353,32 @@ export class Constellation extends AnimationController {
             this.renderer.render(this.scene, this.camera);
         }
     }
-}
 
-export function initConstellation() {
-    const aboutSection = document.getElementById('about');
-    if (!aboutSection) {
-        console.warn('About section not found');
-        return;
+    cleanup() {
+        let logMessage = `starting cleanup in ${this.constructor.name}\n`;
+
+        if (this.constellations && Array.isArray(this.constellations)) {
+            this.constellations.forEach(constellationGroup => {
+                if (constellationGroup.stars && Array.isArray(constellationGroup.stars)) {
+                    constellationGroup.stars.forEach(starObj => {
+                        if (starObj.mesh) {
+                            starObj.mesh.geometry?.dispose();
+                            starObj.mesh.material?.dispose();
+                        }
+                    });
+                }
+                if (constellationGroup.group && constellationGroup.group.children) {
+                    constellationGroup.group.children.forEach(child => {
+                        if (child.type === 'Line') {
+                            child.geometry?.dispose();
+                            child.material?.dispose();
+                        }
+                    });
+                }
+            });
+        }
+
+        this.constellations = [];
+        super.cleanup(logMessage);
     }
-
-    const constellationManager = new ThreeDContainerManager(aboutSection, { 
-        type: 'ABOUT_CONSTELLATION',
-        zIndex: '2'
-    });
-    const constellationContainer = constellationManager.create();
-
-    return new Constellation(constellationContainer);
-} 
+}

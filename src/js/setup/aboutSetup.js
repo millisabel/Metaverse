@@ -1,101 +1,84 @@
-import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { createLogger } from '../utils/logger';
+import { isMobile } from "../utils/utils";
+import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
+
 import { Stars } from "../components/three/stars";
 import { Constellation } from '../components/three/constellation';
-import { isMobile } from "../utils/utils";
-import * as THREE from 'three';
 
-export class AboutSetup extends BaseSetup {
+
+const SECTION_ID = 'about';
+const OBJECTS_3D_ABOUT = {
+    STARS_WHITE: {
+        classRef: Stars,
+        containerName: 'STARS_WHITE',
+        zIndex: 1,
+        count: isMobile() ? 2000 : 4000,
+        colors: [0xFFFFFF],
+        size: {
+            min: 0.05,
+            max: 1,
+            attenuation: true,
+            multiplier: 1.5
+        },
+        depth: {
+            range: isMobile() ? 500 : 1000,
+            z: [200, -300] 
+        },
+        movement: {
+            enabled: true,
+            probability: 0.2,
+            speed: 0.0002,
+            amplitude: {
+                x: 0.01,
+                y: 0.01,
+                z: 0.01
+            }
+        },
+        material: {
+            opacity: 0.7,
+            transparent: true,
+            // blending: THREE.AdditiveBlending
+        },
+    },
+    CONSTELLATION: {
+        classRef: Constellation,
+        containerName: 'CONSTELLATION',
+        zIndex: 2,
+        lights: {
+            ambientColor: 0xffffff,
+            ambientIntensity: 0.7,
+            pointColor: 0xffffff,
+            pointIntensity: 1.5,
+            pointPosition: { x: 0, y: 10, z: 10 },
+        },
+        // color: 0xffffff, // цвет по умолчанию
+        // count: 20,        // количество созвездий
+        animationSpeed: 0.3, // скорость анимации
+        starCount: 100, // количество звезд в созвездии
+        starSize: 0.05, // размер звезды
+        starSpeed: 0.0001, // скорость звезды
+        starOpacity: 0.7, // прозрачность звезды
+        starColor: 0xFFFFFF, // цвет звезды
+        starPosition: {
+            x: 0,       
+        }
+
+    }
+}
+
+export class AboutSetup extends Universal3DSection {
     constructor() {
-        super('about', 'AboutSetup', {
-            camera: {
-                position: { z: -100 },
-                lookAt: { x: 0, y: 0, z: 0 },
-                rotation: false,
-                speed: { x: 0.0005, y: 0.0005 }
-            }
+        super(SECTION_ID, OBJECTS_3D_ABOUT);
+
+        this.logger = createLogger(this.constructor.name);
+  
+        this.logger.log({
+          functionName: 'constructor',
+          conditions: ['init'],
+          customData: {
+              this: this
+          }
         });
-        
-        this.CONTAINER_TYPES = {
-            STARS: 'STARS',
-            CONSTELLATION: 'CONSTELLATION'
-        };
-
-        this.Z_INDEX = {
-            BACKGROUND: '0',
-            STARS: '1',
-            CONSTELLATION: '2'
-        };
-
-        this.stars = null;
-        this.constellation = null;
-    }
-
-    setupScene() {
-        // create stars 
-        const starsContainer = this.createContainer(
-            this.CONTAINER_TYPES.STARS,
-            this.Z_INDEX.STARS
-        );
-
-        this.stars = new Stars(starsContainer, {
-            count: isMobile() ? 2000 : 4000,
-            colors: [0xFFFFFF],
-            size: {
-                min: 0.05,
-                max: 1,
-                attenuation: true,
-                multiplier: 1.5
-            },
-            depth: {
-                range: isMobile() ? 500 : 1000,
-                z: [300, -300] 
-            },
-            movement: {
-                enabled: true,
-                probability: 0.2,
-                speed: 0.0002,
-                amplitude: {
-                    x: 0.01,
-                    y: 0.01,
-                    z: 0.01
-                }
-            },
-            camera: {
-                rotation: false,
-                position: { z: -100 },
-                speed: { x: 0.0005, y: 0.0005 } 
-            },
-            material: {
-                opacity: 0.7,
-                transparent: true,
-                blending: THREE.AdditiveBlending
-            }
-        });
-
-        // create constellation 
-        const constellationContainer = this.createContainer(
-            this.CONTAINER_TYPES.CONSTELLATION,
-            this.Z_INDEX.CONSTELLATION
-        );
-        this.constellation = new Constellation(constellationContainer);
-    }
-
-    update() {
-        if (this.stars) {
-            this.stars.update();
-        }
-        if (this.constellation) {
-            this.constellation.update();
-        }
-    }
-
-    cleanup() {
-        this.cleanupContainer(this.CONTAINER_TYPES.STARS);
-        this.cleanupContainer(this.CONTAINER_TYPES.CONSTELLATION);
-        super.cleanup();
     }
 }
 
-export function initAbout() {
-    const sectionAbout = new AboutSetup();
-}

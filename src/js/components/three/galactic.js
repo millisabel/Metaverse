@@ -5,7 +5,6 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
-import { addDefaultLights } from '../../utilsThreeD/utilsThreeD';
 
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 
@@ -13,22 +12,6 @@ import vertexShader from '../../shaders/galacticCore.vert';
 import fragmentShader from '../../shaders/galacticCore.frag';
 
 const galacticTexture = './assets/images/galaxy-texture.png';
-
-/**
- * CONFIG_LIGHTS
- * @description The configuration for the lights
- * @type {Object}
- * @property {number} ambientColor - The color of the ambient light
- * @property {number} ambientIntensity - The intensity of the ambient light
- */
-
-const CONFIG_LIGHTS = {
-    ambientColor: 0x9933ff,
-    ambientIntensity: 0.5,
-    pointColor: 0xcc66ff,
-    pointIntensity: 2,
-    pointPosition: { x: isMobile() ? 0 : -4, y: 2, z: 0 }
-}
 
 /**
  * DEFAULT_OPTIONS
@@ -117,8 +100,7 @@ export class GalacticCloud extends AnimationController {
         this._createGalaxyCore();
         await this._galaxyPlane();
         this._setupPostProcessing();
-
-        addDefaultLights(this.scene, CONFIG_LIGHTS);
+        this.setupLights();
     }
 
     /**
