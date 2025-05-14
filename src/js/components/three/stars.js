@@ -179,15 +179,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Update the renderer size
-     * @description Update the renderer size
-     * @returns {Promise<void>}
-     */
-    onResize() {
-        this.updateRendererSize();
-    }
-
-    /**
      * Update the star attributes
      * @description Update the star attributes
      * @returns {Promise<void>}
