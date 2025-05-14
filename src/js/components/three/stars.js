@@ -57,16 +57,10 @@ const defaultOptions = {
 
 export class Stars extends AnimationController {
     constructor(container, options = {}) {
-        super(container, {
-            containerName: options.containerName,
-            zIndex: options.zIndex,
-            camera: options.camera,
-        });
+        super(container, options, defaultOptions);
 
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
-
-        this.starsOptions = AnimationController.mergeOptions(defaultOptions, options);
         
         this.stars = null;
         this.phases = null;
@@ -74,6 +68,12 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
+
+        console.log(`${this.constructor.name} constructor`, {
+            containerName: options.containerName,
+            zIndex: options.zIndex,
+            options: options
+        });
     }
 
     /**
@@ -99,38 +99,38 @@ export class Stars extends AnimationController {
      * @returns {Promise<void>}
      */
     _initStarAttributes(positions, colors, sizes) {
-        for (let i = 0; i < this.starsOptions.count; i++) {
+        for (let i = 0; i < this.options.count; i++) {
             // Positions with gaussian distribution
-            positions[i * 3] = gaussianRandom(0, this.starsOptions.depth.range / 3);
-            positions[i * 3 + 1] = gaussianRandom(0, this.starsOptions.depth.range / 3);
-            positions[i * 3 + 2] = this.starsOptions.depth.z[0] + Math.random() * (this.starsOptions.depth.z[1] - this.starsOptions.depth.z[0]);
+            positions[i * 3] = gaussianRandom(0, this.options.depth.range / 3);
+            positions[i * 3 + 1] = gaussianRandom(0, this.options.depth.range / 3);
+            positions[i * 3 + 2] = this.options.depth.z[0] + Math.random() * (this.options.depth.z[1] - this.options.depth.z[0]);
 
             // Colors
-            const color = this.starsOptions.colors[Math.floor(Math.random() * this.starsOptions.colors.length)];
+            const color = this.options.colors[Math.floor(Math.random() * this.options.colors.length)];
             colors[i * 3] = (color >> 16 & 255) / 255;
             colors[i * 3 + 1] = (color >> 8 & 255) / 255;
             colors[i * 3 + 2] = (color & 255) / 255;
 
             // Sizes
-            sizes[i] = getRandomValue(this.starsOptions.size.min, this.starsOptions.size.max);
+            sizes[i] = getRandomValue(this.options.size.min, this.options.size.max);
 
             // Animation parameters
             this.phases[i] = Math.random() * Math.PI * 2;
-            this.isMoving[i] = this.starsOptions.movement.enabled && Math.random() < this.starsOptions.movement.probability ? 1 : 0;
+            this.isMoving[i] = this.options.movement.enabled && Math.random() < this.options.movement.probability ? 1 : 0;
             this.movePhases[i] = Math.random() * Math.PI * 2;
 
-            if (Math.random() < this.starsOptions.flicker.fast.probability) {
+            if (Math.random() < this.options.flicker.fast.probability) {
                 this.flickerSpeeds[i] = getRandomValue(
-                    this.starsOptions.flicker.fast.speed.min,
-                    this.starsOptions.flicker.fast.speed.max
+                    this.options.flicker.fast.speed.min,
+                    this.options.flicker.fast.speed.max
                 );
                 this.flickerAmplitudes[i] = getRandomValue(
-                    this.starsOptions.flicker.fast.amplitude.min,
-                    this.starsOptions.flicker.fast.amplitude.max
+                    this.options.flicker.fast.amplitude.min,
+                    this.options.flicker.fast.amplitude.max
                 );
             } else {
-                this.flickerSpeeds[i] = this.starsOptions.flicker.slow.speed;
-                this.flickerAmplitudes[i] = this.starsOptions.flicker.slow.amplitude;
+                this.flickerSpeeds[i] = this.options.flicker.slow.speed;
+                this.flickerAmplitudes[i] = this.options.flicker.slow.amplitude;
             }
         }
     }
@@ -144,12 +144,12 @@ export class Stars extends AnimationController {
     _createStarPoints(geometry) {
         const material = new THREE.PointsMaterial({
             vertexColors: true,
-            sizeAttenuation: this.starsOptions.size?.attenuation ?? true,
-            size: this.starsOptions.size?.multiplier ?? 2,
-            transparent: this.starsOptions.material?.transparent ?? true,
-            opacity: this.starsOptions.material?.opacity ?? 1,
-            blending: this.starsOptions.material?.blending ?? THREE.NormalBlending,
-            map: createStarTexture(this.starsOptions.texture)
+            sizeAttenuation: this.options.size?.attenuation ?? true,
+            size: this.options.size?.multiplier ?? 2,
+            transparent: this.options.material?.transparent ?? true,
+            opacity: this.options.material?.opacity ?? 1,
+            blending: this.options.material?.blending ?? THREE.NormalBlending,
+            map: createStarTexture(this.options.texture)
         });
 
         this.stars = new THREE.Points(geometry, material);
@@ -162,16 +162,16 @@ export class Stars extends AnimationController {
      * @returns {Promise<void>}
      */
     _createStars() {
-        this.phases = new Float32Array(this.starsOptions.count);
-        this.isMoving = new Float32Array(this.starsOptions.count);
-        this.movePhases = new Float32Array(this.starsOptions.count);
-        this.flickerSpeeds = new Float32Array(this.starsOptions.count);
-        this.flickerAmplitudes = new Float32Array(this.starsOptions.count);
+        this.phases = new Float32Array(this.options.count);
+        this.isMoving = new Float32Array(this.options.count);
+        this.movePhases = new Float32Array(this.options.count);
+        this.flickerSpeeds = new Float32Array(this.options.count);
+        this.flickerAmplitudes = new Float32Array(this.options.count);
 
         const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(this.starsOptions.count * 3);
-        const colors = new Float32Array(this.starsOptions.count * 3);
-        const sizes = new Float32Array(this.starsOptions.count);
+        const positions = new Float32Array(this.options.count * 3);
+        const colors = new Float32Array(this.options.count * 3);
+        const sizes = new Float32Array(this.options.count);
 
         this._initStarAttributes(positions, colors, sizes);
         setupGeometry(geometry, positions, colors, sizes);
@@ -186,18 +186,18 @@ export class Stars extends AnimationController {
     _updateStarAttributes() {
         const positions = this.stars.geometry.attributes.position.array;
         const sizes = this.stars.geometry.attributes.size.array;
-        const depthRange = this.starsOptions.depth.range;
+        const depthRange = this.options.depth.range;
     
         for (let i = 0; i < positions.length; i += 3) {
             const index = i / 3;
     
             this.phases[index] += this.flickerSpeeds[index];
             const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
-            sizes[index] = brightness * getRandomValue(this.starsOptions.size.min, this.starsOptions.size.max);
+            sizes[index] = brightness * getRandomValue(this.options.size.min, this.options.size.max);
     
             if (this.isMoving[index] === 1) {
-                this.movePhases[index] += this.starsOptions.movement.speed;
-                const amplitude = this.starsOptions.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
+                this.movePhases[index] += this.options.movement.speed;
+                const amplitude = this.options.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
     
                 positions[i] += Math.sin(this.movePhases[index]) * amplitude.x;
                 positions[i + 1] += Math.cos(this.movePhases[index]) * amplitude.y;
@@ -208,8 +208,8 @@ export class Stars extends AnimationController {
             if (positions[i] > depthRange) positions[i] = -depthRange;
             if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
             if (positions[i + 1] > depthRange) positions[i + 1] = -depthRange;
-            if (positions[i + 2] < this.starsOptions.depth.z[0]) positions[i + 2] = this.starsOptions.depth.z[1];
-            if (positions[i + 2] > this.starsOptions.depth.z[1]) positions[i + 2] = this.starsOptions.depth.z[0];
+            if (positions[i + 2] < this.options.depth.z[0]) positions[i + 2] = this.options.depth.z[1];
+            if (positions[i + 2] > this.options.depth.z[1]) positions[i + 2] = this.options.depth.z[0];
         }
     
         this.stars.geometry.attributes.position.needsUpdate = true;

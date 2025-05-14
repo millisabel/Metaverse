@@ -25,7 +25,6 @@ const defaultOptions = {
     core: {
         size: 2,
         segments: 2,
-        textureUrl: null,
     },
     plane: {
         size: isMobile() ? 4 : 8,
@@ -34,14 +33,14 @@ const defaultOptions = {
     },
     animation: {
         baseScale: 1.0,
-        minCoreScale: 0.5,
+        minCoreScale: 0.8,
         corePulse: 2,
         pulsePrimary: { freq: 0.5, amp: 0.15 },
         pulseSecondary: { freq: 0.2, amp: 0.1 },
         pulseMicro: { freq: 1.5, amp: 0.05 },
     },
     bloom: {
-        strength: 5, 
+        strength: 0.5, 
         radius: 2, 
         threshold: 0.2, 
     },
@@ -56,11 +55,7 @@ const defaultOptions = {
  */
 export class GalacticCloud extends AnimationController {
     constructor(container, options = {}) {
-        super(container, {
-            containerName: options.containerName,
-            zIndex: options.zIndex,
-            camera: options.camera,
-        });
+        super(container, options, defaultOptions);
 
         this._isDestroyed = false;
         this.name = this.constructor.name;
