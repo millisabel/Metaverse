@@ -5,7 +5,7 @@ export class Universal3DSection extends BaseSetup {
     constructor(containerId, objects3DConfig) {
         super(containerId);
 
-        this.name = this.constructor.name;
+        this.name = `(Universal3DSection) ⬅ ${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
         
@@ -15,6 +15,14 @@ export class Universal3DSection extends BaseSetup {
         for (const [key, params] of Object.entries(this.objects3D)) {
             this.controllers[key] = this.create3DController(key, params);
         }
+  
+        this.logger.log({
+          functionName: 'constructor',
+          conditions: ['init'],
+          customData: {
+              this: this
+          }
+        });
     }
   
     async setupScene() {
