@@ -1,7 +1,6 @@
 import { Logger } from './utils/logger';
 import { AnimationObserverCSS } from './utils/animationObserver_CSS';
 // Setup
-import { initNavbar } from './setup/NavbarSetup';
 import { HeroSetup } from './setup/heroSetup';
 import { AboutSetup } from './setup/aboutSetup';
 import { initRoadmap } from './setup/roadmapSetup';
@@ -10,13 +9,13 @@ import { initVRMarket } from './setup/vrMarketSetup';
 import { initExplore } from './setup/exploreSetup';
 import { initSocial } from './setup/socialSetup';
 // Common components
-import { initSlider } from './components/common/slider';
+import { initNavbar } from './setup/NavbarSetup';
 import initModal from './components/common/modal';
 import { updateCopyrightYear } from './utils/utils';
 
 if(process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
-    Logger.disableLoggerFor('AnimationObserverCSS');
+    // Logger.disableLoggerFor('AnimationObserverCSS');
 
     Logger.disableLoggerFor('BaseSetup');
     Logger.disableLoggerFor('AnimationController');
@@ -71,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     new AnimationObserverCSS(
-        ['.star', '.game-character--badge']
+        ['.star', '.roadmap-quarter', '.game-character--badge']
     );
 
     initNavbar();
@@ -83,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // initVRMarket();
     // initExplore();
     // initSocial();
-    // initSlider();
 
     // Initialize UI components
     initModal();
