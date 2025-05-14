@@ -19,7 +19,7 @@ const SECTION_ID = 'hero';
  * @property {Object} STARS - The stars
  * @property {Object} GALACTIC - The galactic cloud
  */
-const OBJECTS_3D_HERO = {
+const CONFIG = {
     STARS: {
         classRef: Stars,
         containerName: 'STARS',
@@ -92,7 +92,7 @@ const OBJECTS_3D_HERO = {
  */
 export class HeroSetup extends Universal3DSection {
     constructor() {
-      super(SECTION_ID, OBJECTS_3D_HERO);
+      super(SECTION_ID, CONFIG);
 
       this.logger = createLogger(this.constructor.name);
 

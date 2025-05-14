@@ -7,9 +7,8 @@ import { Constellation } from '../components/three/constellation';
 
 import { initSlider } from '../components/common/slider';
 
-
 const SECTION_ID = 'about';
-const OBJECTS_3D_ABOUT = {
+const CONFIG = {
     STARS_WHITE: {
         classRef: Stars,
         containerName: 'STARS_WHITE',
@@ -52,9 +51,17 @@ const OBJECTS_3D_ABOUT = {
     }
 }
 
+/**
+ * AboutSetup
+ * @description The setup for the about section
+ * @type {Object}
+ * @property {Object} STARS_WHITE - The white stars
+ * @property {Object} CONSTELLATION - The constellation
+ * @extends {Universal3DSection}
+ */
 export class AboutSetup extends Universal3DSection {
     constructor() {
-        super(SECTION_ID, OBJECTS_3D_ABOUT);
+        super(SECTION_ID, CONFIG);
 
         this.logger = createLogger(this.constructor.name);
 
