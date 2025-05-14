@@ -151,4 +151,20 @@ export function updateCopyrightYear(selector) {
     });
 }
 
+// shuffleArray ============================================
+/**
+ * Shuffles an array
+ * @description Shuffles an array
+ * @param {Array} array - The array to shuffle
+ * @returns {Array} The shuffled array
+ */
+export function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 
