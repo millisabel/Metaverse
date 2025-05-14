@@ -68,12 +68,6 @@ export class Stars extends AnimationController {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
-
-        console.log(`${this.constructor.name} constructor`, {
-            containerName: options.containerName,
-            zIndex: options.zIndex,
-            options: options
-        });
     }
 
     /**

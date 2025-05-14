@@ -14,7 +14,6 @@ export class Universal3DSection extends BaseSetup {
 
         for (const [key, params] of Object.entries(this.objects3D)) {
             this.controllers[key] = this.create3DController(key, params);
-            console.log('params', params);
         }
     }
   

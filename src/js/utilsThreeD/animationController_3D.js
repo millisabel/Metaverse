@@ -50,8 +50,6 @@ export class AnimationController {
         };
         this.options = AnimationController.mergeOptions(defaultOptions, mergedOptions);
 
-        console.log(`${this.name}`, this.options);
-
         this.isVisible = false;
         this.isInitialized = false;
         this.animationFrameId = null;
