@@ -349,7 +349,7 @@ export class Logger {
                 color: '#228B22'
             }
         },
-        'creating': {
+        'created': {
             icon: '🔧',
             style: {
                 background: 'rgba(128,128,128,0)',
