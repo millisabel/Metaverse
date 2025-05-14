@@ -1,4 +1,3 @@
-import { createLogger } from '../utils/logger';
 import { isMobile } from "../utils/utils";
 import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
 
@@ -93,16 +92,6 @@ const CONFIG = {
 export class HeroSetup extends Universal3DSection {
     constructor() {
       super(SECTION_ID, CONFIG);
-
-      this.logger = createLogger(this.constructor.name);
-
-      this.logger.log({
-        functionName: 'constructor',
-        conditions: ['init'],
-        customData: {
-            this: this
-        }
-      });
     }
   }
 
