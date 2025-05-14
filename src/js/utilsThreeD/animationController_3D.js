@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { CameraController } from './cameraController';
 import { rendererManager } from './rendererManager';
 import {createLogger} from "../utils/logger";
-import {createCanvas, updateRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
+import {createCanvas, updateThreeRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
 import { deepClone } from './utilsThreeD';
 
 /**
@@ -253,7 +253,7 @@ export class AnimationController {
         this.camera = this.cameraController.camera;
 
         this.renderer.setClearColor(0x000000, 0);
-        updateRendererSize(this.renderer, this.container, this.camera);
+        updateThreeRendererSize(this.renderer, this.container, this.camera);
 
         if (this.options.containerName) {
             this.container.dataset.containerName = this.options.containerName;
@@ -284,7 +284,7 @@ export class AnimationController {
      */
     onResize() {
         this.cameraController.onResize(this.container);
-        updateRendererSize(this.renderer, this.container, this.camera);
+        updateThreeRendererSize(this.renderer, this.container, this.camera);
     }
 
     /**

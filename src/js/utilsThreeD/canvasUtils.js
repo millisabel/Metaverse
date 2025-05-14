@@ -33,7 +33,7 @@ export const createCanvas = (renderer, options = {}) => {
     return canvas;
 };
 
-export const updateRendererSize = (renderer, container, camera, options = {}) => {
+export const updateThreeRendererSize = (renderer, container, camera, options = {}) => {
     const { clearColor = null, composer = null } = options;
 
     const width = container.clientWidth;
