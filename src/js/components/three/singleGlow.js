@@ -1,38 +1,50 @@
 import * as THREE from 'three';
 import { createLogger } from "../../utils/logger";
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+
+import vertexShader from '../../shaders/glow.vert';
+import fragmentShader from '../../shaders/glow.frag';
+
+const DEFAULT_OPTIONS = {
+    color: '#FFFFFF',
+    size: 1,
+    opacity: {
+        min: 0.1,
+        max: 1
+    },
+    scale: {
+        min: 0.5,
+        max: 2
+    },
+    pulse: {
+        speed: 0.1,
+        intensity: 2,
+        sync: false
+    },
+    movement: {
+        enabled: true,
+        speed: 0.005,
+        range: { x: 2, y: 2, z: 0.1 }
+    },
+    position: { x: 0, y: 0, z: 0 },
+};
 
 export class SingleGlow {
     constructor(parentScene, parentRenderer, container, options = {}) {
+        this.name = this.constructor.name;
+        this.logger = createLogger(this.name);
+
         this.scene = parentScene;
         this.renderer = parentRenderer;
         this.container = container;
         
-        this.options = {
-            color: options.color || '#38DBFF',
-            size: options.size || 0.5,
-            opacity: {
-                min: options.opacity?.min || 0.1,
-                max: options.opacity?.max || 0.3
-            },
-            scale: {
-                min: options.scale?.min || 0.5,
-                max: options.scale?.max || 1.2
-            },
-            pulse: {
-                speed: options.pulse?.speed || 0.5,
-                intensity: options.pulse?.intensity || 0.6,
-                sync: options.pulse?.sync || false
-            },
-            position: options.position || { x: 0, y: 0, z: 0 },
-            movement: {
-                enabled: options.movement?.enabled !== undefined ? options.movement.enabled : true,
-                speed: options.movement?.speed || 0.05,
-                range: options.movement?.range || { x: 0.8, y: 0.8, z: 0.5 }
-            }
+        const { objectConfig, ...restOptions } = options;
+        const mergedOptions = {
+        ...restOptions,
+        ...(objectConfig || {})
         };
+        this.options = AnimationController.mergeOptions( DEFAULT_OPTIONS, mergedOptions);
 
-        this.name = 'SingleGlow';
-        this.logger = createLogger(this.name);
         this.clock = new THREE.Clock();
         this.mesh = null;
         this.currentPath = {
@@ -72,61 +84,8 @@ export class SingleGlow {
                 objectPulse: { value: 0 },
                 syncWithObject: { value: this.options.pulse.sync ? 1.0 : 0.0 }
             },
-            vertexShader: `
-                uniform float time;
-                uniform float scaleMin;
-                uniform float scaleMax;
-                uniform float pulseSpeed;
-                uniform float pulseIntensity;
-                uniform float objectPulse;
-                uniform float syncWithObject;
-                varying vec2 vUv;
-                varying float vPulse;
-
-                void main() {
-                    vUv = uv;
-                    // Базовая пульсация с улучшенной интерполяцией
-                    float basePulse = sin(time * pulseSpeed) * 0.5 + 0.5;
-                    basePulse = pow(basePulse, 1.5) * pulseIntensity;
-                    
-                    // Улучшенное влияние движения объекта с плавным переходом
-                    float objectInfluence = smoothstep(0.0, 1.0, objectPulse) * syncWithObject;
-                    
-                    // Улучшенное смешивание эффектов с нелинейной интерполяцией
-                    float combinedEffect = mix(
-                        basePulse,
-                        basePulse * (1.0 + objectInfluence),
-                        smoothstep(0.0, 1.0, objectInfluence)
-                    );
-                    
-                    // Нелинейное масштабирование для более плавного эффекта
-                    float scale = scaleMin + (scaleMax - scaleMin) * pow(combinedEffect, 1.2);
-                    vPulse = scale;
-                    
-                    vec3 scaledPosition = position * scale;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(scaledPosition, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform vec3 color;
-                uniform float opacity;
-                varying vec2 vUv;
-                varying float vPulse;
-                
-                void main() {
-                    vec2 center = vec2(0.5, 0.5);
-                    float dist = distance(vUv, center);
-                    
-                    float glow = smoothstep(0.5, 0.0, dist);
-                    float falloff = pow(1.0 - smoothstep(0.0, 0.5, dist), 2.0);
-                    float intensity = glow * falloff;
-                    
-                    float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
-                    intensity *= 0.9 + 0.1 * noise;
-                    
-                    gl_FragColor = vec4(color, intensity * opacity);
-                }
-            `,
+            vertexShader,
+            fragmentShader,
             transparent: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
@@ -144,51 +103,6 @@ export class SingleGlow {
         this.scene.add(this.mesh);
     }
 
-    update(parentCamera) {
-        if (!this.mesh) return;
-
-        const time = this.clock.getElapsedTime();
-        
-        // Update uniforms for pulsation
-        if (this.mesh.material.uniforms) {
-            this.mesh.material.uniforms.time.value = time;
-        }
-
-        // Skip movement updates if disabled
-        if (!this.options.movement.enabled) return;
-
-        const timeOffset = time;
-        const speed = this.options.movement.speed;
-
-        // Calculate wave movement
-        const waveX = Math.sin(timeOffset * this.waveParams.frequency) * this.waveParams.amplitude;
-        const waveY = Math.cos(timeOffset * this.waveParams.frequency * 1.2) * this.waveParams.amplitude;
-        
-        // Add subtle secondary waves
-        const secondaryWaveX = Math.sin(timeOffset * 0.3) * 0.2;
-        const secondaryWaveY = Math.cos(timeOffset * 0.4) * 0.2;
-
-        // Update position with proper speed scaling
-        this.mesh.position.x += (waveX + secondaryWaveX) * this.currentPath.x * speed;
-        this.mesh.position.y += (waveY + secondaryWaveY) * this.currentPath.y * speed;
-        this.mesh.position.z = Math.sin(timeOffset * this.waveParams.frequency * 0.5) * 0.2;
-
-        // Keep within bounds
-        const { range } = this.options.movement;
-        if (Math.abs(this.mesh.position.x) > range.x) {
-            this.mesh.position.x = Math.sign(this.mesh.position.x) * range.x;
-            this.currentPath.x *= -1;
-            this.waveParams.frequency = Math.random() * 0.3 + 0.2;
-        }
-        
-        if (Math.abs(this.mesh.position.y) > range.y) {
-            this.mesh.position.y = Math.sign(this.mesh.position.y) * range.y;
-            this.currentPath.y *= -1;
-            this.waveParams.frequency = Math.random() * 0.3 + 0.2;
-        }
-    }
-
-    // Methods for external control
     setPosition(position) {
         if (this.mesh) {
             this.mesh.position.set(
@@ -199,33 +113,55 @@ export class SingleGlow {
         }
     }
 
-    setColor(color) {
-        if (this.mesh && this.mesh.material.uniforms) {
-            this.mesh.material.uniforms.color.value = new THREE.Color(color);
+    updatePosition(time) {
+        const timeOffset = time;
+        const speed = this.options.movement.speed;
+    
+        const waveX = Math.sin(timeOffset * this.waveParams.frequency) * this.waveParams.amplitude;
+        const waveY = Math.cos(timeOffset * this.waveParams.frequency * 1.2) * this.waveParams.amplitude;
+        const secondaryWaveX = Math.sin(timeOffset * 0.3) * 0.2;
+        const secondaryWaveY = Math.cos(timeOffset * 0.4) * 0.2;
+    
+        let x = this.mesh.position.x + (waveX + secondaryWaveX) * this.currentPath.x * speed;
+        let y = this.mesh.position.y + (waveY + secondaryWaveY) * this.currentPath.y * speed;
+        let z = Math.sin(timeOffset * this.waveParams.frequency * 0.5) * 0.2;
+    
+        const { range } = this.options.movement;
+        if (Math.abs(x) > range.x) {
+            x = Math.sign(x) * range.x;
+            this.currentPath.x *= -1;
+            this.waveParams.frequency = Math.random() * 0.3 + 0.2;
         }
-    }
-
-    setScale(scale) {
-        if (this.mesh) {
-            this.mesh.scale.set(scale, scale, 1);
+        if (Math.abs(y) > range.y) {
+            y = Math.sign(y) * range.y;
+            this.currentPath.y *= -1;
+            this.waveParams.frequency = Math.random() * 0.3 + 0.2;
         }
+    
+        this.setPosition({ x, y, z });
     }
 
-    updateObjectPulse(value) {
-        if (this.mesh && this.mesh.material.uniforms) {
-            this.mesh.material.uniforms.objectPulse.value = value;
+    update() {
+        if (!this.mesh) return;
+    
+        const time = this.clock.getElapsedTime();
+        if (this.mesh.material.uniforms) {
+            this.mesh.material.uniforms.time.value = time;
         }
+    
+        if (!this.options.movement.enabled) return;
+    
+        this.updatePosition(time);
     }
 
-    toggleMovement(enabled) {
-        this.options.movement.enabled = enabled;
-    }
-
-    dispose() {
+    cleanup() {
         if (this.mesh) {
             this.mesh.geometry.dispose();
             this.mesh.material.dispose();
-            this.scene.remove(this.mesh);
+            if (this.scene && this.scene.children.includes(this.mesh)) {
+                this.scene.remove(this.mesh);
+            }
+            this.mesh = null;
         }
     }
 } 
