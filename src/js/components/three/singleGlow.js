@@ -59,6 +59,10 @@ export class SingleGlow {
         this.setup();
     }
 
+    /**
+     * Sets up the glow
+     * @returns {void}
+     */
     setup() {
         if (!this.scene) {
             this.logger.log('Scene not available for setup', {
@@ -103,7 +107,12 @@ export class SingleGlow {
         this.scene.add(this.mesh);
     }
 
-    setPosition(position) {
+    /**
+     * Sets the position of the glow
+     * @param {Object} position - The position of the glow
+     * @returns {void}
+     */
+    _setPosition(position) {
         if (this.mesh) {
             this.mesh.position.set(
                 position.x !== undefined ? position.x : this.mesh.position.x,
@@ -113,7 +122,12 @@ export class SingleGlow {
         }
     }
 
-    updatePosition(time) {
+    /**
+     * Updates the position of the glow
+     * @param {number} time - The current time
+     * @returns {void}
+     */
+    _updatePosition(time) {
         const timeOffset = time;
         const speed = this.options.movement.speed;
     
@@ -138,22 +152,44 @@ export class SingleGlow {
             this.waveParams.frequency = Math.random() * 0.3 + 0.2;
         }
     
-        this.setPosition({ x, y, z });
+        this._setPosition({ x, y, z });
     }
 
+    /**
+     * Updates the opacity uniform for pulsating effect
+     * @param {number} time - Current animation time
+     */
+    _updateOpacity(time) {
+        const { min, max } = this.options.opacity;
+        const pulse = (Math.sin(time * this.options.pulse.speed) + 1) / 2; // 0..1
+        const opacity = min + (max - min) * pulse;
+        if (this.mesh && this.mesh.material.uniforms) {
+            this.mesh.material.uniforms.opacity.value = opacity;
+        }
+    }
+
+    /**
+     * Updates the glow
+     * @returns {void}
+     */
     update() {
         if (!this.mesh) return;
     
         const time = this.clock.getElapsedTime();
         if (this.mesh.material.uniforms) {
             this.mesh.material.uniforms.time.value = time;
+            this._updateOpacity(time);
         }
     
         if (!this.options.movement.enabled) return;
     
-        this.updatePosition(time);
+        this._updatePosition(time);
     }
 
+    /**
+     * Cleans up the glow
+     * @returns {void}
+     */
     cleanup() {
         if (this.mesh) {
             this.mesh.geometry.dispose();
