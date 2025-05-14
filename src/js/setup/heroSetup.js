@@ -29,26 +29,28 @@ const OBJECTS_3D_HERO = {
             rotation: true, 
             speed: { x: 0.000002, y: 0.000002 },
         },
-        count: isMobile() ? 2000 : 5000,
-        colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
-        size: {
-            min: 1,
-            max: 3.5,
-            multiplier: isMobile() ? 2 : 2.2 
+        objectConfig: {
+            count: isMobile() ? 2000 : 5000,
+            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
+            size: {
+                min: 1,
+                max: 4,
+                multiplier: isMobile() ? 2 : 2.3, 
+            },
+            depth: {
+                range: isMobile() ? 300 : 800, 
+                z: [300, -400] 
+            },
+            movement: {
+                speed: 0.0015,
+                amplitude: {
+                    x: 0.01,
+                    y: 0.01,
+                    z: 0.01
+                    }
+                },
+            },
         },
-        depth: {
-            range: isMobile() ? 300 : 800, 
-            z: [300, -400] 
-        },
-        movement: {
-            speed: 0.0015,
-            amplitude: {
-                x: 0.01,
-                y: 0.01,
-                z: 0.01
-            }
-        },
-    },
     GALACTIC: {
         classRef: GalacticCloud,
         containerName: 'GALACTIC',
@@ -59,23 +61,25 @@ const OBJECTS_3D_HERO = {
             position: { x: 0, y: 5, z: 15 },
             rotation: true,
         },
-        core: {
-            size: 2,
-        },
-        plane: {
-            size: isMobile() ? 4 : 15,
-            opacity: 0.6,
-            transparent: true,
-        },
-        bloom: {
-            strength: 0.5, 
-            radius: isMobile() ? 0.1 : 2,
-            threshold: 0.2, 
-        },
-        animation: {
-            minScale: 1,
-            corePulse: 5,
-        },
+        objectConfig: {
+            core: {
+                size: 2,
+            },
+            plane: {
+                size: isMobile() ? 4 : 8,
+                opacity: 0.6,
+                transparent: true,
+            },
+            bloom: {
+                strength: 2, 
+                radius: 3,
+                threshold: 0.2, 
+            },
+            animation: {
+                minScale: 1,
+                    corePulse: 5,
+            },
+        }
     }
 };
 
