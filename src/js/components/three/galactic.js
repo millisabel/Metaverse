@@ -163,7 +163,9 @@ export class GalacticCloud extends AnimationController {
 
         const galaxyPlane = new THREE.Mesh(planeGeometry, planeMaterial);
         galaxyPlane.rotation.x = Math.PI / 2;
-        this.scene.add(galaxyPlane);
+        if (this.scene) {
+            this.scene.add(galaxyPlane);
+        }
         this.galaxyPlane = galaxyPlane;
     }
 
