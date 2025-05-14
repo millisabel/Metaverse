@@ -1,116 +1,151 @@
 import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
+import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { getRandomValue, getColors } from '../../utils/utils';
 
+/**
+ * Default options for the roadmap component
+ * @type {Object}
+ */
+const DEFAULT_OPTIONS = {
+    colors: ['rgb(255, 255, 255)'],
+    dots: {
+        count: 10,
+        minSize: 1,
+        maxSize: 4,
+        minDuration: 3,
+        maxDuration: 5,
+        minOpacity: 0.01,
+        maxOpacity: 1,
+    },
+    animationConfig: {
+        resizeDelay: 250,
+        curvature: 0.5,
+    }
+};
+
+/**
+ * Roadmap component
+ * @class Roadmap
+ * @param {HTMLElement} container - The container element
+ * @param {Object} options - The options object
+ */
 export class Roadmap {
     constructor(container, options = {}) {
+        this.name = this.constructor.name;
+        this.logger = createLogger(this.name);
+
         this.container = container;
         this.observer = null;
         this.initialized = false;
         this.animationObserver = new AnimationObserverCSS();
-        this.name = 'Roadmap';
-        this.logger = createLogger(this.name);
 
-        this.options = {
-            colors: options.colors || ['rgba(255, 68, 124, 1)', 'rgba(68, 255, 199, 1)'],
-            dots: {
-                count: options.dots?.count || 10,
-                minSize: options.dots?.minSize || 1,
-                maxSize: options.dots?.maxSize || 4,
-                minDuration: options.dots?.minDuration || 3,
-                maxDuration: options.dots?.maxDuration || 5
-            },
-        };
+        this.parentSVG = null;
+        this.SVG = null;
+        this.quarters = null;
+        this.colors = null;
 
-        this.ANIMATION_CONFIG = {
-            dots: {
-                count: this.options.dots.count,
-                minSize: this.options.dots.minSize,
-                maxSize: this.options.dots.maxSize,
-                minDuration: this.options.dots.minDuration,
-                maxDuration: this.options.dots.maxDuration
-            },
-            curvature: 0.5,
-            resizeDelay: 250
-        };
+        this.options = AnimationController.mergeOptions( DEFAULT_OPTIONS, options);
 
         this.init();
     }
 
     init() {
         if (!this.container || this.initialized) return;
-
+    
         this.logger.log({
-            conditions: 'initializing-controller',
+            conditions: 'init',
             functionName: 'init'
         });
 
-        // Используем ResizeObserver для отслеживания изменений размеров
-        const resizeObserver = new ResizeObserver(entries => {
+        this.parentSVG = this.container.querySelector(this.options.selectors.timeline);
+        this.SVG = this._createSVG();
+        this.quarters = this.container.querySelectorAll(this.options.selectors.quarters);
+        this.colors = this._getQuarterColor();
+
+        this._initResizeObserver();   
+        this.initialized = true;
+    }
+
+    /**
+     * Get colors from container
+     * @private
+     */
+    _getQuarterColor() {
+        this.colors = getColors(this.container, '.roadmap-quarter');
+        if (!this.colors.length) {
+            this.colors = this.options.colors;
+        }
+    }
+
+    /**
+    * Initializes the ResizeObserver for the container
+     * @private
+     */
+    _initResizeObserver() {
+        this.resizeObserver = new ResizeObserver(entries => {
             for (const entry of entries) {
                 if (entry.target === this.container) {
                     setTimeout(() => {
-                        this.createConnectionLines();
-                    }, this.ANIMATION_CONFIG.resizeDelay);
+                        this._createConnectionLines();
+                    }, this.options.animationConfig.resizeDelay);
                 }
             }
         });
-
-        // Начинаем наблюдение за контейнером
-        resizeObserver.observe(this.container);
-
-        // Сохраняем observer для последующей очистки
-        this.observer = resizeObserver;
-
-        this.setupResizeHandler();
-        this.initialized = true;
-
-        this.logger.log('Roadmap initialized', {
-            colors: this.options.colors,
-            conditions: ['initializing-controller'],
-            trackType: ['animation'],
-            functionName: 'init'
-        });
+        this.resizeObserver.observe(this.container);
     }
 
-    createConnectionLines() {
-        const timeline = this.container.querySelector('.roadmap-timeline');
-        const quarters = this.container.querySelectorAll('.roadmap-quarter');
+    /**
+     * Create SVG element
+     * @private
+     */
+    _createSVG() {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.classList.add(this.options.classes.svgContainer);
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        return svg;
+    }
 
-        // Remove existing SVG if any
-        const existingSvg = timeline.querySelector('.connection-lines');
+    /**
+     * Create connection lines
+     * @private
+     */
+    _createConnectionLines() {
+        const existingSvg = this.parentSVG.querySelector(this.options.selectors.svgContainer);
         if (existingSvg) {
             existingSvg.remove();
         }
 
-        // Create SVG container
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.classList.add('connection-lines');
-        svg.setAttribute('width', '100%');
-        svg.setAttribute('height', '100%');
+        this.SVG = this._createSVG();
 
-        // Get coordinates of circles
-        const points = Array.from(quarters).map(quarter => {
+        this._getQuarterColor();
+
+        const points = this._createPoints();
+        this._createConnection(points);
+        this.parentSVG.appendChild(this.SVG);
+    }
+
+    /**
+     * Create points
+     * @private
+     */
+    _createPoints() {
+        const points = Array.from(this.quarters).map((quarter, index) => {
             const rect = quarter.getBoundingClientRect();
-            const timelineRect = timeline.getBoundingClientRect();
+            const timelineRect = this.parentSVG.getBoundingClientRect();
             
-            // Получаем индекс текущего элемента
-            const index = Array.from(quarters).indexOf(quarter);
-            
-            // Получаем computed стили для учета padding и других свойств
             const styles = window.getComputedStyle(quarter);
             const paddingLeft = parseFloat(styles.paddingLeft);
             const paddingRight = parseFloat(styles.paddingRight);
             const paddingTop = parseFloat(styles.paddingTop);
             
-            // Определяем точки соединения в зависимости от индекса
             let x, y;
             
             if (index % 2 === 0) {
-                // Для четных элементов (1 и 3) - правый верхний угол
                 x = rect.right - timelineRect.left - paddingRight;
                 y = rect.top - timelineRect.top + paddingTop;
             } else {
-                // Для нечетных элементов (2 и 4) - левый верхний угол
                 x = rect.left - timelineRect.left + paddingLeft;
                 y = rect.top - timelineRect.top + paddingTop;
             }
@@ -118,23 +153,28 @@ export class Roadmap {
             return { x, y };
         });
 
-        // Создаем кривые между точками
+        return points;
+    }
+
+    /**
+     * Create connection
+     * @private
+     */
+    _createConnection(points) {
         const connections = points.slice(0, -1).map((start, index) => {
             const end = points[index + 1];
             
-            // Высота арки зависит от расстояния между точками
             const distance = Math.abs(end.x - start.x);
-            const arcHeight = Math.min(distance * 0.3, 150); // Максимальная высота 150px
+            const arcHeight = Math.min(distance * 0.3, 150); // max height
             
-            // Определяем контрольные точки в зависимости от направления
             const controlPoint1 = {
                 x: start.x + (end.x - start.x) * 0.5,
-                y: start.y - arcHeight // Поднимаем контрольную точку вверх
+                y: start.y - arcHeight,
             };
             
             const controlPoint2 = {
                 x: end.x - (end.x - start.x) * 0.5,
-                y: end.y - arcHeight // Поднимаем контрольную точку вверх
+                y: end.y - arcHeight,
             };
             
             return {
@@ -146,22 +186,18 @@ export class Roadmap {
         });
 
         connections.forEach((conn, i) => {
-            const path = this.createCurvedPath(conn.start, conn.end, conn.controlPoint1, conn.controlPoint2);
-            svg.appendChild(path);
-            const dots = this.createDots(path, this.options.colors[i]);
-            dots.forEach(dot => svg.appendChild(dot));
-        });
-
-        timeline.appendChild(svg);
-
-        this.logger.log('Connection lines created', svg, {
-            type: 'initializing-scene',
-            functionName: 'createConnectionLines',
-            trackType: 'animation'
+            const path = this._createCurvedPath(conn.start, conn.end, conn.controlPoint1, conn.controlPoint2);
+            this.SVG.appendChild(path);
+            const dots = this._createDots(path, this.colors[i]);
+            dots.forEach(dot => this.SVG.appendChild(dot));
         });
     }
 
-    createCurvedPath(start, end, controlPoint1, controlPoint2) {
+    /**
+     * Create curved path
+     * @private
+     */
+    _createCurvedPath(start, end, controlPoint1, controlPoint2) {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         
         const d = `M ${start.x},${start.y} C ${controlPoint1.x},${controlPoint1.y} ${controlPoint2.x},${controlPoint2.y} ${end.x},${end.y}`;
@@ -173,83 +209,77 @@ export class Roadmap {
         return path;
     }
 
-    createDots(path, color) {
+    /**
+     * Create dots
+     * @private
+     */
+    _createDots(path, color) {
         const dots = [];
-        const { count, minSize, maxSize, minDuration, maxDuration } = this.ANIMATION_CONFIG.dots;
+        const { count, minSize, maxSize, minDuration, maxDuration, minOpacity, maxOpacity } = this.options.dots;
 
         for (let i = 0; i < count; i++) {
-            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            const size = minSize + Math.random() * (maxSize - minSize);
-            dot.setAttribute('r', size / 2);
-            dot.setAttribute('fill', color);
-            dot.style.filter = `blur(${size / 3}px)`;
-            dot.style.opacity = '0.8';
+            const size = getRandomValue(minSize, maxSize);
+            const duration = getRandomValue(minDuration, maxDuration);
+            const opacity = getRandomValue(minOpacity, maxOpacity);
 
-            const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
-            const duration = minDuration + Math.random() * (maxDuration - minDuration);
-            animate.setAttribute('dur', `${duration}s`);
-            animate.setAttribute('repeatCount', 'indefinite');
-            animate.setAttribute('path', path.getAttribute('d'));
-            animate.setAttribute('rotate', 'auto');
-            animate.setAttribute('begin', `${Math.random() * -duration}s`);
+            const dot = this._createSingleDot(color, size, opacity);
+            const animate = this._createSingleDotAnimate(path, duration);
 
-            dot.appendChild(animate);
             dots.push(dot);
+            dot.appendChild(animate);
         }
 
         return dots;
     }
 
-    setupResizeHandler() {
-        let resizeTimeout;
+    /**
+     * Create single dot
+     * @private
+     */
+    _createSingleDot(color, size, opacity) {
+        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('r', size / 2);
+        dot.setAttribute('fill', color);
+        dot.style.filter = `blur(${size / 3}px)`;
+        dot.style.opacity = opacity;
 
-        this.animationObserver.setupResizeObserver();
-
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                this.logger.log('Resize started', {
-                    type: 'resize-started',
-                    functionName: 'setupResizeHandler'
-                });
-
-                this.createConnectionLines();
-
-                this.logger.log('Resize completed', {
-                    type: 'resize-completed',
-                    functionName: 'setupResizeHandler'
-                });
-            }, this.ANIMATION_CONFIG.resizeDelay);
-        });
-
-        this.animationObserver.handleResize = (element) => {
-            if (element === this.container) {
-                this.logger.log('Roadmap resized', {
-                    conditions: ['resize'],
-                    trackType: ['resize'],
-                    functionName: 'handleResize'
-                });
-            }
-        };
+        return dot;
     }
 
-    disconnect() {
-        if (this.observer) {
-            this.observer.disconnect();
+    /**
+     * Create single dot animate
+     * @private
+     */
+    _createSingleDotAnimate(path, duration) {
+        const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+        animate.setAttribute('dur', `${duration}s`);
+        animate.setAttribute('repeatCount', 'indefinite');
+        animate.setAttribute('path', path.getAttribute('d'));
+        animate.setAttribute('rotate', 'auto');
+        animate.setAttribute('begin', `${Math.random() * -duration}s`);
+
+        return animate;
+    }
+
+    /**
+     * Disconnect observer
+     * @private
+     */
+    _disconnect() {
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
         }
         if (this.animationObserver) {
             this.animationObserver.disconnect();
+            this.animationObserver = null;
+        }
+        // Удалить SVG из DOM, если нужно полностью очистить визуализацию
+        if (this.SVG && this.SVG.parentNode) {
+            this.SVG.parentNode.removeChild(this.SVG);
+            this.SVG = null;
         }
         this.initialized = false;
     }
 }
 
-export function initRoadmap(className) {
-    const container = document.querySelector(className);
-    if (!container) {
-        console.warn('Roadmap container not found');
-        return;
-    }
-
-    return new Roadmap(container);
-} 
