@@ -12,19 +12,24 @@ import * as THREE from 'three';
  * @param {number} options.pointIntensity - Intensity of point light
  * @param {Object} options.pointPosition - Position of point light {x, y, z}
  */
-export function addDefaultLights(scene, {
-    ambientColor = 0x9933ff,
-    ambientIntensity = 0.5,
-    pointColor = 0xcc66ff,
-    pointIntensity = 2,
-    pointPosition = { x: 0, y: 2, z: 0 }
-} = {}) {
-    const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
-    scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(pointColor, pointIntensity);
-    pointLight.position.set(pointPosition.x, pointPosition.y, pointPosition.z);
-    scene.add(pointLight);
+export const DEFAULT_LIGHTS = {
+    ambientColor: 0x9933ff,
+    ambientIntensity: 0.5,
+    pointColor: 0xcc66ff,
+    pointIntensity: 2,
+    pointPosition: { x: 0, y: 2, z: 0 }
+  };
+
+export function addDefaultLights(scene, options = {}) {
+    const config = { ...DEFAULT_LIGHTS, ...options };
+    // ambient
+    const ambient = new THREE.AmbientLight(config.ambientColor, config.ambientIntensity);
+    scene.add(ambient);
+    // point
+    const point = new THREE.PointLight(config.pointColor, config.pointIntensity);
+    point.position.set(config.pointPosition.x, config.pointPosition.y, config.pointPosition.z);
+    scene.add(point);
 }
 
 // gaussianRandom =================================================
