@@ -68,10 +68,16 @@ const CONFIG_ROADMAP = {
     }
 }
 const CONFIG_MORE_BUTTON = {
-    buttonSelector: '.more-btn',
-    hiddenElementsSelector: '.hidden-items',
-    revealDelay: 40,
-    typingSpeed: 20
+    classes: {
+        button: 'more-btn',
+        showItems: 'show',
+        hiddenItems: 'hidden-items',
+        list: 'roadmap-quarter-list',
+    },
+    revealDelay: 200,
+    typingSpeed: 20,
+    eraseSpeed: 15,
+    revealDelay: 200,
 }
 
 
