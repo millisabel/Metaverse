@@ -3,9 +3,9 @@ import * as THREE from 'three';
 import { CameraController } from './cameraController';
 import { rendererManager } from './rendererManager';
 import {createLogger} from "../utils/logger";
-import {createCanvas, updateThreeRendererSize, assertNoDeadCanvas} from "../utilsThreeD/canvasUtils";
-import { deepClone } from './utilsThreeD';
+import {createCanvas, updateThreeRendererSize} from "../utilsThreeD/canvasUtils";
 import { addLightsToScene, DEFAULT_LIGHTS } from './lightsUtils';
+import { mergeOptionsWithObjectConfig } from '../utils/utils';
 
 
 /**
@@ -43,12 +43,7 @@ export class AnimationController {
             this.container.id = `threejs-container-${crypto.randomUUID()}`;
         }
 
-        const { objectConfig, ...restOptions } = options;
-        const mergedOptions = {
-        ...restOptions,
-        ...(objectConfig || {})
-        };
-        this.options = AnimationController.mergeOptions(defaultOptions, mergedOptions);
+        this.options = mergeOptionsWithObjectConfig(defaultOptions, options, options.objectConfig);
 
         this.isVisible = false;
         this.isInitialized = false;
@@ -140,26 +135,6 @@ export class AnimationController {
             conditions: ['scene-initialized'],
             functionName: 'initScene'
         });
-    }
-
-    static mergeOptions(defaults, options) {
-        const merged = deepClone(defaults);
-        function assign(target, source) {
-            for (const key in source) {
-                if (
-                    source[key] &&
-                    typeof source[key] === 'object' &&
-                    !Array.isArray(source[key])
-                ) {
-                    if (!target[key]) target[key] = {};
-                    assign(target[key], source[key]);
-                } else {
-                    target[key] = deepClone(source[key]);
-                }
-            }
-        }
-        assign(merged, options);
-        return merged;
     }
 
     /**
@@ -440,7 +415,7 @@ export class AnimationController {
      */
     setupLights(options = {}) {
         if (!this.scene) return;
-        const config = AnimationController.mergeOptions(DEFAULT_LIGHTS, options);
+        const config = mergeOptionsWithObjectConfig(DEFAULT_LIGHTS, options);
         addLightsToScene(this.scene, config);
     }
 

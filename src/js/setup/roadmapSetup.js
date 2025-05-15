@@ -1,105 +1,87 @@
-import { BaseSetup } from '../utilsThreeD/baseSetup';
 import { Glow } from "../components/three/glow";
 import { Roadmap } from "../components/ui/roadmap";
 import { MoreButton } from "../controllers/moreButton";
-import { getColors, isMobile } from "../utils/utils";
+import { isMobile } from "../utils/utils";
+import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
 
-export class RoadmapSetup extends BaseSetup {
-    constructor() {
-        super('roadmap', 'RoadmapSetup', {
-            camera: {
-                position: { z: 5 },
-                lookAt: { x: 0, y: 0, z: 0 }
-            }
-        });
-        
-        this.CONTAINER_TYPES = {
-            ROADMAP: 'ROADMAP',
-            GLOW: 'GLOW'
-        };
-
-        this.Z_INDEX = {
-            ROADMAP: '0',
-            GLOW: '-1',
-        };
-
-        this.GLOW_CONFIG = {
+const SECTION_ID = 'roadmap';
+const CONFIG_3D = {
+    GLOW: {
+        classRef: Glow,
+        containerName: 'GLOW',
+        zIndex: 0,
+        objectConfig: {
             count: isMobile() ? 3 : 10,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
+            shuffleColors : true,
             size: {
-                min: isMobile() ? 0.2 : 0.5,
-                max: isMobile() ? 1.5 : 3
-            },                      
-            movement: {
-                enabled: true,
-                speed: 0.001,
-                range: {
-                    x: 1,
-                    y: 0.9,
-                    z: 0.3
-                }
+                min: isMobile() ? 0.5 : 1,
+                max: isMobile() ? 1 : 2
             },
             opacity: {
-                min: 0.1,
+                min: 0.05,
                 max: 0.2
             },
             scale: {
-                min: 0.9,
-                max: 1.2
+                min: 0.5,
+                max: 1.5
             },
             pulse: {
                 speed: 0.1,
-                intensity: 0.3,
+                intensity: 3,
                 sync: false
             },
-            zIndex: this.Z_INDEX.GLOW
-        };
-
-    }
-
-    setupScene() {
-        // create glow 
-        const glowContainer = this.createContainer(
-            this.CONTAINER_TYPES.GLOW, 
-            this.Z_INDEX.GLOW
-        );
-        
-        this.glow = new Glow(glowContainer, this.GLOW_CONFIG);
-
-        // initialize roadmap
-        new Roadmap(this.container, {
-            colors: getColors(this.container, '.roadmap-quarter'),
-            dots: {
-                count: 5,
-                minSize: 1,
-                maxSize: 5,
-                minDuration: 2,
-                maxDuration: 4,
+            movement: {
+                enabled: true,
+                speed: 0.006,
+                range: {
+                    x: 2,
+                    y: 5,
+                    z: 0.1
+                }
             },
-        });
-        this.container.style.zIndex = this.Z_INDEX.ROADMAP;
-
-        // initialize more button
-        new MoreButton(this.container, {
-            buttonSelector: '.more-btn',
-            hiddenElementsSelector: '.hidden-items',
-            revealDelay: 40,
-            typingSpeed: 20
-        });
+            position: { x: 0, y: 0, z: 0 },
+            initialPositions: null
+        }   
+    },
+}
+const CONFIG_ROADMAP = {
+    zIndex: 1,
+    selectors: {
+        container: '.roadmap-container',
+        quarters: '.roadmap-quarter',
+        timeline: '.roadmap-timeline',
+        quartersContainer: '.roadmap-quarters-container',
+        svgContainer: '.connection-lines',
+    },
+    classes: {
+        svgContainer: 'connection-lines',
+    },
+    dots: {
+        count: 15,
+        minSize: 1,
+        maxSize: 5,
+        minDuration: 2,
+        maxDuration: 6,
+        minOpacity: 0.05,
+        maxOpacity: 1,
     }
+}
+const CONFIG_MORE_BUTTON = {
+    buttonSelector: '.more-btn',
+    hiddenElementsSelector: '.hidden-items',
+    revealDelay: 40,
+    typingSpeed: 20
+}
 
-    update() {
-        if (this.glow) {
-            this.glow.update();
-        }
-    }
 
-    cleanup() {
-        this.cleanupContainer(this.CONTAINER_TYPES.GLOW);
-        super.cleanup();
+export class RoadmapSetup extends Universal3DSection {
+    constructor() {
+        super(SECTION_ID, CONFIG_3D);
+
+        new Roadmap(this.container, CONFIG_ROADMAP);
+        new MoreButton(this.container, CONFIG_MORE_BUTTON);
     }
 }
 
-export function initRoadmap() {
-    const sectionRoadmap = new RoadmapSetup();
-} 
+

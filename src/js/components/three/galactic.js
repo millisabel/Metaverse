@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
-
+import { mergeOptionsWithObjectConfig } from '../../utils/utils';
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 
 import vertexShader from '../../shaders/galacticCore.vert';
@@ -65,7 +65,7 @@ export class GalacticCloud extends AnimationController {
         this.galaxyPlane = null;
         this.composer = null;
 
-        this.galaxOptions = AnimationController.mergeOptions(defaultOptions, options);
+        this.options = mergeOptionsWithObjectConfig(defaultOptions, options);
 
         this.logger.log('Controller initialization', {
             conditions: ['init'],
@@ -107,10 +107,10 @@ export class GalacticCloud extends AnimationController {
     _createGalaxyCore() {
 
         const coreGeometry = new THREE.PlaneGeometry(
-            this.galaxOptions.core.size, 
-            this.galaxOptions.core.size, 
-            this.galaxOptions.core.segments, 
-            this.galaxOptions.core.segments,
+            this.options.core.size, 
+            this.options.core.size, 
+            this.options.core.segments, 
+            this.options.core.segments,
         );
         const coreMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -149,13 +149,13 @@ export class GalacticCloud extends AnimationController {
             return; 
         }
 
-        const planeSize = this.galaxOptions.plane.size; 
+        const planeSize = this.options.plane.size; 
 
         const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
         const planeMaterial = new THREE.MeshBasicMaterial({
             map: galaxyTexture,
-            transparent: this.galaxOptions.plane.transparent,
-            opacity: this.galaxOptions.plane.opacity,
+            transparent: this.options.plane.transparent,
+            opacity: this.options.plane.opacity,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             side: THREE.DoubleSide
@@ -183,14 +183,14 @@ export class GalacticCloud extends AnimationController {
 
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            this.galaxOptions.bloom.strength,
-            this.galaxOptions.bloom.radius,
-            this.galaxOptions.bloom.threshold,
+            this.options.bloom.strength,
+            this.options.bloom.radius,
+            this.options.bloom.threshold,
         );
         
-        bloomPass.threshold = this.galaxOptions.bloom.threshold;
-        bloomPass.strength = this.galaxOptions.bloom.strength;
-        bloomPass.radius = this.galaxOptions.bloom.radius;
+        bloomPass.threshold = this.options.bloom.threshold;
+        bloomPass.strength = this.options.bloom.strength;
+        bloomPass.radius = this.options.bloom.radius;
         
         this.composer.addPass(bloomPass);
     }
@@ -203,8 +203,8 @@ export class GalacticCloud extends AnimationController {
      * @protected
      */
     _getPulseFactor(time) {
-        const { pulsePrimary, pulseSecondary, pulseMicro } = this.galaxOptions.animation;
-        const baseScale = this.galaxOptions.animation.baseScale;
+        const { pulsePrimary, pulseSecondary, pulseMicro } = this.options.animation;
+        const baseScale = this.options.animation.baseScale;
     
         const primaryWave = Math.sin(time * pulsePrimary.freq) * pulsePrimary.amp;
         const secondaryWave = Math.sin(time * pulseSecondary.freq) * pulseSecondary.amp;
@@ -220,10 +220,10 @@ export class GalacticCloud extends AnimationController {
      * @protected
      */
     _updateGalaxyCorePulse(time){
-        const animationCore = this.galaxOptions.animation.corePulse;
+        const animationCore = this.options.animation.corePulse;
 
         if (this.galaxyCore) {
-            const minScale = this.galaxOptions.animation.minCoreScale;
+            const minScale = this.options.animation.minCoreScale;
 
             this.galaxyCore.material.uniforms.time.value = time;
 
@@ -303,7 +303,7 @@ export class GalacticCloud extends AnimationController {
         this._updateCameraOrbit(0); 
 
         if (this.galaxyPlane) {
-            const planeSize = this.galaxOptions.plane.size;
+            const planeSize = this.options.plane.size;
             this.galaxyPlane.scale.set(planeSize/8, planeSize/8, planeSize/8);
         }
 

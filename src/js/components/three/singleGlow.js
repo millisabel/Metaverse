@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createLogger } from "../../utils/logger";
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { mergeOptionsWithObjectConfig } from '../../utils/utils';
 
 import vertexShader from '../../shaders/glow.vert';
 import fragmentShader from '../../shaders/glow.frag';
@@ -43,7 +43,7 @@ export class SingleGlow {
         ...restOptions,
         ...(objectConfig || {})
         };
-        this.options = AnimationController.mergeOptions( DEFAULT_OPTIONS, mergedOptions);
+        this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, mergedOptions);
 
         this.clock = new THREE.Clock();
         this.mesh = null;

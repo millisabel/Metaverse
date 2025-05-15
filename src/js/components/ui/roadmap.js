@@ -1,7 +1,6 @@
 import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
-import { getRandomValue, getColors } from '../../utils/utils';
+import { getRandomValue, getColors, mergeOptionsWithObjectConfig } from '../../utils/utils';
 
 /**
  * Default options for the roadmap component
@@ -45,7 +44,7 @@ export class Roadmap {
         this.quarters = null;
         this.colors = null;
 
-        this.options = AnimationController.mergeOptions( DEFAULT_OPTIONS, options);
+        this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, options);
 
         this.init();
     }
