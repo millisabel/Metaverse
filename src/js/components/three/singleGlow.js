@@ -45,6 +45,9 @@ export class SingleGlow {
         };
         this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, mergedOptions);
 
+        // Diagnostic log for movement options
+        console.log('[SingleGlow] movement options:', this.options.movement);
+
         this.clock = new THREE.Clock();
         this.mesh = null;
         this.currentPath = {
@@ -55,6 +58,60 @@ export class SingleGlow {
             frequency: Math.random() * 0.3 + 0.2,
             amplitude: Math.random() * 0.3 + 0.3
         };
+
+        // Индивидуальные параметры движения
+        this.basePosition = {
+            x: options.position?.x ?? 0,
+            y: options.position?.y ?? 0,
+            z: options.position?.z ?? 0
+        };
+        console.log('[SingleGlow] basePosition:', this.basePosition);
+
+        // Индивидуальные параметры для каждой оси
+        this.motionParams = {
+            x: {
+                amplitude: (options.movement?.range?.x ?? 1) * (0.5 + Math.random() * 0.5),
+                frequency: 0.2 + Math.random() * 0.3,
+                phase: Math.random() * Math.PI * 2,
+                speed: (options.movement?.speed ?? 0.01) * (0.8 + Math.random() * 0.4)
+            },
+            y: {
+                amplitude: (options.movement?.range?.y ?? 1) * (0.5 + Math.random() * 0.5),
+                frequency: 0.2 + Math.random() * 0.3,
+                phase: Math.random() * Math.PI * 2,
+                speed: (options.movement?.speed ?? 0.01) * (0.8 + Math.random() * 0.4)
+            },
+            z: {
+                amplitude: (options.movement?.range?.z ?? 1) * (0.5 + Math.random() * 0.5),
+                frequency: 0.2 + Math.random() * 0.3,
+                phase: Math.random() * Math.PI * 2,
+                speed: (options.movement?.speed ?? 0.01) * (0.8 + Math.random() * 0.4)
+            }
+        };
+
+        // Индивидуальные параметры пульсации (масштаб и прозрачность)
+        this.pulseParams = {
+            scale: {
+                min: options.scale?.min ?? 1,
+                max: options.scale?.max ?? 1.5,
+                speed: (options.pulse?.speed ?? 0.1) * (0.8 + Math.random() * 0.4),
+                phase: Math.random() * Math.PI * 2
+            },
+            opacity: {
+                min: options.opacity?.min ?? 0.1,
+                max: options.opacity?.max ?? 0.2,
+                speed: (options.pulse?.speed ?? 0.1) * (0.8 + Math.random() * 0.4),
+                phase: Math.random() * Math.PI * 2
+            }
+        };
+
+        this.baseSize = options.size ?? 1;
+
+        this.enableScalePulse = options.pulse?.enabled !== false; // по умолчанию true
+
+        console.log(`[SingleGlow] scale speed: ${this.pulseParams.scale.speed}, phase: ${this.pulseParams.scale.phase}`);
+
+        this.randomOffset = Math.random() * 1000; // Added for random offset
 
         this.setup();
     }
@@ -97,13 +154,8 @@ export class SingleGlow {
         });
 
         this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.position.set(
-            this.options.position.x,
-            this.options.position.y,
-            this.options.position.z
-        );
-        this.mesh.scale.set(this.options.size, this.options.size, 1);
-        
+        this.mesh.position.set(this.basePosition.x, this.basePosition.y, this.basePosition.z);
+        this.mesh.scale.set(this.baseSize * this.pulseParams.scale.min, this.baseSize * this.pulseParams.scale.min, 1);        
         this.scene.add(this.mesh);
     }
 
@@ -128,42 +180,31 @@ export class SingleGlow {
      * @returns {void}
      */
     _updatePosition(time) {
-        const timeOffset = time;
-        const speed = this.options.movement.speed;
-    
-        const waveX = Math.sin(timeOffset * this.waveParams.frequency) * this.waveParams.amplitude;
-        const waveY = Math.cos(timeOffset * this.waveParams.frequency * 1.2) * this.waveParams.amplitude;
-        const secondaryWaveX = Math.sin(timeOffset * 0.3) * 0.2;
-        const secondaryWaveY = Math.cos(timeOffset * 0.4) * 0.2;
-    
-        let x = this.mesh.position.x + (waveX + secondaryWaveX) * this.currentPath.x * speed;
-        let y = this.mesh.position.y + (waveY + secondaryWaveY) * this.currentPath.y * speed;
-        let z = Math.sin(timeOffset * this.waveParams.frequency * 0.5) * 0.2;
-    
-        const { range } = this.options.movement;
-        if (Math.abs(x) > range.x) {
-            x = Math.sign(x) * range.x;
-            this.currentPath.x *= -1;
-            this.waveParams.frequency = Math.random() * 0.3 + 0.2;
+        const x = this.basePosition.x + Math.sin(time * this.motionParams.x.frequency * this.motionParams.x.speed + this.motionParams.x.phase) * this.motionParams.x.amplitude;
+        const y = this.basePosition.y + Math.cos(time * this.motionParams.y.frequency * this.motionParams.y.speed + this.motionParams.y.phase) * this.motionParams.y.amplitude;
+        let z = this.basePosition.z;
+        if (this.options.movement.zEnabled !== false) {
+            z += Math.sin(time * this.motionParams.z.frequency * this.motionParams.z.speed + this.motionParams.z.phase) * this.motionParams.z.amplitude;
         }
-        if (Math.abs(y) > range.y) {
-            y = Math.sign(y) * range.y;
-            this.currentPath.y *= -1;
-            this.waveParams.frequency = Math.random() * 0.3 + 0.2;
-        }
-    
-        this._setPosition({ x, y, z });
+        this.mesh.position.set(x, y, z);
     }
 
     /**
      * Updates the opacity uniform for pulsating effect
      * @param {number} time - Current animation time
      */
-    _updateOpacity(time) {
-        const { min, max } = this.options.opacity;
-        const pulse = (Math.sin(time * this.options.pulse.speed) + 1) / 2; // 0..1
-        const opacity = min + (max - min) * pulse;
-        if (this.mesh && this.mesh.material.uniforms) {
+    _updateScaleAndOpacity(time) {
+        let scale = this.baseSize;
+        if (this.enableScalePulse) {
+            const scalePulse = (Math.sin(time * this.pulseParams.scale.speed + this.pulseParams.scale.phase) + 1) / 2;
+            scale = this.baseSize * (this.pulseParams.scale.min + (this.pulseParams.scale.max - this.pulseParams.scale.min) * scalePulse);
+        }
+        this.mesh.scale.set(scale, scale, 1);
+
+        // Прозрачность (opacity) — всегда пульсирует
+        const opacityPulse = (Math.sin(time * this.pulseParams.opacity.speed + this.pulseParams.opacity.phase) + 1) / 2;
+        const opacity = this.pulseParams.opacity.min + (this.pulseParams.opacity.max - this.pulseParams.opacity.min) * opacityPulse;
+        if (this.mesh.material.uniforms) {
             this.mesh.material.uniforms.opacity.value = opacity;
         }
     }
@@ -172,18 +213,41 @@ export class SingleGlow {
      * Updates the glow
      * @returns {void}
      */
-    update() {
+    update(camera, index = 0, shouldLog = false) {
         if (!this.mesh) return;
     
-        const time = this.clock.getElapsedTime();
-        if (this.mesh.material.uniforms) {
-            this.mesh.material.uniforms.time.value = time;
-            this._updateOpacity(time);
-        }
+        const time = this.clock.getElapsedTime() + this.randomOffset;
+        this._updatePosition(time);
+        this._updateScaleAndOpacity(time);
     
         if (!this.options.movement.enabled) return;
     
-        this._updatePosition(time);
+        if (this.mesh.material.uniforms) {
+            this.mesh.material.uniforms.time.value = time;
+        }
+
+        if (shouldLog) {
+            const pos = this.mesh.position;
+            const scale = this.mesh.scale;
+            const opacity = this.mesh.material.uniforms?.opacity?.value ?? 'n/a';
+            const color = this.mesh.material.uniforms?.color?.value?.getStyle?.() ?? 'n/a';
+            // Можно добавить любые другие параметры, которые хотите отслеживать
+            console.log(
+                `[SingleGlow][${index}]`,
+                `time=${time.toFixed(2)}\n`,
+                `x=${pos.x.toFixed(2)}\n`,
+                `y=${pos.y.toFixed(2)}\n`,
+                `z=${pos.z.toFixed(2)}\n`,
+                `size=${this.baseSize}\n`,
+                `scale=${scale.x.toFixed(2)}\n`,
+                `opacity=${opacity}\n`,
+                `_________________________________________________`
+            );
+        }
+
+        if (shouldLog) {
+            console.log(`[SingleGlow][${index}] x=${this.mesh.position.x}, y=${this.mesh.position.y}`);
+        }
     }
 
     /**

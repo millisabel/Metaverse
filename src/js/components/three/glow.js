@@ -106,7 +106,7 @@ export class Glow extends AnimationController {
             this.container,
             {
                 color: color,
-                size: THREE.MathUtils.randFloat(this.options.size.min, this.options.size.max),
+                size: THREE.MathUtils.randFloat(this.options.size.min, this.options.size.max),                
                 opacity: this.options.opacity,
                 scale: this.options.scale,
                 pulse: this.options.pulse,
@@ -139,10 +139,12 @@ export class Glow extends AnimationController {
         const ySpread = (this.options.movement.range.y || 1);
         const zRange = this.options.movement.range.z || 0.1;
     
+        const zEnabled = this.options.movement.zEnabled !== false;
         const x = (Math.random() - 0.5) * xSpread;
         const y = (Math.random() - 0.5) * ySpread;
-        const z = (Math.random() * 2 - 1) * zRange;
+        const z = zEnabled ? (Math.random() * 2 - 1) * zRange : 0;
     
+        console.log('[Glow] Initial position:', { x, y, z, zEnabled });
         return { x, y, z };
     }
 
