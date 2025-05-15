@@ -33,6 +33,7 @@ export function createContainer(parent, options = {}) {
  * @returns {Promise} 
  */
 export function typeText(element, text, speed = 20) {
+        console.log('typeText');
     return new Promise((resolve) => {
         let i = 0;
         element.textContent = '';
@@ -234,4 +235,24 @@ export function deepClone(value) {
     return cloned;
 }
 
-
+/**
+ * Erase text by one letter from right to left
+ * @param {HTMLElement} element - element, text of which is erased
+ * @param {number} speed - delay between erasing letters (ms)
+ * @returns {Promise}
+ */
+export function eraseText(element, speed = 20) {
+    return new Promise(resolve => {
+        let text = element.textContent;
+        function erase() {
+            if (text.length > 0) {
+                text = text.slice(0, -1);
+                element.textContent = text;
+                setTimeout(erase, speed);
+            } else {
+                resolve();
+            }
+        }
+        erase();
+    });
+}
