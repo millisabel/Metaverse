@@ -1,7 +1,5 @@
 // COMMON UTILS ===============================================
 
-
-//  isMobile ===============================================
 /**
  * Checks if device is mobile
  * @returns {boolean} True if device is mobile
@@ -10,7 +8,6 @@ export function isMobile(size = 768) {
     return window.innerWidth <= size;
 }
 
-//  createContainer ===============================================
 /**
  * Creates a container with specified options
  * @param {HTMLElement} parent - Parent element
@@ -28,7 +25,6 @@ export function createContainer(parent, options = {}) {
     return container;
 }
 
-// typeText =================================================
 /**
  * Creates typing effect with blinking cursor
  * @param {HTMLElement} element 
@@ -72,7 +68,6 @@ export function typeText(element, text, speed = 20) {
     });
 }
 
-//  getColors ===============================================
 /**
  * Get colors from element
  * @param {HTMLElement} container
@@ -117,7 +112,6 @@ export function getColors(container, selector, options = {}) {
     return colors;
 }
 
-// getRandomColor ============================================
 /**
  * Generates a random color
  * @returns {string} A random color in hex format
@@ -126,7 +120,6 @@ export function getRandomColor() {
     return '#' + Math.floor(Math.random()*16777215).toString(16);
 }
 
-// getRandomValue ============================================
 /**
  * Generates a random number between min and max values
  * @param {number} min - Minimum value (inclusive)
@@ -137,7 +130,6 @@ export function getRandomValue(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-// updateCopyrightYear ============================================
 /**
  * Updates the copyright year
  * @param {string} selector - Selector for the copyright year element
@@ -151,7 +143,6 @@ export function updateCopyrightYear(selector) {
     });
 }
 
-// shuffleArray ============================================
 /**
  * Shuffles an array
  * @description Shuffles an array
@@ -165,6 +156,82 @@ export function shuffleArray(array) {
         [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+}
+
+/**
+ * Generates a class selector from a string or array of class names
+ * @param {string|Array} classNames - The class names to generate a selector from
+ * @returns {string} The generated class selector
+ */
+export function getClassSelector(classNames) {
+    if (!classNames) return '';
+    if (Array.isArray(classNames)) {
+      return '.' + classNames.map(c => c.trim()).join('.');
+    }
+    return '.' + classNames.trim().replace(/\s+/g, '.');
+  }
+
+/**
+ * Merges default options, options, and objectConfig into a single options object.
+ * @param {Object} defaultOptions - Default options.
+ * @param {Object} options - User options.
+ * @param {Object} [objectConfig] - Additional object config.
+ * @returns {Object} - Merged options.
+ */
+export function mergeOptionsWithObjectConfig(defaultOptions, options = {}, objectConfig = {}) {
+    const { objectConfig: _ignored, ...restOptions } = options;
+    const mergedOptions = {
+        ...restOptions,
+        ...(objectConfig || {})
+    };
+    return mergeOptions(defaultOptions, mergedOptions);
+}
+
+/**
+ * Deeply merges two objects (used for options).
+ * @param {Object} defaults - Default options.
+ * @param {Object} options - User options.
+ * @returns {Object} - Deeply merged object.
+ */
+export function mergeOptions(defaults, options) {
+    const merged = deepClone(defaults);
+    function assign(target, source) {
+        for (const key in source) {
+            if (
+                source[key] &&
+                typeof source[key] === 'object' &&
+                !Array.isArray(source[key])
+            ) {
+                if (!target[key]) target[key] = {};
+                assign(target[key], source[key]);
+            } else {
+                target[key] = deepClone(source[key]);
+            }
+        }
+    }
+    assign(merged, options);
+    return merged;
+}
+
+/**
+ * Deeply clones an object or array.
+ * @param {any} value - The value to clone.
+ * @returns {any} - Deeply cloned value.
+ */
+export function deepClone(value) {
+    if (value === null || typeof value !== 'object') {
+        return value;
+    }
+    if (Array.isArray(value)) {
+        return value.map(deepClone);
+    }
+    const cloned = {};
+    for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+            cloned[key] = deepClone(value[key]);
+        }
+    }
+    return cloned;
 }
 
 

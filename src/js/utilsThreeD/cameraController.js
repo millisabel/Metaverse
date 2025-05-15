@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createLogger } from '../utils/logger';
-import { AnimationController } from '../utilsThreeD/animationController_3D';
+import { mergeOptionsWithObjectConfig } from '../utils/utils';
 
 /**
  * Controller for managing Three.js camera setup and behavior.
@@ -39,8 +39,9 @@ export class CameraController {
             rotation: false,
             speed: { x: 0.00002, y: 0.00002 },
         };
+
         
-        this.options = AnimationController.mergeOptions(this.options, options);
+        this.options = mergeOptionsWithObjectConfig(this.options, options);
 
         this.camera = null;
         this.aspect = 1;
