@@ -256,3 +256,30 @@ export function eraseText(element, speed = 20) {
         erase();
     });
 }
+
+/**
+ * Extracts RGB values from a color string
+ * @param {string} colorStr - The color string to extract RGB values from
+ * @returns {string} The extracted RGB values
+ */
+export function extractRGB(colorStr) {
+    // rgba(255, 255, 255, 0.05) или rgb(255, 255, 255)
+    const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        return `rgb(${match[1]}, ${match[2]}, ${match[3]})`;
+    }
+    return colorStr; 
+}
+
+/**
+ * Gets the color from the quarter's CSS variable
+ * @param {HTMLElement} quarter - The quarter element
+ * @returns {string} The color in RGB format
+ */
+export function getQuarterColorFromVar(quarter) {
+    const rgb = getComputedStyle(quarter).getPropertyValue('--roamap-color-rgb').trim();
+    if (rgb) {
+        return `rgb(${rgb})`;
+    }
+    return null;
+}
