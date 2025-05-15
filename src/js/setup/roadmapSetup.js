@@ -10,38 +10,48 @@ const CONFIG_3D = {
         classRef: Glow,
         containerName: 'GLOW',
         zIndex: 0,
+        camera: {
+            position: {
+                x: 0,
+                y: 0,
+                z: 5
+            }
+        },
         objectConfig: {
-            count: isMobile() ? 3 : 10,
+            count: isMobile() ? 3 : 8,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
             size: {
-                min: isMobile() ? 0.5 : 1,
-                max: isMobile() ? 1 : 2
+                min: isMobile() ? 0.5 : 1.5,
+                max: isMobile() ? 2 : 2
             },
             opacity: {
-                min: 0.05,
-                max: 0.2
+                min: 0.2,
+                max: 0.3
             },
             scale: {
-                min: 0.5,
-                max: 1.5
+                min: 1,
+                max: 2
             },
             pulse: {
-                speed: 0.1,
-                intensity: 3,
+                enabled: true,
+                speed: 0.5,
+                intensity: 1,
                 sync: false
             },
             movement: {
-                enabled: true,
-                speed: 0.006,
+                enabled: true,    
+                zEnabled: true,
+                speed: 0.1,
                 range: {
                     x: 2,
-                    y: 5,
-                    z: 0.1
+                    y: 4,
+                    z: 0.5,
                 }
             },
             position: { x: 0, y: 0, z: 0 },
-            initialPositions: null
+            initialPositions: null,
+            trackIntersection: true,
         }   
     },
 }
@@ -65,7 +75,7 @@ const CONFIG_ROADMAP = {
         maxDuration: 6,
         minOpacity: 0.05,
         maxOpacity: 1,
-    }
+    },
 }
 const CONFIG_MORE_BUTTON = {
     classes: {
