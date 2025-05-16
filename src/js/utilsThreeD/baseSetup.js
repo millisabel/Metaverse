@@ -2,15 +2,10 @@ import { createLogger } from '../utils/logger';
 import { ThreeDContainerManager } from './ThreeDContainerManager';
 
 /**
- * Base class for setting up and managing 3D scenes in sections
- * Provides functionality for:
- * - Container management
- * - Scene initialization and cleanup
- * - Visibility handling
- * - Animation control
- * - Resize handling
- * 
- * @class BaseSetup
+ * @description Base class for setting up and managing 3D scenes in sections
+ * @extends {BaseSetup}
+ * @param {string} containerId - ID of the container element
+ * @returns {BaseSetup}
  */
 export class BaseSetup {
     /**
@@ -33,9 +28,15 @@ export class BaseSetup {
         this.resizeTimeout = null;
         this.observer = null;
 
+        this._createdContainers = {};
+
         this.init();
     }
 
+    /**
+     * @description Initialize the base setup
+     * @returns {void}
+     */
     init() {
         this.logger.log({
             functionName: 'init',
@@ -51,10 +52,15 @@ export class BaseSetup {
     }
 
     /**
-     * Creates a 3D container with specified type and z-index
+     * @description Create a 3D container with specified type and z-index
+     * @param {string} name - Name of the container
+     * @param {number} zIndex - Z-index of the container
      * @returns {HTMLElement} Created container
      */
     createContainer(name, zIndex) {
+        if (this._createdContainers[name]) {
+            return this._createdContainers[name];
+        }
 
         this.logger.log({
             functionName: 'createContainer',
@@ -75,13 +81,13 @@ export class BaseSetup {
             container.dataset.containerName = name;
         }
         
+        this._createdContainers[name] = container;
         return container;
     }
 
     /**
-     * Initialize visibility observer to handle element visibility changes
-     * Uses IntersectionObserver to detect when the element enters/exits viewport
-     * @private
+     * @description Initialize visibility observer to handle element visibility changes
+     * @returns {void}
      */
     initVisibilityObserver() {
         this.observer = new IntersectionObserver(async (entries) => {
@@ -113,9 +119,8 @@ export class BaseSetup {
     }
 
     /**
-     * Initialize resize handler to manage window resize events
-     * Includes debouncing to prevent excessive updates
-     * @private
+     * @description Initialize resize handler to manage window resize events
+     * @returns {void}
      */
     initResizeHandler() {
         window.addEventListener('resize', () => {
@@ -145,8 +150,8 @@ export class BaseSetup {
     }
 
     /**
-     * Initialize Three.js scene with camera
-     * @private
+     * @description Initialize Three.js scene with camera
+     * @returns {Promise<void>}
      */
     async initScene() {
         if (this.initialized) return;
@@ -163,8 +168,9 @@ export class BaseSetup {
     }
 
     /**
-     * Cleans up a specific container type
+     * @description Cleans up a specific container type
      * @param {string} type - Container type from CONTAINER_TYPES
+     * @returns {void}
      */
     cleanupContainer(type) {
         const manager = new ThreeDContainerManager(this.container, { type });
@@ -172,17 +178,16 @@ export class BaseSetup {
     }
 
     /**
-     * Check if animation can proceed
+     * @description Check if animation can proceed
      * @returns {boolean} Whether animation should continue
-     * @protected
      */
     canAnimate() {
         return this.isVisible && !this.isResizing && this.initialized;
     }
 
     /**
-     * Animation loop
-     * @protected
+     * @description Animation loop
+     * @returns {void}
      */
     animate() {
         if (!this.canAnimate()) {
@@ -195,8 +200,8 @@ export class BaseSetup {
     }
 
     /**
-     * Stop animation loop
-     * @protected
+     * @description Stop animation loop
+     * @returns {void}
      */
     stopAnimation() {
         if (this.animationFrameId) {
@@ -206,9 +211,8 @@ export class BaseSetup {
     }
 
     /**
-     * Clean up all resources
-     * Disposes of Three.js objects, removes event listeners, and resets state
-     * @public
+     * @description Clean up all resources
+     * @returns {void}
      */
     cleanup() {
         // Clean up other resources
@@ -232,27 +236,24 @@ export class BaseSetup {
     }
 
     /**
-     * Setup the scene with additional elements
-     * Must be implemented by child classes
-     * @abstract
+     * @description Setup the scene with additional elements
+     * @returns {Promise<void>}
      */
     async setupScene() {
         throw new Error('setupScene must be implemented by subclass');
     }
 
     /**
-     * Handle resize event
-     * Must be implemented by child classes
-     * @abstract
+     * @description Handle resize event
+     * @returns {void}
      */
     onResize() {
         throw new Error('onResize must be implemented by subclass');
     }
 
     /**
-     * Update scene for animation frame
-     * Must be implemented by child classes
-     * @abstract
+     * @description Update scene for animation frame
+     * @returns {void}
      */
     update() {
         throw new Error('update must be implemented by subclass');
