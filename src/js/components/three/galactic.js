@@ -172,6 +172,13 @@ export class GalacticCloud extends AnimationController {
      * @protected
      */
     _setupPostProcessing() {
+        if (!this.renderer) {
+            this.logger.log('Renderer is not initialized, skipping postprocessing setup', {
+                conditions: ['error'],
+                functionName: '_setupPostProcessing'
+            });
+            return;
+        }
         this.composer = new EffectComposer(this.renderer);
         
         const renderPass = new RenderPass(this.scene, this.camera);

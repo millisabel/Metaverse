@@ -32,8 +32,8 @@ const CONFIG = {
             count: isMobile() ? 2000 : 6000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {
-                min: 1,
-                max: 3,
+                min: 0.5,
+                max: 1,
                 attenuation: true,
                 multiplier: isMobile() ? 2 : 2.3, 
             },

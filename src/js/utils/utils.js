@@ -283,3 +283,31 @@ export function getQuarterColorFromVar(quarter) {
     }
     return null;
 }
+
+/**
+ * Lazy initialization of a section controller (e.g., HeroSetup)
+ * @param {string} selector - CSS-selector of the section
+ * @param {Function} SectionClass - Class of the section controller
+ * @param {Object} [options] - Options for the constructor (if needed)
+ * @param {Object} [observerOptions] - Options for IntersectionObserver
+ */
+export function lazySectionInit(selector, SectionClass, options = {}, observerOptions = { threshold: 0.1, rootMargin: '100px' }) {
+    const section = document.querySelector(selector);
+    let controller = null;
+
+    if (!section) return;
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            console.log('IntersectionObserver', selector, entry.isIntersecting);
+            if (entry.isIntersecting && !controller) {
+                controller = new SectionClass(options);
+            } else if (!entry.isIntersecting && controller && typeof controller.cleanup === 'function') {
+                controller.cleanup();
+                controller = null;
+            }
+        });
+    }, observerOptions);
+
+    observer.observe(section);
+}

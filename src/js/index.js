@@ -1,5 +1,6 @@
 import { Logger } from './utils/logger';
 import { AnimationObserverCSS } from './utils/animationObserver_CSS';
+import { lazySectionInit } from './utils/utils';
 // Setup
 import { HeroSetup } from './setup/heroSetup';
 import { AboutSetup } from './setup/aboutSetup';
@@ -70,6 +71,19 @@ else {
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    initNavbar();
+    lazySectionInit('#hero', HeroSetup);
+    lazySectionInit('#about', AboutSetup);
+    lazySectionInit('#roadmap', RoadmapSetup);
+    // initDynamics();
+    // initVRMarket();
+    // initExplore();
+    // initSocial();
+
+    // Initialize UI components
+    initModal();
+    updateCopyrightYear('[data-year="currentYear"]');
+
     AOS.init({
         duration: 800,
         once: false,
@@ -80,18 +94,5 @@ document.addEventListener('DOMContentLoaded', () => {
     new AnimationObserverCSS(
         ['.star', '.roadmap-quarter', '.game-character--badge']
     );
-
-    initNavbar();
-    new HeroSetup();
-    new AboutSetup();
-    new RoadmapSetup();
-    // initDynamics();
-    // initVRMarket();
-    // initExplore();
-    // initSocial();
-
-    // Initialize UI components
-    initModal();
-    updateCopyrightYear('[data-year="currentYear"]');
 });
 
