@@ -143,18 +143,14 @@
             }
         }
         
-        &:nth-child(odd) {
-            .roadmap-circle {
-                right: 0;
-                transform: translateY(-50%);
-            }
+        &:nth-child(odd):before {
+            right: 0;
+            transform: translateY(-50%);
         }
         
-        &:nth-child(even) {
-            .roadmap-circle {
-                left: 0;
-                transform: translateY(-50%);
-            }
+        &:nth-child(even):before {
+            left: 0;
+            transform: translateY(-50%);
         }
 
         &--1 {
