@@ -131,3 +131,19 @@ export function deepMerge(target, source) {
     }
     return cloned;
 }
+
+// lerpColor =================================================
+/**
+ * Lerps between two colors
+ * @param {THREE.Color} colorA - The first color
+ * @param {THREE.Color} colorB - The second color
+ * @param {number} t - The interpolation factor
+ * @returns {THREE.Color} The interpolated color
+ */
+export function lerpColor(colorA, colorB, t) {
+    return new THREE.Color(
+        colorA.r + (colorB.r - colorA.r) * t,
+        colorA.g + (colorB.g - colorA.g) * t,
+        colorA.b + (colorB.b - colorA.b) * t
+    );
+}
