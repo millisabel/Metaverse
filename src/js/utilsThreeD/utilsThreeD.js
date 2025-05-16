@@ -1,18 +1,5 @@
 import * as THREE from 'three';
 
-
-// addDefaultLights =================================================
-/**
- * Adds default ambient and point lights to the scene
- * @param {THREE.Scene} scene - The scene to add lights to
- * @param {Object} options - Light options
- * @param {number} options.ambientColor - Color of ambient light
- * @param {number} options.ambientIntensity - Intensity of ambient light
- * @param {number} options.pointColor - Color of point light
- * @param {number} options.pointIntensity - Intensity of point light
- * @param {Object} options.pointPosition - Position of point light {x, y, z}
- */
-
 export const DEFAULT_LIGHTS = {
     ambientColor: 0x9933ff,
     ambientIntensity: 0.5,
@@ -21,6 +8,12 @@ export const DEFAULT_LIGHTS = {
     pointPosition: { x: 0, y: 2, z: 0 }
   };
 
+/**
+ * @description Adds default ambient and point lights to the scene
+ * @param {THREE.Scene} scene - The scene to add lights to
+ * @param {Object} options - Light options
+ * @returns {void}
+ */
 export function addDefaultLights(scene, options = {}) {
     const config = { ...DEFAULT_LIGHTS, ...options };
     // ambient
@@ -32,9 +25,8 @@ export function addDefaultLights(scene, options = {}) {
     scene.add(point);
 }
 
-// gaussianRandom =================================================
 /**
- * Returns a random number with normal (Gaussian) distribution
+ * @description Returns a random number with normal (Gaussian) distribution
  * @param {number} [mean=0] - Mean value
  * @param {number} [stdev=1] - Standard deviation
  * @returns {number} Random number from normal distribution
@@ -46,13 +38,13 @@ export function gaussianRandom(mean = 0, stdev = 1) {
     return z * stdev + mean;
 }
 
-// setupGeometry =================================================
 /**
- * Sets BufferGeometry attributes for positions, colors, and sizes
+ * @description Sets BufferGeometry attributes for positions, colors, and sizes
  * @param {THREE.BufferGeometry} geometry - The geometry to set attributes for
  * @param {Float32Array} positions - Positions array (length multiple of 3)
  * @param {Float32Array} colors - Colors array (length multiple of 3)
  * @param {Float32Array} sizes - Sizes array (length multiple of 1)
+ * @returns {void}
  */
 export function setupGeometry(geometry, positions, colors, sizes) {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -61,7 +53,7 @@ export function setupGeometry(geometry, positions, colors, sizes) {
 }
 
 /**
- * Linear interpolation between two vectors (3D)
+ * @description Linear interpolation between two vectors (3D)
  * @param {number[]} a - Vector 1 [x, y, z]
  * @param {number[]} b - Vector 2 [x, y, z]
  * @param {number} t - Interpolation parameter (0..1)
@@ -76,7 +68,7 @@ export function lerpVec3(a, b, t) {
 }
 
 /**
- * Projects a point (x, y) onto the back face with perspective
+ * @description Projects a point (x, y) onto the back face with perspective
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
  * @param {number} x_c - Center X
@@ -91,9 +83,8 @@ export function projectToBack(x, y, x_c, y_c, shrinkK) {
     ];
 }
 
-// deepMerge =================================================
 /**
- * Deep merges two objects
+ * @description Deep merges two objects
  * @param {Object} target - Target object
  * @param {Object} source - Source object
  * @returns {Object} Merged object
@@ -114,9 +105,8 @@ export function deepMerge(target, source) {
     return target;
   }
 
-  // deepClone =================================================
   /**
-   * Deep clones an object
+   * @description Deep clones an object
    * @param {Object} obj - The object to clone
    * @returns {Object} Cloned object
    */
@@ -132,9 +122,8 @@ export function deepMerge(target, source) {
     return cloned;
 }
 
-// lerpColor =================================================
 /**
- * Lerps between two colors
+ * @description Lerps between two colors
  * @param {THREE.Color} colorA - The first color
  * @param {THREE.Color} colorB - The second color
  * @param {number} t - The interpolation factor
@@ -146,4 +135,40 @@ export function lerpColor(colorA, colorB, t) {
         colorA.g + (colorB.g - colorA.g) * t,
         colorA.b + (colorB.b - colorA.b) * t
     );
+}
+
+/**
+ * @description Averages an array of colors
+ * @param {THREE.Color[]} colors - The colors to average
+ * @returns {THREE.Color} The averaged color
+ */
+export function averageColors(colors) {
+    if (!colors.length) return new THREE.Color(0,0,0);
+    let r = 0, g = 0, b = 0;
+    colors.forEach(c => { r += c.r; g += c.g; b += c.b; });
+    r /= colors.length;
+    g /= colors.length;
+    b /= colors.length;
+    return new THREE.Color(r, g, b);
+}
+
+/**
+ * @description Checks if a point is inside a rectangle
+ * @param {number} x - The x coordinate of the point
+ * @param {number} y - The y coordinate of the point
+ * @param {Object} rect - The rectangle to check against
+ * @returns {boolean} True if the point is inside the rectangle, false otherwise
+ */
+export function isPointInRect(x, y, rect) {
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
+
+/**
+ * @description Initializes the current color of a glow
+ * @param {Object} glow - The glow to initialize
+ * @param {THREE.Color} color - The color to initialize the glow with
+ * @returns {void}
+ */
+export function initGlowCurrentColor(glow, color) {
+    glow.currentColor = new THREE.Color(color);
 }
