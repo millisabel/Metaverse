@@ -18,7 +18,7 @@ const CONFIG_3D = {
             }
         },
         objectConfig: {
-            count: isMobile() ? 3 : 8,
+            count: isMobile() ? 3 : 12,
             colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
             size: {
@@ -51,7 +51,6 @@ const CONFIG_3D = {
             },
             position: { x: 0, y: 0, z: 0 },
             initialPositions: null,
-            trackIntersection: true,
         }   
     },
 }

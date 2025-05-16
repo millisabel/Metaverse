@@ -29,6 +29,13 @@ const DEFAULT_OPTIONS = {
     position: { x: 0, y: 0, z: 0 },
 };
 
+/**
+ * SingleGlow class
+ * @param {THREE.Scene} parentScene - The parent scene
+ * @param {THREE.WebGLRenderer} parentRenderer - The parent renderer
+ * @param {HTMLElement} container - The container element
+ * @param {Object} options - The options for the glow
+ */
 export class SingleGlow {
     constructor(parentScene, parentRenderer, container, options = {}) {
         this.name = this.constructor.name;
@@ -45,9 +52,6 @@ export class SingleGlow {
         };
         this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, mergedOptions);
 
-        // Diagnostic log for movement options
-        console.log('[SingleGlow] movement options:', this.options.movement);
-
         this.clock = new THREE.Clock();
         this.mesh = null;
         this.currentPath = {
@@ -59,15 +63,12 @@ export class SingleGlow {
             amplitude: Math.random() * 0.3 + 0.3
         };
 
-        // Индивидуальные параметры движения
         this.basePosition = {
             x: options.position?.x ?? 0,
             y: options.position?.y ?? 0,
             z: options.position?.z ?? 0
         };
-        console.log('[SingleGlow] basePosition:', this.basePosition);
 
-        // Индивидуальные параметры для каждой оси
         this.motionParams = {
             x: {
                 amplitude: (options.movement?.range?.x ?? 1) * (0.5 + Math.random() * 0.5),
@@ -89,7 +90,6 @@ export class SingleGlow {
             }
         };
 
-        // Индивидуальные параметры пульсации (масштаб и прозрачность)
         this.pulseParams = {
             scale: {
                 min: options.scale?.min ?? 1,
@@ -107,11 +107,9 @@ export class SingleGlow {
 
         this.baseSize = options.size ?? 1;
 
-        this.enableScalePulse = options.pulse?.enabled !== false; // по умолчанию true
+        this.enableScalePulse = options.pulse?.enabled !== false; 
 
-        console.log(`[SingleGlow] scale speed: ${this.pulseParams.scale.speed}, phase: ${this.pulseParams.scale.phase}`);
-
-        this.randomOffset = Math.random() * 1000; // Added for random offset
+        this.randomOffset = Math.random() * 1000; 
 
         this.setup();
     }
@@ -201,7 +199,6 @@ export class SingleGlow {
         }
         this.mesh.scale.set(scale, scale, 1);
 
-        // Прозрачность (opacity) — всегда пульсирует
         const opacityPulse = (Math.sin(time * this.pulseParams.opacity.speed + this.pulseParams.opacity.phase) + 1) / 2;
         const opacity = this.pulseParams.opacity.min + (this.pulseParams.opacity.max - this.pulseParams.opacity.min) * opacityPulse;
         if (this.mesh.material.uniforms) {
@@ -213,7 +210,7 @@ export class SingleGlow {
      * Updates the glow
      * @returns {void}
      */
-    update(camera, index = 0, shouldLog = false) {
+    update() {
         if (!this.mesh) return;
     
         const time = this.clock.getElapsedTime() + this.randomOffset;
@@ -224,29 +221,6 @@ export class SingleGlow {
     
         if (this.mesh.material.uniforms) {
             this.mesh.material.uniforms.time.value = time;
-        }
-
-        if (shouldLog) {
-            const pos = this.mesh.position;
-            const scale = this.mesh.scale;
-            const opacity = this.mesh.material.uniforms?.opacity?.value ?? 'n/a';
-            const color = this.mesh.material.uniforms?.color?.value?.getStyle?.() ?? 'n/a';
-            // Можно добавить любые другие параметры, которые хотите отслеживать
-            console.log(
-                `[SingleGlow][${index}]`,
-                `time=${time.toFixed(2)}\n`,
-                `x=${pos.x.toFixed(2)}\n`,
-                `y=${pos.y.toFixed(2)}\n`,
-                `z=${pos.z.toFixed(2)}\n`,
-                `size=${this.baseSize}\n`,
-                `scale=${scale.x.toFixed(2)}\n`,
-                `opacity=${opacity}\n`,
-                `_________________________________________________`
-            );
-        }
-
-        if (shouldLog) {
-            console.log(`[SingleGlow][${index}] x=${this.mesh.position.x}, y=${this.mesh.position.y}`);
         }
     }
 

@@ -21,12 +21,14 @@ const DEFAULT_OPTIONS = {
         max:  1.2,
     },
     pulse: {
+        enabled: true,
         speed:  0.5,
         intensity: 0.6,
         sync: false
     },
     movement: {
-        enabled:  true,
+        enabled:  true, 
+        zEnabled: true,
         speed:  0.05,
         range:  { x: 0.8, y: 0.8, z: 0.5 }
     },
@@ -39,8 +41,6 @@ const DEFAULT_OPTIONS = {
 export class Glow extends AnimationController {
     constructor(container, options = {}) {
         super(container, options, DEFAULT_OPTIONS);
-
-        this.glowConfigs = this.options || null;
 
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
@@ -144,7 +144,6 @@ export class Glow extends AnimationController {
         const y = (Math.random() - 0.5) * ySpread;
         const z = zEnabled ? (Math.random() * 2 - 1) * zRange : 0;
     
-        console.log('[Glow] Initial position:', { x, y, z, zEnabled });
         return { x, y, z };
     }
 
