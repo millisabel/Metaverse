@@ -1,5 +1,6 @@
 uniform float time;
 uniform vec2 resolution;
+uniform float opacity;
 varying vec2 vUv;
 
 float noise(vec2 p) {
@@ -22,6 +23,6 @@ void main() {
     vec3 color2 = vec3(0.4, 0.0, 0.8); // Dark purple
     vec3 finalColor = mix(color2, color1, core + noise1 * 0.2);
     
-    float alpha = core * (1.0 + noise2 * 0.3);
+    float alpha = core * (1.0 + noise2 * 0.3) * opacity;
     gl_FragColor = vec4(finalColor, alpha);
 }

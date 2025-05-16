@@ -14,30 +14,37 @@ import fragmentShader from '../../shaders/galacticCore.frag';
 const galacticTexture = './assets/images/galaxy-texture.png';
 
 /**
- * DEFAULT_OPTIONS
  * @description The default options for the galactic cloud
  * @type {Object}
  * @property {number} core.size - The size of the core
  * @property {number} core.segments - The segments of the core
  */
 
-const defaultOptions = {
+const DEFAULT_OPTIONS = {
+    camera: {
+        orbitSpeed: 0.2,
+        zoomPrimaryFreq: 0.3,
+        zoomSecondaryFreq: 0.1,
+        zoomMicroFreq: 0.8,
+    },
     core: {
         size: 2,
         segments: 2,
+        minScale: 0.8,
+        pulse: 2,
+        opacity: 1,
+        pulseFreq: 2.0
     },
     plane: {
         size: isMobile() ? 4 : 8,
         opacity: 1,
         transparent: false,
-    },
-    animation: {
-        baseScale: 1.0,
-        minCoreScale: 0.8,
-        corePulse: 2,
-        pulsePrimary: { freq: 0.5, amp: 0.15 },
-        pulseSecondary: { freq: 0.2, amp: 0.1 },
-        pulseMicro: { freq: 1.5, amp: 0.05 },
+        animation: {
+            baseScale: 1.0,
+            pulsePrimary: { freq: 0.5, amp: 0.15 },
+            pulseSecondary: { freq: 0.2, amp: 0.1 },
+            pulseMicro: { freq: 1.5, amp: 0.05 },
+        }
     },
     bloom: {
         strength: 0.5, 
@@ -47,7 +54,6 @@ const defaultOptions = {
 };
 
 /**
- * GALACTIC_CLOUD
  * @description The galactic cloud
  * @type {Object}
  * @property {Object} core - The core of the galactic cloud
@@ -55,17 +61,14 @@ const defaultOptions = {
  */
 export class GalacticCloud extends AnimationController {
     constructor(container, options = {}) {
-        super(container, options, defaultOptions);
+        super(container, options, DEFAULT_OPTIONS);
 
-        this._isDestroyed = false;
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
 
         this.galaxyCore = null;
         this.galaxyPlane = null;
         this.composer = null;
-
-        this.options = mergeOptionsWithObjectConfig(defaultOptions, options);
 
         this.logger.log('Controller initialization', {
             conditions: ['init'],
@@ -78,20 +81,16 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Setup scene
-     * @description Sets up the scene with the galaxy core, plane, and post-processing effects
+     * @public
+     * @description Initializes the scene
      * @returns {Promise<void>}
-     * @protected
      */
     async setupScene() {
-        this._isDestroyed = false;
         this.logger.log('Scene initialization', {
             conditions: ['init'],
             functionName: 'setupScene'
         });
         
-        if (this._isDestroyed) return;
-
         this._createGalaxyCore();
         await this._galaxyPlane();
         this._setupPostProcessing();
@@ -99,7 +98,6 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Create galaxy core
      * @description Creates the galaxy core
      * @returns {Promise<void>}
      * @protected
@@ -115,7 +113,8 @@ export class GalacticCloud extends AnimationController {
         const coreMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
-                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                opacity: { value: this.options.core.opacity }
             },
             vertexShader,
             fragmentShader,
@@ -131,7 +130,6 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Create galaxy plane
      * @description Creates the galaxy plane
      * @returns {Promise<void>}
      * @protected
@@ -170,7 +168,6 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Setup post-processing
      * @description Sets up the post-processing effects
      * @returns {Promise<void>}
      * @protected
@@ -196,49 +193,40 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Get pulse factor
      * @description Gets the pulse factor
      * @param {number} time - The time
      * @returns {number}
      * @protected
      */
     _getPulseFactor(time) {
-        const { pulsePrimary, pulseSecondary, pulseMicro } = this.options.animation;
-        const baseScale = this.options.animation.baseScale;
-    
+        const { pulsePrimary, pulseSecondary, pulseMicro } = this.options.plane.animation;
+        const baseScale = this.options.plane.animation.baseScale;
         const primaryWave = Math.sin(time * pulsePrimary.freq) * pulsePrimary.amp;
         const secondaryWave = Math.sin(time * pulseSecondary.freq) * pulseSecondary.amp;
         const microWave = Math.sin(time * pulseMicro.freq) * pulseMicro.amp;
-    
         return baseScale + primaryWave + secondaryWave + microWave;
     }
 
     /**
-     * Update galaxy core pulse
      * @description Updates the galaxy core pulse
      * @param {number} time - The time
      * @protected
      */
     _updateGalaxyCorePulse(time){
-        const animationCore = this.options.animation.corePulse;
-
+        const animationCore = this.options.core.pulse;
         if (this.galaxyCore) {
-            const minScale = this.options.animation.minCoreScale;
-
+            const minScale = this.options.core.minScale;
             this.galaxyCore.material.uniforms.time.value = time;
-
-            let corePulse = 1 + Math.sin(time * 2.0) * animationCore;
-
+            let corePulse = 1 + Math.sin(time * this.options.core.pulseFreq) * animationCore;
             corePulse = Math.max(corePulse, minScale); 
-
             this.galaxyCore.scale.set(corePulse, corePulse, corePulse);
         }
     }
 
     /**
-     * Update galaxy plane pulse
      * @description Updates the galaxy plane pulse
      * @param {number} time - The time
+     * @returns {void}
      * @protected
      */
     _updateGalaxyPlanePulse(time) {
@@ -248,21 +236,22 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Update camera orbit
      * @description Updates the camera orbit
      * @param {number} time - The time
+     * @returns {void}
      * @protected
      */
     _updateCameraOrbit(time) {
         const mobile = isMobile();
         const offsetX = mobile ? 0 : -4;
         const baseRadius = mobile ? 20 : 15;
-        const zoomPrimary = Math.sin(time * 0.3) * 2;
-        const zoomSecondary = Math.sin(time * 0.1) * 1;
-        const zoomMicro = Math.sin(time * 0.8) * 0.5;
+        const zoomPrimary = Math.sin(time * (this.options.camera?.zoomPrimaryFreq ?? 0.3)) * 2;
+        const zoomSecondary = Math.sin(time * (this.options.camera?.zoomSecondaryFreq ?? 0.1)) * 1;
+        const zoomMicro = Math.sin(time * (this.options.camera?.zoomMicroFreq ?? 0.8)) * 0.5;
     
         const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
-        const cameraAngle = -time * (mobile ? 0.15 : 0.2);
+        const orbitSpeed = this.options.camera?.orbitSpeed ?? (mobile ? 0.15 : 0.2);
+        const cameraAngle = -time * orbitSpeed;
     
         this.cameraController.setPosition({
             x: offsetX + Math.sin(cameraAngle) * currentRadius,
@@ -273,10 +262,9 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Update
-     * @description Updates the scene
+     * @public
+     * @description Updates the scene (animation, rendering)
      * @returns {Promise<void>}
-     * @protected
      */
     update() {
         if (!this.isVisible || !this.scene || !this.camera || !this.composer) return;
@@ -291,10 +279,9 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * On resize
-     * @description On resize
+     * @public
+     * @description Handles window resize
      * @returns {Promise<void>}
-     * @protected
      */
     onResize() {
         if (!this.renderer || !this.camera) return;
@@ -313,14 +300,12 @@ export class GalacticCloud extends AnimationController {
     }
 
     /**
-     * Cleanup
-     * @description Cleanup
+     * @public
+     * @description Cleans up the galaxy resources and postprocessing
      * @returns {Promise<void>}
-     * @protected
      */
     cleanup() {
         let message = `starting cleanup in ${this.constructor.name}\n`;
-        this._isDestroyed = true;
         
         if (this.composer) {
             this.composer.dispose();

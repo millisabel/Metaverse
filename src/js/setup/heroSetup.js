@@ -29,7 +29,7 @@ const CONFIG = {
             speed: { x: 0.000002, y: 0.000002 },
         },
         objectConfig: {
-            count: isMobile() ? 2000 : 5000,
+            count: isMobile() ? 2000 : 6000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {
                 min: 1,
@@ -62,24 +62,32 @@ const CONFIG = {
             far: 1000,
             position: { x: 0, y: 5, z: 15 },
             rotation: true,
+            orbitSpeed: 0.2, 
+            zoomPrimaryFreq: 0.3,
+            zoomSecondaryFreq: 0.1,
+            zoomMicroFreq: 0.8,
+
         },
         objectConfig: {
             core: {
                 size: 2,
+                minScale: 1.5,
+                pulse: 4,
+                opacity: 0.4,
+                pulseFreq: 2.0
             },
             plane: {
                 size: isMobile() ? 4 : 8,
-                opacity: 0.6,
+                opacity: 0.7,
                 transparent: true,
+                animation: {
+                    baseScale: 1.0,
+                }
             },
             bloom: {
-                strength: 2, 
+                strength: 1, 
                 radius: 3,
-                threshold: 0.2, 
-            },
-            animation: {
-                minScale: 1,
-                    corePulse: 5,
+                threshold: 0.4, 
             },
         }
     }
