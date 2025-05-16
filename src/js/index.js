@@ -33,6 +33,7 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('(AnimationController) ⬅ Stars');
     Logger.disableLoggerFor('(AnimationController) ⬅ GalacticCloud');
     Logger.disableLoggerFor('(AnimationController) ⬅ Constellation');
+    Logger.disableLoggerFor('(AnimationController) ⬅ Glow');
 
     Logger.disableLoggerFor('(Universal3DSection) ⬅ HeroSetup');
     Logger.disableLoggerFor('(Universal3DSection) ⬅ AboutSetup');
@@ -51,7 +52,7 @@ if(process.env.NODE_ENV === 'development') {
 
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
-    // Logger.disableLoggerFor('Glow');
+    Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
