@@ -178,8 +178,17 @@ export class Stars extends AnimationController {
         const sizes = this.stars.geometry.attributes.size.array;
         const depthRange = this.options.depth.range;
     
-        for (let i = 0; i < positions.length; i += 3) {
-            const index = i / 3;
+        let positionChanged = false;
+        let sizeChanged = false;
+
+        const batchSize = Math.ceil(this.options.count / 4); 
+        this._starBatchIndex = (this._starBatchIndex || 0) % 4;
+
+        const start = this._starBatchIndex * batchSize;
+        const end = Math.min(start + batchSize, this.options.count);
+
+        for (let index = start; index < end; index++) {
+            const i = index * 3;
     
             this.phases[index] += this.flickerSpeeds[index];
             const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
@@ -202,6 +211,15 @@ export class Stars extends AnimationController {
             if (positions[i + 2] > this.options.depth.z[1]) positions[i + 2] = this.options.depth.z[0];
         }
     
+        this._starBatchIndex++;
+
+        if (positionChanged) {
+            this.stars.geometry.attributes.position.needsUpdate = true;
+        }
+        if (sizeChanged) {
+            this.stars.geometry.attributes.size.needsUpdate = true;
+        }
+
         this.stars.geometry.attributes.position.needsUpdate = true;
         this.stars.geometry.attributes.size.needsUpdate = true;
     }
