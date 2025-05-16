@@ -49,9 +49,14 @@ const CONFIG_3D = {
                     z: 0.5,
                 }
             },
+            intersection: {
+                enabled: true,
+                selector: '.roadmap-quarter',
+                lerpSpeed: 0.01,
+            },
             position: { x: 0, y: 0, z: 0 },
             initialPositions: null,
-        }   
+        },
     },
 }
 const CONFIG_ROADMAP = {
@@ -89,7 +94,10 @@ const CONFIG_MORE_BUTTON = {
     revealDelay: 200,
 }
 
-
+/**
+ * @description RoadmapSetup class
+ * @extends {Universal3DSection}
+ */
 export class RoadmapSetup extends Universal3DSection {
     constructor() {
         super(SECTION_ID, CONFIG_3D);

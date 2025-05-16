@@ -115,7 +115,7 @@ export class SingleGlow {
     }
 
     /**
-     * Sets up the glow
+     * @description Sets up the glow
      * @returns {void}
      */
     setup() {
@@ -158,7 +158,7 @@ export class SingleGlow {
     }
 
     /**
-     * Sets the position of the glow
+     * @description Sets the position of the glow
      * @param {Object} position - The position of the glow
      * @returns {void}
      */
@@ -173,7 +173,7 @@ export class SingleGlow {
     }
 
     /**
-     * Updates the position of the glow
+     * @description Updates the position of the glow
      * @param {number} time - The current time
      * @returns {void}
      */
@@ -188,8 +188,9 @@ export class SingleGlow {
     }
 
     /**
-     * Updates the opacity uniform for pulsating effect
+     * @description Updates the opacity uniform for pulsating effect
      * @param {number} time - Current animation time
+     * @returns {void}
      */
     _updateScaleAndOpacity(time) {
         let scale = this.baseSize;
@@ -207,7 +208,36 @@ export class SingleGlow {
     }
 
     /**
-     * Updates the glow
+     * @description Sets the color of the glow dynamically
+     * @param {string|THREE.Color} color - Новый цвет (CSS-строка или THREE.Color)
+     * @returns {void}
+     */
+    setColor(color) {
+        if (!this.mesh || !this.mesh.material) return;
+        const newColor = (color instanceof THREE.Color) ? color : new THREE.Color(color);
+        if (this.mesh.material.uniforms && this.mesh.material.uniforms.color) {
+            this.mesh.material.uniforms.color.value = newColor;
+        } else if (this.mesh.material.color) {
+            this.mesh.material.color = newColor;
+        }
+        this.options.color = newColor.getStyle ? newColor.getStyle() : color;
+    }
+
+    /**
+     * @description Sets the size (scale) of the glow dynamically
+     * @param {number} size - Новый базовый размер блика
+     * @returns {void}
+     */
+    setSize(size) {
+        if (!this.mesh) return;
+        this.baseSize = size;
+        // Немедленно обновляем scale
+        this.mesh.scale.set(size * (this.pulseParams?.scale?.min ?? 1), size * (this.pulseParams?.scale?.min ?? 1), 1);
+        this.options.size = size;
+    }
+
+    /**
+     * @description Updates the glow
      * @returns {void}
      */
     update() {
@@ -225,7 +255,7 @@ export class SingleGlow {
     }
 
     /**
-     * Cleans up the glow
+     * @description Cleans up the glow
      * @returns {void}
      */
     cleanup() {

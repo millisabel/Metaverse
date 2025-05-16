@@ -1,8 +1,11 @@
 import * as THREE from 'three';
+
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
-import { createLogger } from "../../utils/logger";
 import { SingleGlow } from './singleGlow';
-import { shuffleArray } from '../../utils/utils';
+
+import { createLogger } from "../../utils/logger";
+import { getQuarterColorFromVar, shuffleArray } from '../../utils/utils';
+import { lerpColor, averageColors, isPointInRect, initGlowCurrentColor } from '../../utilsThreeD/utilsThreeD';
 
 const DEFAULT_OPTIONS = {
     count: 5,
@@ -32,12 +35,23 @@ const DEFAULT_OPTIONS = {
         speed:  0.05,
         range:  { x: 0.8, y: 0.8, z: 0.5 }
     },
+    intersection: {
+        enabled: false,
+        selector: null,
+        lerpSpeed: 0.05,
+    },
     position: { x: 0, y: 0, z: 0 },
-    initialPositions: null
+    initialPositions: null,
 
 };
 
-
+/**
+ * @extends {AnimationController}
+ * @description Glow class
+ * @param {HTMLElement} container - The container element
+ * @param {Object} options - The options
+ * @param {Object} defaultOptions - The default options
+ */
 export class Glow extends AnimationController {
     constructor(container, options = {}) {
         super(container, options, DEFAULT_OPTIONS);
@@ -46,10 +60,37 @@ export class Glow extends AnimationController {
         this.logger = createLogger(this.name);
 
         this.glows = [];
+        this._quarterBlocks = [];
+        this._updateQuarterBlocks();
     }
 
     /**
-     * Sets up the scene
+     * @description Updates the quarter blocks
+     * @returns {void}
+     */
+    _updateQuarterBlocks() {
+        const intersectionOpts = this.options.intersection || {};
+        const selector = intersectionOpts.selector;
+        if (!intersectionOpts.enabled || !selector) {
+            intersectionOpts.enabled = false;
+            this._quarterBlocks = [];
+            return;
+        }
+        const elements = document.querySelectorAll(selector);
+        if (!elements.length) {
+            intersectionOpts.enabled = false;
+            this._quarterBlocks = [];
+            return;
+        }
+        intersectionOpts.enabled = true;
+        this._quarterBlocks = Array.from(elements).map(el => ({
+            el,
+            rect: el.getBoundingClientRect()
+        }));
+    }
+
+    /**
+     * @description Sets up the scene
      * @returns {void}
      */
     setupScene() {
@@ -57,7 +98,7 @@ export class Glow extends AnimationController {
     }
 
     /**
-     * Creates the glows
+     * @description Creates the glows
      * @returns {void}
      */
     _createGlows() {
@@ -82,7 +123,7 @@ export class Glow extends AnimationController {
     }
 
     /**
-     * Gets the colors for the glows
+     * @description Gets the colors for the glows
      * @returns {Array} The colors for the glows
      */
     _getColors() {
@@ -94,7 +135,7 @@ export class Glow extends AnimationController {
     }
 
     /**
-     * Creates a glow object
+     * @description Creates a glow object
      * @param {string} color - The color of the glow
      * @param {Object} position - The position of the glow
      * @returns {Object} The glow object
@@ -114,11 +155,12 @@ export class Glow extends AnimationController {
                 movement: this.options.movement
             }
         );
+        initGlowCurrentColor(glow, color);
         return glow;
     }
 
     /**
-     * Calculates the initial position of a glow object
+     * @description Calculates the initial position of a glow object
      * @param {number} index - The index of the glow object
      * @returns {Object} The initial position of the glow object
      */
@@ -129,12 +171,11 @@ export class Glow extends AnimationController {
     }
 
     /**
-     * Calculates the initial position of a glow object
+     * @description Calculates the initial position of a glow object
      * @param {number} index - The index of the glow object
      * @returns {Object} The initial position of the glow object
      */
     _calculateInitialPosition() {
-        // Диапазон разброса в мировых координатах
         const xSpread = (this.options.movement.range.x || 1); 
         const ySpread = (this.options.movement.range.y || 1);
         const zRange = this.options.movement.range.z || 0.1;
@@ -148,18 +189,69 @@ export class Glow extends AnimationController {
     }
 
     /**
-     * Updates the glows
+     * @description Checks the intersection of glows with DOM blocks and smoothly changes their color
+     * @returns {void}
+     */
+    _handleGlowQuarterIntersection() {
+        if (!this.glows || !this._quarterBlocks.length) return;
+        const camera = this.camera;
+        const intersectionOpts = this.options.intersection || {};
+        const lerpSpeed = intersectionOpts.lerpSpeed ?? 0.05;
+        this.glows.forEach(glow => {
+            if (!glow.mesh) return;
+            const vector = glow.mesh.position.clone().project(camera);
+            const x = (vector.x + 1) / 2 * window.innerWidth;
+            const y = (-vector.y + 1) / 2 * window.innerHeight;
+            let intersectedColors = [];
+            this._quarterBlocks.forEach(({el, rect}) => {
+                if (isPointInRect(x, y, rect)) {
+                    const colorStr = getQuarterColorFromVar(el);
+                    if (colorStr) {
+                        const color = new THREE.Color(colorStr);
+                        intersectedColors.push(color);
+                    }
+                }
+            });
+            let targetColor;
+
+            glow.isIntersecting = intersectedColors.length > 0;
+            if (intersectedColors.length === 1) {
+                targetColor = intersectedColors[0];
+            } else if (intersectedColors.length > 1) {
+                targetColor = averageColors(intersectedColors);
+            } else {
+                targetColor = new THREE.Color(glow.options.color);
+            }
+
+            if (!glow.currentColor) {
+                if (glow.mesh.material.uniforms && glow.mesh.material.uniforms.color) {
+                    glow.currentColor = glow.mesh.material.uniforms.color.value.clone();
+                } else {
+                    glow.currentColor = new THREE.Color(glow.options.color);
+                }
+            }
+            glow.currentColor = lerpColor(glow.currentColor, targetColor, lerpSpeed);
+            glow.setColor(glow.currentColor);
+        });
+    }
+
+    /**
+     * @description Updates the glows
      * @returns {void}
      */
     update() {
         if (!this.canAnimate()) return;
         
         this.glows.forEach(glow => glow.update(this.camera));
+        this._updateQuarterBlocks(); 
+        if (this.options.intersection && this.options.intersection.enabled) {
+            this._handleGlowQuarterIntersection();
+        }
         this.renderScene();
     }
 
     /**
-     * Cleans up the glows
+     * @description Cleans up the glows
      * @returns {void}
      */
     cleanup() {
