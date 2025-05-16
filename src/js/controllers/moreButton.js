@@ -34,6 +34,7 @@ export class MoreButton {
 
     /**
      * @description Initializes the MoreButton
+     * @returns {void}
      */
     _init() {
         if (this.initialized) return;
@@ -44,6 +45,7 @@ export class MoreButton {
 
     /**
      * @description Sets up the buttons for the MoreButton
+     * @returns {void}
      */
     _setupButtons() {
         const moreButtons = this.container.querySelectorAll(getClassSelector(this.options.classes.button));
@@ -75,6 +77,7 @@ export class MoreButton {
      * @description Sets the state of the button
      * @param {HTMLElement} button - The button element
      * @param {boolean} disabled - Whether the button is disabled
+     * @returns {void}
      */
     _setButtonState(button, disabled) {
         button.disabled = disabled;
@@ -85,6 +88,7 @@ export class MoreButton {
     /**
      * @description Resets the state of the items
      * @param {NodeList|Array} items - The items
+     * @returns {void}
      */
     _resetItemsState(items) {
         items.forEach(item => {
@@ -104,6 +108,7 @@ export class MoreButton {
      * @param {NodeList|Array} items - The items
      * @param {HTMLElement} button - The button element
      * @param {HTMLElement} hiddenItems - The hidden items element
+     * @returns {Promise}
      */
     async _revealItems(items, button, hiddenItems) {
         this._setButtonState(button, true);
@@ -159,6 +164,7 @@ export class MoreButton {
      * @param {HTMLElement} hiddenItems - The container element
      * @param {NodeList|Array} items - The items list
      * @param {number} [count] - The number of items to consider (e.g., up to index)
+     * @returns {void}
      */
     _updateContainerHeight(hiddenItems, items, count = null) {
         let visibleItems;
@@ -176,6 +182,7 @@ export class MoreButton {
      * @param {NodeList|Array} items - The items list
      * @param {HTMLElement} button - The button element
      * @param {HTMLElement} hiddenItems - The hidden items element
+     * @returns {void}
      */
     _hideItems(items, button, hiddenItems) {
         this._setButtonState(button, true);
@@ -194,7 +201,8 @@ export class MoreButton {
      * @param {HTMLElement} button - The button element
      * @param {HTMLElement} hiddenItems - The hidden items element
      * @param {number} index - The current index
-     */
+     * @returns {Promise}
+     */ 
     async _hideItemsRecursive(items, button, hiddenItems, index) {
         if (index < 0) {
             hiddenItems.style.height = '0';

@@ -61,14 +61,11 @@ const CONFIG_3D = {
 }
 const CONFIG_ROADMAP = {
     zIndex: 1,
-    selectors: {
-        container: '.roadmap-container',
-        quarters: '.roadmap-quarter',
-        timeline: '.roadmap-timeline',
-        quartersContainer: '.roadmap-quarters-container',
-        svgContainer: '.connection-lines',
-    },
     classes: {
+        container: 'roadmap-container',
+        quarters: 'roadmap-quarter',
+        timeline: 'roadmap-timeline',
+        quartersContainer: 'roadmap-quarters-container',
         svgContainer: 'connection-lines',
     },
     dots: {
@@ -91,12 +88,13 @@ const CONFIG_MORE_BUTTON = {
     revealDelay: 200,
     typingSpeed: 20,
     eraseSpeed: 15,
-    revealDelay: 200,
 }
 
 /**
  * @description RoadmapSetup class
  * @extends {Universal3DSection}
+ * @param {HTMLElement} container - The container element
+ * @param {Object} options - The options object
  */
 export class RoadmapSetup extends Universal3DSection {
     constructor() {

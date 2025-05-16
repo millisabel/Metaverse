@@ -1,13 +1,20 @@
 import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
-import { getRandomValue, getColors, mergeOptionsWithObjectConfig } from '../../utils/utils';
+import { getRandomValue, getColors, mergeOptionsWithObjectConfig, getClassSelector } from '../../utils/utils';
 
 /**
- * Default options for the roadmap component
+ * @description Default options for the roadmap component
  * @type {Object}
  */
 const DEFAULT_OPTIONS = {
     colors: ['rgb(255, 255, 255)'],
+    classes: {
+        container: null,
+        quarters: null,
+        timeline: null,
+        quartersContainer: null,
+        svgContainer: null,
+    },
     dots: {
         count: 10,
         minSize: 1,
@@ -20,11 +27,11 @@ const DEFAULT_OPTIONS = {
     animationConfig: {
         resizeDelay: 250,
         curvature: 0.5,
-    }
+    },
 };
 
 /**
- * Roadmap component
+ * @description Roadmap component
  * @class Roadmap
  * @param {HTMLElement} container - The container element
  * @param {Object} options - The options object
@@ -46,10 +53,14 @@ export class Roadmap {
 
         this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, options);
 
-        this.init();
+        this._init();
     }
 
-    init() {
+    /**
+     * @description Initializes the roadmap component
+     * @returns {void}
+     */
+    _init() {
         if (!this.container || this.initialized) return;
     
         this.logger.log({
@@ -57,9 +68,9 @@ export class Roadmap {
             functionName: 'init'
         });
 
-        this.parentSVG = this.container.querySelector(this.options.selectors.timeline);
+        this.parentSVG = this.container.querySelector(getClassSelector(this.options.classes.timeline));
         this.SVG = this._createSVG();
-        this.quarters = this.container.querySelectorAll(this.options.selectors.quarters);
+        this.quarters = this.container.querySelectorAll(getClassSelector(this.options.classes.quarters));
         this.colors = this._getQuarterColor();
 
         this._initResizeObserver();   
@@ -67,8 +78,8 @@ export class Roadmap {
     }
 
     /**
-     * Get colors from container
-     * @private
+     * @description Get colors from container
+     * @returns {void}
      */
     _getQuarterColor() {
         this.colors = getColors(this.container, '.roadmap-quarter');
@@ -78,8 +89,8 @@ export class Roadmap {
     }
 
     /**
-    * Initializes the ResizeObserver for the container
-     * @private
+     * @description Initializes the ResizeObserver for the container
+     * @returns {void}
      */
     _initResizeObserver() {
         this.resizeObserver = new ResizeObserver(entries => {
@@ -95,8 +106,8 @@ export class Roadmap {
     }
 
     /**
-     * Create SVG element
-     * @private
+     * @description Create SVG element
+     * @returns {SVGElement}
      */
     _createSVG() {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -107,11 +118,11 @@ export class Roadmap {
     }
 
     /**
-     * Create connection lines
-     * @private
+     * @description Create connection lines
+     * @returns {void}
      */
     _createConnectionLines() {
-        const existingSvg = this.parentSVG.querySelector(this.options.selectors.svgContainer);
+        const existingSvg = this.parentSVG.querySelector(getClassSelector(this.options.classes.svgContainer));
         if (existingSvg) {
             existingSvg.remove();
         }
@@ -126,8 +137,8 @@ export class Roadmap {
     }
 
     /**
-     * Create points
-     * @private
+     * @description Create points
+     * @returns {Array}
      */
     _createPoints() {
         const points = Array.from(this.quarters).map((quarter, index) => {
@@ -156,8 +167,9 @@ export class Roadmap {
     }
 
     /**
-     * Create connection
-     * @private
+     * @description Create connection
+     * @param {Array} points - The points
+     * @returns {void}
      */
     _createConnection(points) {
         const connections = points.slice(0, -1).map((start, index) => {
@@ -193,8 +205,12 @@ export class Roadmap {
     }
 
     /**
-     * Create curved path
-     * @private
+     * @description Create curved path
+     * @param {Object} start - The start point
+     * @param {Object} end - The end point
+     * @param {Object} controlPoint1 - The first control point
+     * @param {Object} controlPoint2 - The second control point
+     * @returns {SVGElement}
      */
     _createCurvedPath(start, end, controlPoint1, controlPoint2) {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -209,8 +225,10 @@ export class Roadmap {
     }
 
     /**
-     * Create dots
-     * @private
+     * @description Create dots
+     * @param {SVGElement} path - The path
+     * @param {string} color - The color
+     * @returns {Array}
      */
     _createDots(path, color) {
         const dots = [];
@@ -232,8 +250,11 @@ export class Roadmap {
     }
 
     /**
-     * Create single dot
-     * @private
+     * @description Create single dot
+     * @param {string} color - The color
+     * @param {number} size - The size
+     * @param {number} opacity - The opacity
+     * @returns {SVGElement}
      */
     _createSingleDot(color, size, opacity) {
         const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -246,8 +267,10 @@ export class Roadmap {
     }
 
     /**
-     * Create single dot animate
-     * @private
+     * @description Create single dot animate
+     * @param {SVGElement} path - The path
+     * @param {number} duration - The duration
+     * @returns {SVGElement}
      */
     _createSingleDotAnimate(path, duration) {
         const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
@@ -261,8 +284,8 @@ export class Roadmap {
     }
 
     /**
-     * Disconnect observer
-     * @private
+     * @description Disconnect observer
+     * @returns {void}
      */
     _disconnect() {
         if (this.resizeObserver) {
