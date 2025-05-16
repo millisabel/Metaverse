@@ -84,13 +84,13 @@ export class BaseSetup {
      * @private
      */
     initVisibilityObserver() {
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+        this.observer = new IntersectionObserver(async (entries) => {
+            entries.forEach(async (entry) => {
                 this.isVisible = entry.isIntersecting;
                 
                 if (this.isVisible) {
                     if (!this.initialized) {
-                        this.initScene();
+                        await this.initScene();
                     }
                     if (!this.isResizing) {
                         this.animate();
@@ -148,10 +148,10 @@ export class BaseSetup {
      * Initialize Three.js scene with camera
      * @private
      */
-    initScene() {
+    async initScene() {
         if (this.initialized) return;
 
-        this.setupScene();
+        await this.setupScene();
         
         this.initialized = true;
 
@@ -236,7 +236,7 @@ export class BaseSetup {
      * Must be implemented by child classes
      * @abstract
      */
-    setupScene() {
+    async setupScene() {
         throw new Error('setupScene must be implemented by subclass');
     }
 

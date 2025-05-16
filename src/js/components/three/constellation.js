@@ -330,7 +330,7 @@ export class Constellation extends AnimationController {
      * @description Setup the scene
      * @returns {void}
      */
-    setupScene() {
+    async setupScene() {
         this.logger.log('Scene initialization', {
             conditions: ['initializing-scene'],
             functionName: 'setupScene'

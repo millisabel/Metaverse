@@ -93,7 +93,7 @@ export class Glow extends AnimationController {
      * @description Sets up the scene
      * @returns {void}
      */
-    setupScene() {
+    async setupScene() {
         this._createGlows();
     }
 
