@@ -9,7 +9,7 @@ import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 
 /**
- * Stars component
+ * @description Stars component
  * @extends AnimationController
  * @param {Object} container - Container element
  * @param {Object} options - Options for the stars
@@ -85,7 +85,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Initialize the star attributes
      * @description Initialize the star attributes
      * @param {Float32Array} positions - Positions of the stars
      * @param {Float32Array} colors - Colors of the stars
@@ -130,7 +129,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Create star points
      * @description Create star points
      * @param {THREE.BufferGeometry} geometry - Geometry of the stars
      * @returns {Promise<void>}
@@ -151,7 +149,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Create stars
      * @description Create stars
      * @returns {Promise<void>}
      */
@@ -173,7 +170,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Update the star attributes
      * @description Update the star attributes
      * @returns {Promise<void>}
      */
@@ -211,7 +207,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Update the stars
      * @description Update the stars position, size, and color
      * @returns {Promise<void>}
      */
@@ -231,7 +226,6 @@ export class Stars extends AnimationController {
     }
 
     /**
-     * Cleanup the stars
      * @description Cleanup the stars
      * @returns {Promise<void>}
      */

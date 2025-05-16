@@ -33,7 +33,8 @@ const CONFIG = {
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
             size: {
                 min: 1,
-                max: 4,
+                max: 3,
+                attenuation: true,
                 multiplier: isMobile() ? 2 : 2.3, 
             },
             depth: {
@@ -41,6 +42,8 @@ const CONFIG = {
                 z: [300, -400] 
             },
             movement: {
+                enabled: true,
+                probability: 0.15,
                 speed: 0.0015,
                 amplitude: {
                     x: 0.01,
