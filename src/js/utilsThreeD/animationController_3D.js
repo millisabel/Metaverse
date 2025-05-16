@@ -7,19 +7,11 @@ import {createCanvas, updateThreeRendererSize} from "../utilsThreeD/canvasUtils"
 import { addLightsToScene, DEFAULT_LIGHTS } from './lightsUtils';
 import { mergeOptionsWithObjectConfig } from '../utils/utils';
 
-
 /**
- * Basic controller for managing Three.js animations and scene lifecycle
- * Provides functionality for:
- * - Scene initialization and cleanup
- * - Visibility tracking
- * - Animation loop management
- * - Resize handling
- * - Camera control
- * 
- * This class serves as a base for specific 3D components like Stars, Glow, etc.
- * 
- * @class AnimationController
+ * @description Animation controller for 3D scenes
+ * @extends {BaseSetup}
+ * @param {HTMLElement} container - Container element for the 3D scene
+ * @returns {AnimationController}
  */
 export class AnimationController {
     /**
@@ -72,8 +64,8 @@ export class AnimationController {
     }
 
     /**
-     * Initializes the controller: dependencies, visibility observer, resize handler, and WebGL context handlers.
-     * @protected
+     * @description Initializes the controller: dependencies, visibility observer, resize handler, and WebGL context handlers.
+     * @returns {Promise<void>}
      */
     async init() {
         this.logger.log({
@@ -81,15 +73,15 @@ export class AnimationController {
             functionName: 'init'
         });
 
-        this.initDependencies();
-        this.initVisibilityObserver();
-        this.initResizeHandler();
-        this.initWebGLContextHandlers();
+        this._initDependencies();
+        this._initVisibilityObserver();
+        this._initResizeHandler();
+        this._initWebGLContextHandlers();
     }
 
     /**
-     * Initializes Three.js scene, camera, and renderer.
-     * @protected
+     * @description Initializes Three.js scene, camera, and renderer.
+     * @returns {Promise<void>}
      */
     async initScene() {
         this.logger.log('Initializing scene', {
@@ -100,7 +92,7 @@ export class AnimationController {
         if (this.isInitialized) return;
 
         if (!this.renderer) {
-            this.initDependencies(); 
+            this._initDependencies(); 
         }
 
         if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode !== this.container) {
@@ -138,13 +130,14 @@ export class AnimationController {
     }
 
     /**
-     * Initializes camera controller and renderer.
-     * @protected
+     * @private
+     * @description Initializes dependencies
+     * @returns {void}
      */
-    initDependencies() {
+    _initDependencies() {
         this.logger.log('Initializing dependencies', {
             conditions: ['init'],
-            functionName: 'initDependencies'
+            functionName: '_initDependencies'
         });
 
         this.cameraController = new CameraController(this.options.camera);
@@ -152,13 +145,14 @@ export class AnimationController {
     }
 
     /**
-     * Sets up IntersectionObserver to track container visibility.
-     * @protected
+     * @private
+     * @description Initializes visibility observer
+     * @returns {void}
      */
-    initVisibilityObserver() {
+    _initVisibilityObserver() {
         this.logger.log('Initializing visibility observer', {
             conditions: ['init'],
-            functionName: 'initVisibilityObserver'
+            functionName: '_initVisibilityObserver'
         });
 
         this.observer = new IntersectionObserver((entries) => {
@@ -167,7 +161,7 @@ export class AnimationController {
                     this.isVisible = true;
                     this.logger.log('Object is visible', {
                         conditions: ['visible'],
-                        functionName: 'initVisibilityObserver'
+                        functionName: '_initVisibilityObserver'
                     });
 
                     if (!this.isInitialized) {
@@ -195,13 +189,14 @@ export class AnimationController {
     }
 
     /**
-     * Sets up window resize handler with debounce logic.
-     * @protected
+     * @private
+     * @description Initializes resize handler
+     * @returns {void}
      */
-    initResizeHandler() {
+    _initResizeHandler() {
         this.logger.log('Initializing resize handler', {
             conditions: ['init'],
-            functionName: 'initResizeHandler'
+            functionName: '_initResizeHandler'
         });
 
         window.addEventListener('resize', () => {
@@ -209,7 +204,7 @@ export class AnimationController {
                 this.isResizing = true;
                 this.logger.log({
                     conditions: ['resize-started'],
-                    functionName: 'initResizeHandler'
+                    functionName: '_initResizeHandler'
                 });
                 this.stopAnimation();
             }
@@ -219,7 +214,7 @@ export class AnimationController {
                 this.isResizing = false;
                 this.logger.log({
                     conditions: ['resize-completed'],
-                    functionName: 'initResizeHandler'
+                    functionName: '_initResizeHandler'
                 });
                 if (this.isVisible) {
                     this.onResize();
@@ -234,20 +229,22 @@ export class AnimationController {
     }
 
     /**
-     * Sets up handlers for WebGL context loss and restoration.
-     * @protected
+     * @private
+     * @description Initializes WebGL context handlers
+     * @returns {void}
      */
-    initWebGLContextHandlers() {
+    _initWebGLContextHandlers() {
         this.logger.log('Initializing WebGL context handlers', {
             conditions: ['init'],
-            functionName: 'initWebGLContextHandlers'
+            functionName: '_initWebGLContextHandlers'
         });
 
         this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
             event.preventDefault();
             rendererManager.disposeAll();
             this.isContextLost = true;
-            this.logger.error('WebGL context lost! Attempting to recover...');
+            this.logger.log('WebGL context lost! Attempting to recover...');
+            console.log('WebGL context lost! Attempting to recover...');
         });
 
         this.renderer.domElement.addEventListener('webglcontextrestored', () => {
@@ -258,8 +255,8 @@ export class AnimationController {
     }
 
     /**
-     * Handles window resize: updates renderer and camera dimensions.
-     * @protected
+     * @description Handles window resize: updates renderer and camera dimensions.
+     * @returns {void}
      */
     onResize() {
         this.cameraController.onResize(this.container);
@@ -267,9 +264,8 @@ export class AnimationController {
     }
 
     /**
-     * Check if animation can proceed
+     * @description Check if animation can proceed
      * @returns {boolean} Whether animation should continue
-     * @protected
      */
     canAnimate() {
         if (!this.isVisible) {
@@ -306,9 +302,8 @@ export class AnimationController {
     }
 
     /**
-     * Animation loop
-     * Calls update method and requests next frame
-     * @protected
+     * @description Animation loop
+     * @returns {void}
      */
     animate() {
         if (!this.canAnimate()) {
@@ -323,9 +318,8 @@ export class AnimationController {
     }
 
     /**
-     * Stop animation loop
-     * Cancels animation frame and logs cleanup
-     * @protected
+     * @description Stop animation loop
+     * @returns {void}
      */
     stopAnimation() {
         if (this.animationFrameId) {
@@ -344,9 +338,9 @@ export class AnimationController {
     }
 
     /**
-     * Log animation state
+     * @description Logs animation state
      * @param {string} state - State of the animation
-     * @protected
+     * @returns {void}
      */
     logAnimationState(state) {
         this.logger.log(`Animation ${state}`, {
@@ -356,9 +350,8 @@ export class AnimationController {
     }
 
     /**
-     * Get container size
+     * @description Gets container size
      * @returns {Object} Container size
-     * @protected
      */
     getContainerSize() {
         if (!this.container) return { width: 0, height: 0 };
@@ -369,14 +362,11 @@ export class AnimationController {
     }
 
     /**
-     * Update renderer size
-     * @description Updates the renderer size and the camera aspect ratio
-     * @param {number} width - Width of the renderer
-     * @param {number} height - Height of the renderer
-     * @protected
+     * @description Updates renderer size
+     * @returns {void}
      */
     updateRendererSize() {
-        const { width, height } = this.getContainerSize();
+        const { width, height } = this._getContainerSize();
         if (!this.camera || !this.renderer || width === 0 || height === 0) return;
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
@@ -385,8 +375,8 @@ export class AnimationController {
     }
 
     /**
-     * Render scene
-     * @protected
+     * @description Renders scene
+     * @returns {void}
      */
     renderScene() {
         if (this.renderer && this.scene && this.camera) {
@@ -395,8 +385,8 @@ export class AnimationController {
     }
 
     /**
-     * Update camera
-     * @protected
+     * @description Updates camera
+     * @returns {void}
      */
     updateCamera() {
         if (this.cameraController && typeof this.cameraController.updateRotation === 'function') {
@@ -405,13 +395,9 @@ export class AnimationController {
     }
 
     /**
-     * Setup lights
-     * @param {Object} options - Light parameters (optional, merged with defaults)
-     * @param {number} options.ambientColor - Ambient light color
-     * @param {number} options.ambientIntensity - Ambient light intensity
-     * @param {number} options.pointColor - Point light color
-     * @param {number} options.pointIntensity - Point light intensity
-     * @param {Object} options.pointPosition - Point light position {x, y, z}
+     * @description Sets up lights
+     * @param {Object} [options={}] - Options for lights
+     * @returns {void}
      */
     setupLights(options = {}) {
         if (!this.scene) return;
@@ -420,10 +406,8 @@ export class AnimationController {
     }
 
     /**
-     * Update method for animation frame
-     * To be implemented by subclasses
-     * @abstract
-     * @protected
+     * @description Update method for animation frame
+     * @returns {void}
      */
     update() {
         // Base method update, which will be overridden in child classes
@@ -431,11 +415,10 @@ export class AnimationController {
     }
 
     /**
-     * Clean up resources
-     * Disposes of Three.js objects and removes event listeners
+     * @description Clean up resources
      * @param {THREE.WebGLRenderer} renderer - Renderer to dispose
      * @param {THREE.Scene} scene - Scene to dispose
-     * @public
+     * @returns {void}
      */
     cleanup(message) {
         let logMessage = message || '';
