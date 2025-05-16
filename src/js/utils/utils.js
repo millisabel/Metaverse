@@ -1,7 +1,8 @@
 // COMMON UTILS ===============================================
 
 /**
- * Checks if device is mobile
+ * @description Checks if device is mobile
+ * @param {number} size - The size of the device
  * @returns {boolean} True if device is mobile
  */
 export function isMobile(size = 768) {
@@ -9,7 +10,7 @@ export function isMobile(size = 768) {
 }
 
 /**
- * Creates a container with specified options
+ * @description Creates a container with specified options
  * @param {HTMLElement} parent - Parent element
  * @param {Object} options - Container options
  * @param {string} options.zIndex - Z-index value
@@ -26,7 +27,7 @@ export function createContainer(parent, options = {}) {
 }
 
 /**
- * Creates typing effect with blinking cursor
+ * @description Creates typing effect with blinking cursor
  * @param {HTMLElement} element 
  * @param {string} text 
  * @param {number} speed 
@@ -70,7 +71,7 @@ export function typeText(element, text, speed = 20) {
 }
 
 /**
- * Get colors from element
+ * @description Get colors from element
  * @param {HTMLElement} container
  * @param {string} selector 
  * @param {Object} options 
@@ -114,7 +115,7 @@ export function getColors(container, selector, options = {}) {
 }
 
 /**
- * Generates a random color
+ * @description Generates a random color
  * @returns {string} A random color in hex format
  */
 export function getRandomColor() {
@@ -122,7 +123,7 @@ export function getRandomColor() {
 }
 
 /**
- * Generates a random number between min and max values
+ * @description Generates a random number between min and max values
  * @param {number} min - Minimum value (inclusive)
  * @param {number} max - Maximum value (exclusive)
  * @returns {number} Random number between min and max
@@ -132,7 +133,7 @@ export function getRandomValue(min, max) {
 }
 
 /**
- * Updates the copyright year
+ * @description Updates the copyright year
  * @param {string} selector - Selector for the copyright year element
  * @returns {void}
  */
@@ -145,7 +146,6 @@ export function updateCopyrightYear(selector) {
 }
 
 /**
- * Shuffles an array
  * @description Shuffles an array
  * @param {Array} array - The array to shuffle
  * @returns {Array} The shuffled array
@@ -160,7 +160,7 @@ export function shuffleArray(array) {
 }
 
 /**
- * Generates a class selector from a string or array of class names
+ * @description Generates a class selector from a string or array of class names
  * @param {string|Array} classNames - The class names to generate a selector from
  * @returns {string} The generated class selector
  */
@@ -173,7 +173,7 @@ export function getClassSelector(classNames) {
   }
 
 /**
- * Merges default options, options, and objectConfig into a single options object.
+ * @description Merges default options, options, and objectConfig into a single options object.
  * @param {Object} defaultOptions - Default options.
  * @param {Object} options - User options.
  * @param {Object} [objectConfig] - Additional object config.
@@ -189,7 +189,7 @@ export function mergeOptionsWithObjectConfig(defaultOptions, options = {}, objec
 }
 
 /**
- * Deeply merges two objects (used for options).
+ * @description Deeply merges two objects (used for options).
  * @param {Object} defaults - Default options.
  * @param {Object} options - User options.
  * @returns {Object} - Deeply merged object.
@@ -215,7 +215,7 @@ export function mergeOptions(defaults, options) {
 }
 
 /**
- * Deeply clones an object or array.
+ * @description Deeply clones an object or array.
  * @param {any} value - The value to clone.
  * @returns {any} - Deeply cloned value.
  */
@@ -236,7 +236,7 @@ export function deepClone(value) {
 }
 
 /**
- * Erase text by one letter from right to left
+ * @description Erase text by one letter from right to left
  * @param {HTMLElement} element - element, text of which is erased
  * @param {number} speed - delay between erasing letters (ms)
  * @returns {Promise}
@@ -258,7 +258,7 @@ export function eraseText(element, speed = 20) {
 }
 
 /**
- * Extracts RGB values from a color string
+ * @description Extracts RGB values from a color string
  * @param {string} colorStr - The color string to extract RGB values from
  * @returns {string} The extracted RGB values
  */
@@ -272,7 +272,7 @@ export function extractRGB(colorStr) {
 }
 
 /**
- * Gets the color from the quarter's CSS variable
+ * @description Gets the color from the quarter's CSS variable
  * @param {HTMLElement} quarter - The quarter element
  * @returns {string} The color in RGB format
  */
