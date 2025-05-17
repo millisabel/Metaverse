@@ -102,6 +102,22 @@ export class SingleGlow {
                 camera: this.camera
             }
         });
+
+        this._randomOffset = Math.random() * Math.PI * 2;
+
+        // Генерируем уникальные параметры траектории для блика
+        const range = this.options.movement?.range || { x: 1, y: 1, z: 0.1 };
+        this._trajectory = {
+            freqX: Math.random() * 0.5 + 0.5,
+            freqY: Math.random() * 0.5 + 0.5,
+            freqZ: Math.random() * 0.5 + 0.5,
+            ampX: (range.x || 1) * (0.5 + Math.random() * 0.5),
+            ampY: (range.y || 1) * (0.5 + Math.random() * 0.5),
+            ampZ: (range.z || 1) * (0.5 + Math.random() * 0.5),
+            phaseX: Math.random() * Math.PI * 2,
+            phaseY: Math.random() * Math.PI * 2,
+            phaseZ: Math.random() * Math.PI * 2,
+        };
     }
 
     /**
@@ -468,22 +484,17 @@ export class SingleGlow {
 
         this.mesh.material.uniforms.time.value = time;
 
-        // const { speed = 0.1, range = { x: 1, y: 1, z: 0.1 }, zEnabled = true } = this.options.movement;
-        // const base = this.options.position || { x: 0, y: 0, z: 0 };
-
-        // Индивидуальный randomOffset для рассинхронизации бликов
-        // if (this._randomOffset === undefined) {
-        //     this._randomOffset = Math.random() * 1000;
-        // }
-        // const t = time * speed + this._randomOffset;
-
-        // const x = base.x + Math.sin(t) * (range.x / 2);
-        // const y = base.y + Math.cos(t) * (range.y / 2);
-        // let z = base.z;
-        // if (zEnabled) {
-        //     z += Math.sin(t * 0.7) * (range.z / 2);
-        // }
-        // this.mesh.position.set(x, y, z);
+        // Уникальная волнистая траектория для каждого блика
+        const { speed = 1, zEnabled = true } = this.options.movement;
+        const t = time * speed;
+        const base = this.options.position;
+        const tr = this._trajectory;
+        const dx = Math.sin(t * tr.freqX + tr.phaseX) * tr.ampX;
+        const dy = Math.cos(t * tr.freqY + tr.phaseY) * tr.ampY;
+        const dz = zEnabled ? Math.sin(t * tr.freqZ + tr.phaseZ) * tr.ampZ : 0;
+        this.mesh.position.x = base.x + dx;
+        this.mesh.position.y = base.y + dy;
+        this.mesh.position.z = base.z + dz;
     }
 
     /**
