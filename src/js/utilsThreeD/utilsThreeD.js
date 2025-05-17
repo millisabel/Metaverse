@@ -172,3 +172,19 @@ export function isPointInRect(x, y, rect) {
 export function initGlowCurrentColor(glow, color) {
     glow.currentColor = new THREE.Color(color);
 }
+
+/**
+ * @description Converts a desired size in screen pixels to world units for a given camera and z-position.
+ * @param {number} sizePx - Desired size in pixels on the screen
+ * @param {THREE.PerspectiveCamera} camera - The camera used for rendering
+ * @param {number} [z=0] - Z position of the object in world coordinates
+ * @returns {number} Scale in world units to achieve the desired pixel size
+ */
+export function getWorldScaleForPixelSize(sizePx, camera, z = 0) {
+    if (!camera || typeof camera.fov !== 'number') return 1;
+    const vFOV = THREE.MathUtils.degToRad(camera.fov); // vertical fov in radians
+    const distance = Math.abs(camera.position.z - z);
+    const height = 2 * Math.tan(vFOV / 2) * distance;
+    const pxPerUnit = window.innerHeight / height;
+    return sizePx / pxPerUnit;
+}
