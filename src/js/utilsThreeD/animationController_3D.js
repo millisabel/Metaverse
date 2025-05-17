@@ -36,6 +36,7 @@ export class AnimationController {
         }
 
         this.options = mergeOptionsWithObjectConfig(defaultOptions, options, options.objectConfig);
+        delete this.options.classRef;
 
         this.isVisible = false;
         this.isInitialized = false;
