@@ -22,8 +22,10 @@ const DEFAULT_OPTIONS = {
                 min: 0.1, 
                 max: 0.3 
             }, 
-            intensity: 2, 
-            sync: false },
+            intensity: 2,
+            randomize: false,
+            sync: false,
+        },
         objectPulse: 0
     },
     sizePx: 100,

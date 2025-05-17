@@ -8,24 +8,6 @@ import { getQuarterColorFromVar, shuffleArray, cascadeMergeOptions, mergeOptions
 import { lerpColor, averageColors, isPointInRect, initGlowCurrentColor } from '../../utilsThreeD/utilsThreeD';
 
 const DEFAULT_OPTIONS = {
-    shaderOptions: {
-        color: null,
-        opacity: {
-            min: 0, // минимальная прозрачность блика
-            max: 1 // максимальная прозрачность блика
-        },
-        scale: {
-            min: 0, // минимальный масштаб блика
-            max: 1.0
-        },
-        pulse: {
-            enabled: false,
-            speed: { min: 0.1, max: 0.3 }, // теперь объект с min и max
-            intensity: 2,
-            sync: false
-        },
-        objectPulse: 0
-    },
     colorPalette: [],
     count: 3, // количество бликов
     shuffleColors: false, // перемешать цвета из массива цветов
@@ -48,6 +30,27 @@ const DEFAULT_OPTIONS = {
         targetSelector: null,
         align: 'center center',
         offset: { x: 0, y: 0 }
+    },
+    pulseControl: {
+        enabled: false, // управляет наличием пульсации (JS-логика)
+        randomize: false // управляет рандомизацией параметров пульсации (JS-логика)
+    },
+    shaderOptions: {
+        color: null,
+        opacity: {
+            min: 0, // минимальная прозрачность блика
+            max: 1 // максимальная прозрачность блика
+        },
+        scale: {
+            min: 0, // минимальный масштаб блика
+            max: 1.0
+        },
+        pulse: {
+            speed: { min: 0.1, max: 0.3 }, // только параметры для шейдера
+            intensity: 2,
+            sync: false,
+        },
+        objectPulse: 0
     },
     individualOptions: [],
 };
@@ -115,7 +118,7 @@ export class Glow extends AnimationController {
         ) {
             if (this.options.shuffleColors) {
                 this._shuffledColors = shuffleArray([...this.options.color]);
-            } else {
+              } else {
                 this._shuffledColors = [...this.options.color];
             }
         }
@@ -142,19 +145,19 @@ export class Glow extends AnimationController {
         glow.setup();
         this.glows.push(glow);
         this.logger.log(`Glow ${index + 1} created`, {
-            customData: {
+                customData: {
                 options: glowOptions,
                 container: this.container,
                 scene: this.scene,
                 renderer: this.renderer,
                 camera: this.camera
-            },
-            conditions: ['created'],
-            functionName: '_createGlows',
-            styles: {
-                headerBackground: '#af274b'
-            }
-        });
+                },
+                conditions: ['created'],
+                functionName: '_createGlows',
+                styles: {
+                    headerBackground: '#af274b'
+                }
+            });
     }
 
     /**
@@ -182,7 +185,45 @@ export class Glow extends AnimationController {
             defaultOptions
         );
 
+        // Определяем флаги пульсации (приоритет: индивидуальный > групповой > дефолт)
+        const pulseControl = merged.pulseControl || {};
+        const individualPulse = individual.pulseControl || {};
+        merged.pulseControl = {
+            enabled: individualPulse.enabled !== undefined ? individualPulse.enabled : pulseControl.enabled,
+            randomize: individualPulse.randomize !== undefined ? individualPulse.randomize : pulseControl.randomize
+        };
+
+        // Генерируем уникальные параметры пульсации для групповых бликов, если pulseControl.randomize: true
+        if (
+            merged.pulseControl.randomize &&
+            (!individual.shaderOptions || !individual.shaderOptions.pulse)
+        ) {
+            this._applyRandomizedPulseOptions(merged.shaderOptions);
+        }
+
         return merged;
+    }
+
+    /**
+     * @description Генерирует уникальные параметры пульсации для группового блика, если randomize: true
+     * @param {Object} shaderOptions - shaderOptions для блика
+     */
+    _applyRandomizedPulseOptions(shaderOptions) {
+        const pulse = shaderOptions.pulse;
+        if (!pulse) return;
+        // Speed
+        if (pulse.speed && typeof pulse.speed === 'object') {
+            const min = pulse.speed.min ?? 0.1;
+            const max = pulse.speed.max ?? 0.5;
+            pulse.speed = Math.random() * (max - min) + min;
+        }
+        // Intensity
+        if (pulse.intensity && typeof pulse.intensity === 'object') {
+            const min = pulse.intensity.min ?? 1;
+            const max = pulse.intensity.max ?? 3;
+            pulse.intensity = Math.random() * (max - min) + min;
+        }
+        // Можно добавить phase, type и т.д. по аналогии
     }
 
     /**
