@@ -4,31 +4,34 @@ import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { SingleGlow } from './singleGlow';
 
 import { createLogger } from "../../utils/logger";
-import { getQuarterColorFromVar, shuffleArray, mergeOptionsWithObjectConfig } from '../../utils/utils';
+import { getQuarterColorFromVar, shuffleArray, cascadeMergeOptions, mergeOptions } from '../../utils/utils';
 import { lerpColor, averageColors, isPointInRect, initGlowCurrentColor } from '../../utilsThreeD/utilsThreeD';
 
 const DEFAULT_OPTIONS = {
+    shaderOptions: {
+        color: null,
+        opacity: {
+            min: 0, // минимальная прозрачность блика
+            max: 1 // максимальная прозрачность блика
+        },
+        scale: {
+            min: 0, // минимальный масштаб блика
+            max: 1.0
+        },
+        pulse: {
+            enabled: false,
+            speed: { min: 0.1, max: 0.3 }, // теперь объект с min и max
+            intensity: 2,
+            sync: false
+        },
+        objectPulse: 0
+    },
+    colorPalette: [],
     count: 3, // количество бликов
-    color: 0xFFFFFF,
-    sizePx: 150,
     shuffleColors: false, // перемешать цвета из массива цветов
     size: {
         min: 1, // минимальный размер блика
         max: 1
-    },
-    opacity: {
-        min: 1, // минимальная прозрачность блика
-        max: 1 // максимальная прозрачность блика
-    },
-    scale: {
-        min: 1.0, // минимальный масштаб блика
-        max: 1.0
-    },
-    pulse: {
-        enabled: false,
-        speed: { min: 0.1, max: 0.3 }, // теперь объект с min и max
-        intensity: 2,
-        sync: false
     },
     movement: {
         enabled: false, // включение/выключение движения блика  
@@ -39,9 +42,7 @@ const DEFAULT_OPTIONS = {
             y: 2, 
             z: 1 } // диапазон движения блика
     },
-    objectPulse: 0, // 0 - нет пульсации, 1 - пульсация синхронная
     position: { x: 0, y: 0, z: 0 }, // позиция блика
-    animationType: 'single', //«pulse», «wave», «static,
     positioning: {
         mode: 'random', // 'element' | 'fixed' | 'random'
         targetSelector: null,
@@ -166,13 +167,20 @@ export class Glow extends AnimationController {
         const defaultOptions = DEFAULT_OPTIONS;
         const individual = (groupOptions.individualOptions && groupOptions.individualOptions[index]) || {};
 
-        let merged = mergeOptionsWithObjectConfig(defaultOptions, groupOptions, individual);
-        merged = this._stripGroupOptions(merged);
+        const mergedGroup = mergeOptions(defaultOptions, groupOptions);
+        const merged = mergeOptions(mergedGroup, individual);
+
+        merged.shaderOptions = merged.shaderOptions || {};
         merged.positioning = this._resolvePositioningMode(merged);
         merged.position = this._resolveGlowPosition(merged, index);
-
+        console.log('Итоговые опции блика:', merged);
         // Устанавливаем цвет через отдельный метод с приоритетом individual > group > массив > default
-        merged.color = this._resolveGlowColor(index, individual, groupOptions, defaultOptions);
+        merged.shaderOptions.color = this._resolveGlowColor(
+            index,
+            individual.shaderOptions || {},
+            groupOptions,
+            defaultOptions
+        );
 
         return merged;
     }
@@ -180,32 +188,34 @@ export class Glow extends AnimationController {
     /**
      * @description Resolves the color for the current glow (shuffle, cycling, etc.)
      * @param {number} index - The index of the glow
-     * @param {Object} individual - Individual options
-     * @param {Object} groupOptions - Group options
-     * @param {Object} defaultOptions - Default options
+     * @param {Object} individual - Individual shaderOptions
+     * @param {Object} groupOptions - Group shaderOptions
+     * @param {Object} defaultOptions - Default shaderOptions
      * @returns {string|number} The resolved color
      */
     _resolveGlowColor(index, individual, groupOptions, defaultOptions) {
         // 1. Индивидуальный цвет
         if (individual && individual.color) return individual.color;
         // 2. Групповой цвет (если не массив)
-        if (groupOptions && groupOptions.color && !Array.isArray(groupOptions.color)) return groupOptions.color;
-        // 3. Массив цветов (shuffle)
+        if (groupOptions && groupOptions.shaderOptions && groupOptions.shaderOptions.color && !Array.isArray(groupOptions.shaderOptions.color)) {
+            return groupOptions.shaderOptions.color;
+        }
+        // 3. Массив цветов (shuffle) — ищем colorPalette на верхнем уровне groupOptions
         if (
-            (!groupOptions.individualOptions || groupOptions.individualOptions.length === 0) &&
-            Array.isArray(groupOptions.color)
+            (!this.options.individualOptions || this.options.individualOptions.length === 0) &&
+            Array.isArray(groupOptions.colorPalette)
         ) {
             if (!this._shuffledColors) {
                 if (groupOptions.shuffleColors) {
-                    this._shuffledColors = shuffleArray([...groupOptions.color]);
+                    this._shuffledColors = shuffleArray([...groupOptions.colorPalette]);
                 } else {
-                    this._shuffledColors = [...groupOptions.color];
+                    this._shuffledColors = [...groupOptions.colorPalette];
                 }
             }
             return this._shuffledColors[index % this._shuffledColors.length];
         }
         // 4. Дефолтный цвет
-        return defaultOptions.color;
+        return defaultOptions.shaderOptions.color;
     }
 
     /**
@@ -253,6 +263,7 @@ export class Glow extends AnimationController {
             count,
             individualOptions,
             shuffleColors,
+            colorPalette,
             ...rest
         } = options;
         return rest;
