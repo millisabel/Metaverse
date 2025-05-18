@@ -65,9 +65,9 @@ export class Universal3DSection extends BaseSetup {
                 }
             }
             this._controllersCreated = true;
-            await this.setupScene();
+            // await this.setupScene();
         } else {
-            await this.setupScene();
+            // await this.setupScene();
         }
     }
 

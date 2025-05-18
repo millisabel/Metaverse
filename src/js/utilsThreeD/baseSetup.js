@@ -157,8 +157,7 @@ export class BaseSetup {
      */
     async initScene() {
         if (this.initialized) return;
-
-        await this.setupScene();
+        // await this.setupScene();
         
         this.initialized = true;
 
