@@ -11,7 +11,7 @@ export const createCanvas = (renderer, options = {}) => {
         position: 'absolute',
         top: '0',
         left: '0',
-        zIndex: zIndex,
+        zIndex: Number(zIndex),
         pointerEvents: 'none',
         width: '100%',
         height: '100%',
@@ -26,6 +26,9 @@ export const createCanvas = (renderer, options = {}) => {
     }
     if (containerName) {
         canvas.dataset.containerName = containerName;
+    }
+    if (zIndex) {
+        canvas.dataset.zIndex = zIndex;
     }
 
     canvas.classList.add('threejs-canvas');

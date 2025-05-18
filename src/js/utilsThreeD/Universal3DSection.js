@@ -9,8 +9,8 @@ import { createLogger } from '../utils/logger';
  * @returns {Universal3DSection}
  */
 export class Universal3DSection extends BaseSetup {
-    constructor(containerId, objects3DConfig) {
-        super(containerId);
+    constructor(containerId, objects3DConfig, zIndex = 0) {
+        super(containerId, zIndex);
 
         this.name = `(Universal3DSection) ⬅ ${this.constructor.name}`;
         this.logger = createLogger(this.name);
@@ -22,11 +22,34 @@ export class Universal3DSection extends BaseSetup {
 
         this._initLazyObserver();
 
+        if (objects3DConfig.backgroundZIndex !== undefined) {
+            this.container.style.position = 'relative'; 
+            this.container.style.zIndex = objects3DConfig.backgroundZIndex;
+        }
+
         this.logger.log({
             functionName: 'constructor',
             conditions: ['init'],
             customData: { this: this }
         });
+    }
+
+    /**
+     * @description Setup the scene
+     * @returns {void}
+     */
+    async setupScene() {
+        this.logger.log({
+            functionName: 'setupScene',
+            conditions: ['init'],
+            customData: { this: this }
+        });
+
+        for (const controller of Object.values(this.controllers)) {
+            if (controller && typeof controller.init === 'function') {
+                await controller.init();
+            }
+        }
     }
 
     /**
@@ -81,24 +104,6 @@ export class Universal3DSection extends BaseSetup {
                 if (controller && typeof controller.cleanup === 'function') {
                     controller.cleanup();
                 }
-            }
-        }
-    }
-
-    /**
-     * @description Setup the scene
-     * @returns {void}
-     */
-    async setupScene() {
-        this.logger.log({
-            functionName: 'setupScene',
-            conditions: ['init'],
-            customData: { this: this }
-        });
-
-        for (const controller of Object.values(this.controllers)) {
-            if (controller && typeof controller.init === 'function') {
-                await controller.init();
             }
         }
     }

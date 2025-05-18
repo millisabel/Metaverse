@@ -12,11 +12,13 @@ export class BaseSetup {
      * Creates an instance of BaseSetup
      * @param {string} containerId - ID of the container element
      */
-    constructor(containerId) {
+    constructor(containerId, zIndex = 0) {
         this.name = `(BaseSetup) ⬅ ${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
         this.container = document.getElementById(containerId);
+        this.container.style.position = 'relative';
+        this.container.style.zIndex = zIndex;
         
         // State
         this.initialized = false;
