@@ -1,72 +1,203 @@
 import * as THREE from 'three';
+
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createLogger } from '../../utils/logger';
 import { SingleGlow } from './singleGlow';
 
 export class Dynamics3D extends AnimationController {
     constructor(container, options = {}) {
-
-        const extendedOptions = {
-            ...options,
-            // renderer: {
-            //     antialias: true,
-            //     alpha: true,
-            //     powerPreference: "high-performance",
-            //     premultipliedAlpha: false,
-            //     preserveDrawingBuffer: false,
-            //     ...(options.renderer || {})
-            // }
-        };
+        super(container, options);
         
-        super(container, extendedOptions);
-        
-        this.name = this.options.containerName;
+        this.name = this.constructor.name;
         this.logger = createLogger(this.name);
-        this.lastLogTime = 0;
 
-        this.logger.log('Dynamics3D initialized', {
-            conditions: ['init'],
-            functionName: 'constructor',
-            customData: {
-                type: options.type || 'unknown'
-            }
-        });
-
-        // this.options = {
-        //     type: 'guardians',
-        //     color: 0x38DBFF,
-        //     decoration: null,
-        //     textureAnimation: {
-        //         rotation: true,
-        //         pulse: true,
-        //         wave: true
-        //     },
-        //     glow: {
-        //         enabled: true,
-        //         size: 5.0,
-        //         opacity: 0.6,
-        //         scale: { min: 1.5, max: 2.5 },
-        //         color: null 
-        //     },
-        //     ...options
-        // };
-
-        // Initialize properties
         this.mesh = null;
         this.decorationMesh = null;
         this.glowEffect = null;
         this.group = new THREE.Group();
-        
+
         this.animationParams = this.getAnimationParams();
 
+        this.logger.log({
+            conditions: ['init'],
+            functionName: 'constructor',
+            customData: {
+                options: this.options
+            }
+        });
+        
+
         // Add resize handler
-        this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
-        if (this.container) {
-            this.resizeObserver.observe(this.container);
+        // this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
+        // if (this.container) {
+        //     this.resizeObserver.observe(this.container);
+        // }
+    }
+
+    async setupScene() {
+
+        if (!this.scene) {
+            this.logger.log('Scene not available for setup', {
+                conditions: ['error'],
+                functionName: 'setupScene',
+                type: 'error',
+            });
+            return;
+        }
+
+        this.logger.log({
+            conditions: ['info'],
+            functionName: 'setupScene',
+            type: 'info',
+            styles: {
+                headerBackground: '#af274b',
+            },
+            customData: {
+                options: this.options,
+            }
+        });
+
+        const rect = this.container.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height);
+        this.renderer.setSize(size, size, false);
+
+        try {
+            // if (this.options.glow.enabled) {
+            //     this.createGlowEffect();
+            // }
+
+            this.decorationMesh = await this._createDecoration();
+            if (this.decorationMesh) {
+                this.decorationMesh.position.z = 0;
+                this.group.add(this.decorationMesh);
+            }
+
+            const geometry = this.createGeometry();
+            const material = this.createGlowMaterial();
+            this.mesh = new THREE.Mesh(geometry, material);
+            
+            switch(this.options.type) {
+                case 'GUARDIANS_CARD':
+                    this.mesh.scale.set(0.8, 0.8, 1);
+                    this.mesh.position.z = -0.5;
+                    break;
+                case 'METAVERSE_CARD':
+                    this.mesh.scale.set(0.7, 0.7, 1);
+                    this.mesh.position.z = -0.5;
+                    break;
+                case 'SANKOPA_CARD':
+                    this.mesh.scale.set(0.8, 0.5, 1);
+                    this.mesh.position.y = 0.5;
+                    this.mesh.position.z = -0.5;
+                    break;
+            }
+            
+            this.group.add(this.mesh);
+        } catch (error) {
+            this.logger.log(`Failed to create scene elements: ${error}`, {
+                conditions: ['error'],
+                functionName: 'setupScene'
+            });
+        }
+        
+        this.scene.add(this.group);
+        
+        this.setupLights();
+        this.logger.log('Scene setup complete', {
+            conditions: ['setup-complete'],
+            functionName: 'setupScene',
+            type: 'success',
+        });
+    }
+
+    async _createDecoration() {
+        this.logger.log({
+            functionName: 'createDecoration',
+        });
+        if (!this.options.decoration) {
+            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
+            const material = new THREE.MeshBasicMaterial({
+                color: this.options.color,
+                transparent: true,
+                opacity: 1,
+                side: THREE.DoubleSide
+            });
+            const decoration = new THREE.Mesh(geometry, material);
+            decoration.position.z = -0.2;
+            return decoration;
+        }
+
+        const loader = new THREE.TextureLoader();
+        const planeGeometry = new THREE.PlaneGeometry(6, 6, 64, 64);
+        
+        try {
+            const texture = await new Promise((resolve, reject) => {
+                loader.load(
+                    this.options.decoration,
+                    (texture) => resolve(texture),
+                    undefined,
+                    (error) => reject(error)
+                );
+            });
+
+            let materialConfig = {
+                map: texture,
+                transparent: true,
+                opacity: 1,
+                emissive: this.options.color,
+                emissiveIntensity: 1.2,
+                side: THREE.DoubleSide,
+                metalness: 0.5,
+                roughness: 0.2
+            };
+
+            switch(this.options.type) {
+                case 'GUARDIANS_CARD':
+                    materialConfig.emissiveIntensity = 1.5;
+                    materialConfig.metalness = 0.8;
+                    materialConfig.roughness = 0.1;
+                    break;
+                case 'METAVERSE_CARD':
+                    materialConfig.emissiveIntensity = 1.8;
+                    materialConfig.metalness = 0.7;
+                    materialConfig.roughness = 0.15;
+                    break;
+                case 'SANKOPA_CARD':
+                    materialConfig.emissiveIntensity = 5.0;
+                    materialConfig.metalness = 0.9;
+                    materialConfig.roughness = 0;
+                    break;
+            }
+
+            const material = new THREE.MeshStandardMaterial(materialConfig);
+            
+            const decoration = new THREE.Mesh(planeGeometry, material);
+            decoration.position.z = 0;
+            return decoration;
+        } catch (error) {
+            this.logger.log(`Failed to load decoration texture: ${error}`, {
+                conditions: ['error'],
+                functionName: 'createDecoration'
+            });
+            
+            // Fallback to detailed plane geometry for wave animation
+            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
+            const material = new THREE.MeshBasicMaterial({
+                color: this.options.color,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            const decoration = new THREE.Mesh(geometry, material);
+            decoration.position.z = 0;
+            return decoration;
         }
     }
 
-    handleResize() {
+    handleResize() {    
+        this.logger.log({
+            functionName: 'handleResize',
+        });
         if (!this.container || !this.camera || !this.renderer) return;
 
         // Get container dimensions
@@ -93,7 +224,10 @@ export class Dynamics3D extends AnimationController {
         });
     }
 
-    getAnimationParams() {
+    getAnimationParams() {  
+        this.logger.log({
+            functionName: 'getAnimationParams',
+        });
         const baseParams = {
             texture: {
                 rotation: { speed: 0.2, amplitude: 0.1 },
@@ -196,158 +330,10 @@ export class Dynamics3D extends AnimationController {
         }
     }
 
-    async createDecoration() {
-        if (!this.options.decoration) {
-            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
-            const material = new THREE.MeshBasicMaterial({
-                color: this.options.color,
-                transparent: true,
-                opacity: 1,
-                side: THREE.DoubleSide
-            });
-            const decoration = new THREE.Mesh(geometry, material);
-            decoration.position.z = -0.2;
-            return decoration;
-        }
-
-        const loader = new THREE.TextureLoader();
-        const planeGeometry = new THREE.PlaneGeometry(6, 6, 64, 64);
-        
-        try {
-            const texture = await new Promise((resolve, reject) => {
-                loader.load(
-                    this.options.decoration,
-                    (texture) => resolve(texture),
-                    undefined,
-                    (error) => reject(error)
-                );
-            });
-
-            let materialConfig = {
-                map: texture,
-                transparent: true,
-                opacity: 1,
-                emissive: this.options.color,
-                emissiveIntensity: 1.2,
-                side: THREE.DoubleSide,
-                metalness: 0.5,
-                roughness: 0.2
-            };
-
-            switch(this.options.type) {
-                case 'GUARDIANS_CARD':
-                    materialConfig.emissiveIntensity = 1.5;
-                    materialConfig.metalness = 0.8;
-                    materialConfig.roughness = 0.1;
-                    break;
-                case 'METAVERSE_CARD':
-                    materialConfig.emissiveIntensity = 1.8;
-                    materialConfig.metalness = 0.7;
-                    materialConfig.roughness = 0.15;
-                    break;
-                case 'SANKOPA_CARD':
-                    materialConfig.emissiveIntensity = 5.0;
-                    materialConfig.metalness = 0.9;
-                    materialConfig.roughness = 0;
-                    break;
-            }
-
-            const material = new THREE.MeshStandardMaterial(materialConfig);
-            
-            const decoration = new THREE.Mesh(planeGeometry, material);
-            decoration.position.z = 0;
-            return decoration;
-        } catch (error) {
-            this.logger.log(`Failed to load decoration texture: ${error}`, {
-                conditions: ['error'],
-                functionName: 'createDecoration'
-            });
-            
-            // Fallback to detailed plane geometry for wave animation
-            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
-            const material = new THREE.MeshBasicMaterial({
-                color: this.options.color,
-                transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide
-            });
-            const decoration = new THREE.Mesh(geometry, material);
-            decoration.position.z = 0;
-            return decoration;
-        }
-    }
-
-    async setupScene() {
-        if (!this.scene) {
-            this.logger.log('Scene not available for setup', {
-                conditions: ['error'],
-                functionName: 'setupScene',
-                type: 'error',
-            });
-            return;
-        }
-
-        const rect = this.container.getBoundingClientRect();
-        const size = Math.min(rect.width, rect.height);
-        this.renderer.setSize(size, size, false);
-
-        this.logger.log('Setting up dynamics scene', {
-            conditions: ['initializing-scene'],
-            functionName: 'setupScene'
-        });
-
-        try {
-            if (this.options.glow.enabled) {
-                this.createGlowEffect();
-            }
-
-            this.decorationMesh = await this.createDecoration();
-            if (this.decorationMesh) {
-                this.decorationMesh.position.z = 0;
-                this.group.add(this.decorationMesh);
-            }
-
-            const geometry = this.createGeometry();
-            const material = this.createGlowMaterial();
-            this.mesh = new THREE.Mesh(geometry, material);
-            
-            switch(this.options.type) {
-                case 'GUARDIANS_CARD':
-                    this.mesh.scale.set(0.8, 0.8, 1);
-                    this.mesh.position.z = -0.5;
-                    break;
-                case 'METAVERSE_CARD':
-                    this.mesh.scale.set(0.7, 0.7, 1);
-                    this.mesh.position.z = -0.5;
-                    break;
-                case 'SANKOPA_CARD':
-                    this.mesh.scale.set(0.8, 0.5, 1);
-                    this.mesh.position.y = 0.5;
-                    this.mesh.position.z = -0.5;
-                    break;
-            }
-            
-            this.group.add(this.mesh);
-        } catch (error) {
-            this.logger.log(`Failed to create scene elements: ${error}`, {
-                conditions: ['error'],
-                functionName: 'setupScene'
-            });
-        }
-        
-        this.scene.add(this.group);
-        
-        this.setupLights();
-
-        this.logger.log('Scene setup complete', {
-            conditions: ['setup-complete'],
-            functionName: 'setupScene',
-            type: 'success',
-        });
-
-    }
-
     createGeometry() {
+        this.logger.log({
+            functionName: 'createGeometry',
+        });
         switch(this.options.type) {
             case 'GUARDIANS_CARD':
                 const radius = 1;
@@ -363,6 +349,9 @@ export class Dynamics3D extends AnimationController {
     }
 
     createGlowMaterial() {
+        this.logger.log({
+            functionName: 'createGlowMaterial',
+        });
         const baseColor = this.options.color;
         const material = new THREE.MeshStandardMaterial({
             color: baseColor,
@@ -392,6 +381,9 @@ export class Dynamics3D extends AnimationController {
     }
 
     createGlowEffect() {
+        this.logger.log({
+            functionName: 'createGlowEffect',
+        });
         const glowColor = this.options.glow.color || this.options.color;
         
         this.glowEffect = new SingleGlow(
@@ -423,6 +415,9 @@ export class Dynamics3D extends AnimationController {
     }
 
     setupLights() {
+        this.logger.log({
+            functionName: 'setupLights',
+        });
         const frontLight = new THREE.DirectionalLight(0xffffff, 1);
         frontLight.position.set(0, 0, 5);
         this.scene.add(frontLight);
@@ -444,6 +439,11 @@ export class Dynamics3D extends AnimationController {
     }
 
     update() {
+        
+    if (!this.options || !this.options.glow || !this.options.glow.scale) {
+        // Optionally log a warning here
+        return;
+    }
         if (!this.group) return;
 
         const time = performance.now() * 0.001;
@@ -536,11 +536,15 @@ export class Dynamics3D extends AnimationController {
 
         // Render the scene
         if (this.renderer && this.scene && this.camera) {
+            console.log('render');
             this.renderer.render(this.scene, this.camera);
         }
     }
 
-    dispose() {
+    cleanup() {
+        this.logger.log({
+            functionName: 'cleanup',
+        });
         // Dispose glow resources
         if (this.glowEffect) {
             this.glowEffect.dispose();
@@ -569,6 +573,6 @@ export class Dynamics3D extends AnimationController {
         }
 
         // Call parent dispose
-        super.dispose();
+        super.cleanup();
     }
 }

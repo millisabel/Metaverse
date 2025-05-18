@@ -176,7 +176,6 @@ export class Glow extends AnimationController {
         merged.shaderOptions = merged.shaderOptions || {};
         merged.positioning = this._resolvePositioningMode(merged);
         merged.position = this._resolveGlowPosition(merged, index);
-        console.log('Итоговые опции блика:', merged);
         // Устанавливаем цвет через отдельный метод с приоритетом individual > group > массив > default
         merged.shaderOptions.color = this._resolveGlowColor(
             index,
@@ -361,5 +360,16 @@ export class Glow extends AnimationController {
         this.glows = [];
 
         super.cleanup(logMessage);
+    }
+
+    /**
+     * @description Sets the objectPulse value for a specific glow (for external sync)
+     * @param {number} index - Glow index
+     * @param {number} value - Target value (0..1)
+     */
+    setGlowPulse(index, value) {
+        if (this.glows[index] && typeof this.glows[index].setObjectPulse === 'function') {
+            this.glows[index].setObjectPulse(value);
+        }
     }
 }

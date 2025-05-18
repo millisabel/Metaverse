@@ -87,10 +87,11 @@ export class AnimationController {
     async initScene() {
         this.logger.log('Initializing scene', {
             conditions: ['init'],
-            functionName: 'initScene'
+            functionName: 'initScene',
+            customData: {
+                options: this.options
+            }
         });
-
-        if (this.isInitialized) return;
 
         if (!this.renderer) {
             this._initDependencies(); 
@@ -126,7 +127,12 @@ export class AnimationController {
         this.logger.log({
             type: 'success',
             conditions: ['scene-initialized'],
-            functionName: 'initScene'
+            functionName: 'initScene',
+            customData: {
+                options: this.options,
+                renderer: this.renderer,
+                scene: this.scene
+            }
         });
     }
 
@@ -160,9 +166,10 @@ export class AnimationController {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     this.isVisible = true;
-                    this.logger.log('Object is visible', {
+                    this.logger.log('Object is visible, calling initScene', {
                         conditions: ['visible'],
-                        functionName: '_initVisibilityObserver'
+                        functionName: '_initVisibilityObserver',
+                        customData: { container: this.container, id: this.container.id }
                     });
 
                     if (!this.isInitialized) {
@@ -307,6 +314,8 @@ export class AnimationController {
      * @returns {void}
      */
     animate() {
+        this.logger.log('animate started', { functionName: 'animate', type: 'info' });
+
         if (!this.canAnimate()) {
             if (this.animationFrameId) {
                 this.stopAnimation();
@@ -411,7 +420,10 @@ export class AnimationController {
      * @returns {void}
      */
     update() {
-        // Base method update, which will be overridden in child classes
+        this.logger.log('update called', { functionName: 'update', type: 'info' });
+
+        // Base me
+        // thod update, which will be overridden in child classes
         throw new Error('update must be implemented by subclass');
     }
 

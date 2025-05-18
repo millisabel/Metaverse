@@ -13,11 +13,16 @@ const CONFIG_CARDS = {
     GUARDIANS: {
         containerName: 'GUARDIANS_CARD',
         id: 'guardians3d',
-        zIndex: 0,  
+        zIndex: 0, 
         options: {
             type: 'guardians',
             color: 0x00FFFF,
             decoration: decoration1Svg,
+            //     textureAnimation: {
+            //         rotation: true,
+            //         pulse: true,
+            //         wave: true
+            //     },
             glow: {
                 enabled: true,
                 size: 2.0,
@@ -82,14 +87,14 @@ const CONFIG = {
                 },
                 scale: { 
                     min: 1, 
-                    max: 2 
+                    max: 10
                 },
             },
             colorPalette: ['#56FFEB', '#4642F4', '#F00AFE'],
             size: { min: 1, max: 1 }, 
             positioning: {
                 mode: 'element',
-                align: 'center center',
+                align: 'top center',
                 offset: { x: 0, y: 20 }
             },
             pulseControl: {
@@ -131,10 +136,26 @@ export class DynamicsSetup extends Universal3DSection {
     constructor() {
         super(SECTION_ID, CONFIG);
 
-        // Object.values(CONFIG_CARDS).forEach(card => {
-        //     const cardContainer = document.getElementById(card.id);
-        //     new Dynamics3DWrapper(cardContainer, card);
-        // });
+        Object.values(CONFIG_CARDS).forEach(card => {
+            const cardContainer = document.getElementById(card.id);
+
+            if (!cardContainer) {
+                console.warn(`[DynamicsSetup] Container not found for card: ${card.id}`);
+                return;
+            }
+            new Dynamics3DWrapper(cardContainer, card.options);
+        });
+    }
+
+    /**
+     * @description Sets the objectPulse value for a glow under a card (for external sync)
+     * @param {number} cardIndex - Card index (0-based)
+     * @param {number} value - Target value (0..1)
+     */
+    setGlowPulseForCard(cardIndex, value) {
+        if (this.backgroundGlows && typeof this.backgroundGlows.setGlowPulse === 'function') {
+            this.backgroundGlows.setGlowPulse(cardIndex, value);
+        }
     }
 }
 
@@ -147,11 +168,14 @@ export class Dynamics3DWrapper {
         this.container = container;
         this.dynamics3D = null;
         this.options = options;
-        this.init();
+        void this.init(); 
     }
 
-    init() {
+    async init() {
         this.dynamics3D = new Dynamics3D(this.container, this.options);
+        if (typeof this.dynamics3D.initAsync === 'function') {
+            await this.dynamics3D.initAsync();
+        }
     }
 
     cleanup() {

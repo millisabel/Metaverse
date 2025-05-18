@@ -8,21 +8,21 @@ import fragmentShader from '../../shaders/glow.frag';
 const DEFAULT_OPTIONS = {
     shaderOptions: {
         color: 0xFFFFFF,
-        opacity: { 
+    opacity: {
             min: 0.5, 
-            max: 1 
-        },
-        scale: { 
+        max: 1
+    },
+    scale: {
             min: 1, 
-            max: 2 
-        },
-        pulse: { 
+        max: 2
+    },
+    pulse: {
             enabled: true, 
             speed: { 
                 min: 0.1, 
                 max: 0.3 
             }, 
-            intensity: 2,
+        intensity: 2,
             randomize: false,
             sync: false,
         },
@@ -121,6 +121,8 @@ export class SingleGlow {
         // Цвет для плавного перехода
         this._currentColor = new THREE.Color(this.options.shaderOptions.color);
         this._targetColor = new THREE.Color(this.options.shaderOptions.color);
+        this._objectPulse = this.options.shaderOptions.objectPulse ?? 0;
+        this._targetObjectPulse = this._objectPulse;
     }
 
     /**
@@ -232,7 +234,6 @@ export class SingleGlow {
         for (const key in SHADER_UNIFORMS) {
             uniforms[key] = SHADER_UNIFORMS[key](this);
         }
-        console.log('uniforms:', uniforms);
         return new THREE.ShaderMaterial({
             uniforms,
             vertexShader,
@@ -263,7 +264,6 @@ export class SingleGlow {
         } else {
             this.mesh.position.set(0, 0, 0);
         }
-        console.log('mesh.position:', this.mesh.position);
     }
 
     /**
@@ -387,7 +387,6 @@ export class SingleGlow {
             const z = typeof this.options.position.z === 'number' ? this.options.position.z : 0;
             this.mesh.position.set(x, y, z);
         }
-        console.log('mesh.position:', this.mesh.position);
     }
 
     /**
@@ -407,7 +406,7 @@ export class SingleGlow {
         vector.unproject(this.camera);
         return vector;
     }
-    
+
     /**
      * @description Sets the position of the glow
      * @param {Object} position - The position of the glow
@@ -478,6 +477,14 @@ export class SingleGlow {
     }
 
     /**
+     * @description Sets the target value for objectPulse (for external sync)
+     * @param {number} value - Target value (0..1)
+     */
+    setObjectPulse(value) {
+        this._targetObjectPulse = value;
+    }
+
+    /**
      * @description Updates the position of the glow (movement animation)
      * @param {number} time - The current time (seconds)
      * @returns {void}
@@ -505,6 +512,15 @@ export class SingleGlow {
             this._currentColor.lerp(this._targetColor, lerpSpeed);
             if (this.mesh.material.uniforms.color) {
                 this.mesh.material.uniforms.color.value.copy(this._currentColor);
+            }
+        }
+
+        // --- Object pulse sync ---
+        // Плавно меняем objectPulse к целевому значению
+        if (typeof this._targetObjectPulse === 'number') {
+            this._objectPulse += (this._targetObjectPulse - this._objectPulse) * 0.1;
+            if (this.mesh.material.uniforms.objectPulse) {
+                this.mesh.material.uniforms.objectPulse.value = this._objectPulse;
             }
         }
     }

@@ -42,6 +42,9 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('(Universal3DSection) ⬅ RoadmapSetup');
     Logger.disableLoggerFor('(Universal3DSection) ⬅ DynamicsSetup');
 
+    Logger.disableLoggerFor('Glow ROADMAP_GLOW');
+    Logger.disableLoggerFor('Glow DYNAMICS_GLOW');
+
     
     Logger.disableLoggerFor('NavbarSetup');
     Logger.disableLoggerFor('HeroSetup');
@@ -55,10 +58,11 @@ if(process.env.NODE_ENV === 'development') {
 
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
-    // Logger.disableLoggerFor('Glow');
+    Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
     // Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
+    Logger.disableLoggerFor('SingleGlow');
 
     Logger.disableLoggerFor('GUARDIANS_CARD');
     Logger.disableLoggerFor('METAVERSE_CARD');
