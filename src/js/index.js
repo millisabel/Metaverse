@@ -4,7 +4,7 @@ import { AnimationObserverCSS } from './utils/animationObserver_CSS';
 import { HeroSetup } from './setup/heroSetup';
 import { AboutSetup } from './setup/aboutSetup';
 import { RoadmapSetup } from './setup/roadmapSetup';
-import { initDynamics } from './setup/dynamicsSetup';
+import { DynamicsSetup } from './setup/dynamicsSetup';
 import { initVRMarket } from './setup/vrMarketSetup';
 import { initExplore } from './setup/exploreSetup';
 import { initSocial } from './setup/socialSetup';
@@ -14,11 +14,11 @@ import initModal from './components/common/modal';
 import { updateCopyrightYear } from './utils/utils';
 
 if(process.env.NODE_ENV === 'development') {
-    Logger.enableGlobalLogging();
+    Logger.enableGlobalLogging(false);
     Logger.disableLoggerFor('AnimationObserverCSS');
 
     Logger.disableLoggerFor('BaseSetup');
-    // Logger.disableLoggerFor('AnimationController');
+    Logger.disableLoggerFor('AnimationController');
     Logger.disableLoggerFor('CameraController');
     Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('CanvasUtils');
@@ -29,15 +29,18 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('(BaseSetup) ⬅ AboutSetup');
     Logger.disableLoggerFor('(BaseSetup) ⬅ HeroSetup');
     Logger.disableLoggerFor('(BaseSetup) ⬅ RoadmapSetup');
+    Logger.disableLoggerFor('(BaseSetup) ⬅ DynamicsSetup');
 
     Logger.disableLoggerFor('(AnimationController) ⬅ Stars');
     Logger.disableLoggerFor('(AnimationController) ⬅ GalacticCloud');
     Logger.disableLoggerFor('(AnimationController) ⬅ Constellation');
     Logger.disableLoggerFor('(AnimationController) ⬅ Glow');
+    Logger.disableLoggerFor('(AnimationController) ⬅ Dynamics3D');
 
     Logger.disableLoggerFor('(Universal3DSection) ⬅ HeroSetup');
     Logger.disableLoggerFor('(Universal3DSection) ⬅ AboutSetup');
     Logger.disableLoggerFor('(Universal3DSection) ⬅ RoadmapSetup');
+    Logger.disableLoggerFor('(Universal3DSection) ⬅ DynamicsSetup');
 
     
     Logger.disableLoggerFor('NavbarSetup');
@@ -52,10 +55,14 @@ if(process.env.NODE_ENV === 'development') {
 
     Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
-    Logger.disableLoggerFor('Glow');
+    // Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
-    Logger.disableLoggerFor('Dynamics3D');
+    // Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
+
+    Logger.disableLoggerFor('GUARDIANS_CARD');
+    Logger.disableLoggerFor('METAVERSE_CARD');
+    Logger.disableLoggerFor('SANKOPA_CARD');
 
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('Navbar');
@@ -74,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new HeroSetup();
     new AboutSetup();
     new RoadmapSetup();
+    new DynamicsSetup();
     // initDynamics();
     // initVRMarket();
     // initExplore();

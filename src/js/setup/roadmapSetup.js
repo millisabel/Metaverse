@@ -8,54 +8,63 @@ const SECTION_ID = 'roadmap';
 const CONFIG_3D = {
     GLOW: {
         classRef: Glow,
-        containerName: 'GLOW',
-        zIndex: 0,
+        containerName: 'ROADMAP_GLOW',
+        zIndex: 2,
         camera: {
             position: {
                 x: 0,
                 y: 0,
-                z: 5
+                z: 10
             }
         },
         objectConfig: {
             count: isMobile() ? 3 : 12,
-            colors: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
+            color: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
+            sizePx: 150,
             size: {
-                min: isMobile() ? 0.5 : 1.5,
+                min: isMobile() ? 0.5 : 1,
                 max: isMobile() ? 2 : 2
-            },
-            opacity: {
-                min: 0.2,
-                max: 0.3
-            },
-            scale: {
-                min: 1,
-                max: 2
-            },
-            pulse: {
-                enabled: true,
-                speed: 0.5,
-                intensity: 1,
-                sync: false
             },
             movement: {
                 enabled: true,    
                 zEnabled: true,
                 speed: 0.1,
                 range: {
-                    x: 2,
-                    y: 4,
+                    x: isMobile() ? 1 : 4,
+                    y: 7,
                     z: 0.5,
                 }
             },
             intersection: {
                 enabled: true,
                 selector: '.roadmap-quarter',
-                lerpSpeed: 0.01,
+                colorVar: '--roamap-color',
+                lerpSpeed: 0.005,
             },
-            position: { x: 0, y: 0, z: 0 },
-            initialPositions: null,
+            positioning: {
+                mode: 'random', 
+            },
+            pulseControl: {
+                enabled: true,
+                randomize: true
+            },
+            shaderOptions: {
+                opacity: {
+                    min: 0.1,
+                    max: 0.3
+                },
+                scale: {
+                    min: 0.8,
+                    max: 2.5
+                },
+                pulse: {
+                    speed: { min: 0.1, max: 0.3 },
+                    intensity: 1,
+                    sync: false,
+                },
+                objectPulse: 0
+            },
         },
     },
 }

@@ -118,6 +118,9 @@ export class SingleGlow {
             phaseY: Math.random() * Math.PI * 2,
             phaseZ: Math.random() * Math.PI * 2,
         };
+        // Цвет для плавного перехода
+        this._currentColor = new THREE.Color(this.options.shaderOptions.color);
+        this._targetColor = new THREE.Color(this.options.shaderOptions.color);
     }
 
     /**
@@ -481,9 +484,7 @@ export class SingleGlow {
      */
     update(time) {
         if (!this.options.movement?.enabled) return;
-
         this.mesh.material.uniforms.time.value = time;
-
         // Уникальная волнистая траектория для каждого блика
         const { speed = 1, zEnabled = true } = this.options.movement;
         const t = time * speed;
@@ -495,6 +496,73 @@ export class SingleGlow {
         this.mesh.position.x = base.x + dx;
         this.mesh.position.y = base.y + dy;
         this.mesh.position.z = base.z + dz;
+
+        // --- Intersection logic ---
+        if (this.options.intersection?.enabled) {
+            this._updateIntersectionColor();
+            // Плавно меняем цвет к целевому
+            const lerpSpeed = this.options.intersection.lerpSpeed ?? 0.05;
+            this._currentColor.lerp(this._targetColor, lerpSpeed);
+            if (this.mesh.material.uniforms.color) {
+                this.mesh.material.uniforms.color.value.copy(this._currentColor);
+            }
+        }
+    }
+
+    /**
+     * @description Checks intersection with DOM elements and updates target color
+     * Uses container-relative coordinates and tolerance for robust detection
+     * @returns {void}
+     */
+    _updateIntersectionColor() {
+        const intersection = this.options.intersection;
+        if (!intersection?.enabled || !intersection.selector) return;
+        // Get container rect
+        const containerRect = this.container.getBoundingClientRect();
+        // Project 3D position to screen (container) coordinates
+        const vector = this.mesh.position.clone().project(this.camera);
+        const x = (vector.x * 0.5 + 0.5) * containerRect.width + containerRect.left;
+        const y = (1 - (vector.y * 0.5 + 0.5)) * containerRect.height + containerRect.top;
+        const tolerance = 4; // px, area margin for intersection
+        // Find all elements by selector
+        const elements = Array.from(document.querySelectorAll(intersection.selector));
+        const foundColors = [];
+        for (const el of elements) {
+            const rect = el.getBoundingClientRect();
+            if (
+                x >= rect.left - tolerance && x <= rect.right + tolerance &&
+                y >= rect.top - tolerance && y <= rect.bottom + tolerance
+            ) {
+                // Try to get color from CSS variable or fallback to background
+                let colorStr = null;
+                if (intersection.colorVar) {
+                    colorStr = getComputedStyle(el).getPropertyValue(intersection.colorVar).trim();
+                }
+                if (!colorStr) {
+                    colorStr = getComputedStyle(el).backgroundColor;
+                }
+                if (colorStr) {
+                    try {
+                        foundColors.push(new THREE.Color(colorStr));
+                    } catch (e) {
+                        // Log color parse error
+                        console.warn('Failed to parse color:', colorStr, e);
+                    }
+                }
+            }
+        }
+        if (foundColors.length > 0) {
+            // Average all found colors
+            let r = 0, g = 0, b = 0;
+            foundColors.forEach(c => { r += c.r; g += c.g; b += c.b; });
+            r /= foundColors.length; g /= foundColors.length; b /= foundColors.length;
+            this._targetColor.setRGB(r, g, b);
+        } else {
+            // Fallback to initial color
+            this._targetColor.set(this.options.shaderOptions.color);
+        }
+        // Debug log
+        // console.log('Glow intersection:', { x, y, foundColors, target: this._targetColor.getStyle() });
     }
 
     /**

@@ -5,22 +5,22 @@ import { SingleGlow } from './singleGlow';
 
 export class Dynamics3D extends AnimationController {
     constructor(container, options = {}) {
-        // Extend renderer options before passing to parent
+
         const extendedOptions = {
             ...options,
-            renderer: {
-                antialias: true,
-                alpha: true,
-                powerPreference: "high-performance",
-                premultipliedAlpha: false,
-                preserveDrawingBuffer: false,
-                ...(options.renderer || {})
-            }
+            // renderer: {
+            //     antialias: true,
+            //     alpha: true,
+            //     powerPreference: "high-performance",
+            //     premultipliedAlpha: false,
+            //     preserveDrawingBuffer: false,
+            //     ...(options.renderer || {})
+            // }
         };
         
         super(container, extendedOptions);
-
-        this.name = 'Dynamics3D';
+        
+        this.name = this.options.containerName;
         this.logger = createLogger(this.name);
         this.lastLogTime = 0;
 
@@ -32,24 +32,24 @@ export class Dynamics3D extends AnimationController {
             }
         });
 
-        this.options = {
-            type: 'guardians',
-            color: 0x38DBFF,
-            decoration: null,
-            textureAnimation: {
-                rotation: true,
-                pulse: true,
-                wave: true
-            },
-            glow: {
-                enabled: true,
-                size: 5.0,
-                opacity: 0.6,
-                scale: { min: 1.5, max: 2.5 },
-                color: null 
-            },
-            ...options
-        };
+        // this.options = {
+        //     type: 'guardians',
+        //     color: 0x38DBFF,
+        //     decoration: null,
+        //     textureAnimation: {
+        //         rotation: true,
+        //         pulse: true,
+        //         wave: true
+        //     },
+        //     glow: {
+        //         enabled: true,
+        //         size: 5.0,
+        //         opacity: 0.6,
+        //         scale: { min: 1.5, max: 2.5 },
+        //         color: null 
+        //     },
+        //     ...options
+        // };
 
         // Initialize properties
         this.mesh = null;
@@ -58,8 +58,6 @@ export class Dynamics3D extends AnimationController {
         this.group = new THREE.Group();
         
         this.animationParams = this.getAnimationParams();
-        
-        this.init();
 
         // Add resize handler
         this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
@@ -283,7 +281,8 @@ export class Dynamics3D extends AnimationController {
         if (!this.scene) {
             this.logger.log('Scene not available for setup', {
                 conditions: ['error'],
-                functionName: 'setupScene'
+                functionName: 'setupScene',
+                type: 'error',
             });
             return;
         }
@@ -339,6 +338,13 @@ export class Dynamics3D extends AnimationController {
         this.scene.add(this.group);
         
         this.setupLights();
+
+        this.logger.log('Scene setup complete', {
+            conditions: ['setup-complete'],
+            functionName: 'setupScene',
+            type: 'success',
+        });
+
     }
 
     createGeometry() {
