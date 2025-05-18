@@ -22,34 +22,11 @@ export class Universal3DSection extends BaseSetup {
 
         this._initLazyObserver();
 
-        if (objects3DConfig.backgroundZIndex !== undefined) {
-            this.container.style.position = 'relative'; 
-            this.container.style.zIndex = objects3DConfig.backgroundZIndex;
-        }
-
         this.logger.log({
             functionName: 'constructor',
             conditions: ['init'],
             customData: { this: this }
         });
-    }
-
-    /**
-     * @description Setup the scene
-     * @returns {void}
-     */
-    async setupScene() {
-        this.logger.log({
-            functionName: 'setupScene',
-            conditions: ['init'],
-            customData: { this: this }
-        });
-
-        for (const controller of Object.values(this.controllers)) {
-            if (controller && typeof controller.init === 'function') {
-                await controller.init();
-            }
-        }
     }
 
     /**
@@ -78,7 +55,7 @@ export class Universal3DSection extends BaseSetup {
         if (!this._controllersCreated) {
             for (const [key, params] of Object.entries(this.objects3D)) {
                 if (!this._3dContainers[key]) {
-                    this._3dContainers[key] = this.createContainer(params.containerName || key, params.zIndex || 1);
+                    this._3dContainers[key] = this._getOrCreateContainer(params.containerName || key, params.zIndex || 1);
                 }
                 if (!this.controllers[key]) {
                     this.controllers[key] = new params.classRef(this._3dContainers[key], {
@@ -91,6 +68,49 @@ export class Universal3DSection extends BaseSetup {
             await this.setupScene();
         } else {
             await this.setupScene();
+        }
+    }
+
+    /**
+     * @description Get or create a container
+     * @param {string} containerName - The name of the container
+     * @param {number} zIndex - The z-index of the container
+     * @returns {HTMLElement}
+     */
+    _getOrCreateContainer(containerName, zIndex) {
+        let container = document.getElementById(containerName);
+        
+        if (!container) {
+            container = this.createContainer(containerName, zIndex);
+        }
+
+        return container;
+    }
+
+    /**
+     * @description Setup the scene
+     * @returns {void}
+     */
+    async setupScene() {
+        this.logger.log({
+            functionName: 'setupScene',
+            conditions: ['init'],
+            customData: { this: this }
+        });
+
+        this._applyBaseContainerStyles(this.objects3D);
+        await this._initControllers();
+    }
+
+    /**
+     * @description Initialize the controllers
+     * @returns {void}
+     */
+    async _initControllers() {
+        for (const controller of Object.values(this.controllers)) {
+            if (controller && typeof controller.init === 'function') {
+                await controller.init();
+            }
         }
     }
 
@@ -115,29 +135,25 @@ export class Universal3DSection extends BaseSetup {
      * @returns {Object}
      */
     create3DController(type, params) {
-        const containerName = params.containerName || type;
-        const zIndex = params.zIndex || 1;
-        const container = this.createContainer(containerName, zIndex);
-
+        const key = params.containerName || type;
+        const container = this._3dContainers[key];
+        if (!container) {
+            throw new Error(`Container for 3D object "${type}" not found. Make sure to call _onEnterViewport first.`);
+        }
         if (!params.classRef) {
             throw new Error(`classRef is not specified for 3D object "${type}"`);
         }
-
-        this.logger.log({
-            type: 'success',
-            functionName: 'create3DController',
-            conditions: ['created'],
-            customData: {
-                this: this,
-                type: type,
-                params: params
-            }
-        });
-    
         return new params.classRef(container, {
             ...params,
             camera: params.camera
         });
+    }
+
+    _applyBaseContainerStyles(objects3DConfig) {
+        this.container.style.position = 'relative'; 
+        if (objects3DConfig.backgroundZIndex !== undefined) {
+            this.container.style.zIndex = objects3DConfig.backgroundZIndex;
+        }
     }
 
     /**
