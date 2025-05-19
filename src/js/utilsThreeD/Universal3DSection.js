@@ -27,6 +27,8 @@ export class Universal3DSection extends BaseSetup {
             conditions: ['init'],
             customData: { this: this }
         });
+
+        console.log(this.objects3D);
     }
 
     /**
