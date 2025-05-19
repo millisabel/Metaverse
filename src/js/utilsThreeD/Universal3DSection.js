@@ -120,9 +120,10 @@ export class Universal3DSection extends BaseSetup {
      */
     _onExitViewport() {
         if (this._controllersCreated) {
-            for (const controller of Object.values(this.controllers)) {
+            for (const [key, controller] of Object.entries(this.controllers)) {
                 if (controller && typeof controller.cleanup === 'function') {
                     controller.cleanup();
+                    delete this.controllers[key];
                 }
             }
         }
@@ -162,8 +163,16 @@ export class Universal3DSection extends BaseSetup {
      */
     onResize() {
         Object.values(this.controllers).forEach(ctrl => {
-            if (ctrl && typeof ctrl.onResize === 'function') {
-                ctrl.onResize();
+            if (
+                ctrl &&
+                typeof ctrl.onResize === 'function' &&
+                (ctrl.isInitialized || ctrl.initialized)
+            ) {
+                try {
+                    ctrl.onResize();
+                } catch (e) {
+                    console.warn('onResize error:', e);
+                }
             }
         });
     }

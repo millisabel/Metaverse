@@ -119,7 +119,6 @@ export class AnimationController {
             containerName: this.options.containerName,
             canvasName: this.name
         });
-
         await this.setupScene();
 
         this.isInitialized = true;
@@ -267,8 +266,9 @@ export class AnimationController {
      * @returns {void}
      */
     onResize() {
+        if (!this.cameraController || !this.renderer || !this.camera || !this.container) return;
         this.cameraController.onResize(this.container);
-        updateThreeRendererSize(this.renderer, this.container, this.camera);
+        this.updateRendererSize();
     }
 
     /**
@@ -314,8 +314,6 @@ export class AnimationController {
      * @returns {void}
      */
     animate() {
-        this.logger.log('animate started', { functionName: 'animate', type: 'info' });
-
         if (!this.canAnimate()) {
             if (this.animationFrameId) {
                 this.stopAnimation();
@@ -376,7 +374,7 @@ export class AnimationController {
      * @returns {void}
      */
     updateRendererSize() {
-        const { width, height } = this._getContainerSize();
+        const { width, height } = this.getContainerSize();
         if (!this.camera || !this.renderer || width === 0 || height === 0) return;
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
@@ -412,7 +410,7 @@ export class AnimationController {
     setupLights(options = {}) {
         if (!this.scene) return;
         const config = mergeOptionsWithObjectConfig(DEFAULT_LIGHTS, options);
-        addLightsToScene(this.scene, config);
+        this.lights = addLightsToScene(this.scene, config);
     }
 
     /**
@@ -420,8 +418,6 @@ export class AnimationController {
      * @returns {void}
      */
     update() {
-        this.logger.log('update called', { functionName: 'update', type: 'info' });
-
         // Base me
         // thod update, which will be overridden in child classes
         throw new Error('update must be implemented by subclass');

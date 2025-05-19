@@ -160,12 +160,6 @@ export class BaseSetup {
         // await this.setupScene();
         
         this.initialized = true;
-
-        this.logger.log({
-            type: 'success',
-            conditions: ['scene-initialized'],
-            functionName: 'initScene'
-        });
     }
 
     /**
