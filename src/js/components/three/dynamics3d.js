@@ -3,6 +3,113 @@ import * as THREE from 'three';
 import { AnimationController } from '../../utilsThreeD/animationController_3D';
 import { createLogger } from '../../utils/logger';
 import { SingleGlow } from './singleGlow';
+import { mergeOptions } from '../../utils/utils';
+import { getFinalGlowOptions } from '../../utilsThreeD/glowUtils';
+import { getAnimatedRotation, getAnimatedPosition, getAnimatedScale } from '../../utilsThreeD/animationUtils';
+
+
+const DEFAULT_MATERIAL_CONFIG = {
+    patch: null,
+    options: {
+        map: null,
+        emissiveIntensity: 2,
+        metalness: 0.5,
+        roughness: 0.5,
+        transparent: true,
+        opacity: 1,
+        emissive: 0xFFFFFF,
+        side: THREE.DoubleSide,
+    },
+    size: {
+        width: 6,
+        height: 6,
+    },
+    zPosition: 0,
+};
+
+const DEFAULT_OBJECT_3D_CONFIG = {
+    material: {
+        color: 0xFFFFFF,
+        emissive: 0xFFFFFF,
+        emissiveIntensity: 0.5,
+        metalness: 0.9,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide
+    },
+    zPosition: -0.5,
+};
+
+const GLOW_DYNAMIC_DEFAULTS_OPTIONS = {
+    enabled: true,
+    color: 0xFFFFFF,
+    size: {
+        min: 2,
+        max: 2
+    },
+    opacity: {
+        min: 0.1,
+        max: 0.4
+    },
+    scale: {
+        min: 2,
+        max: 8
+    },  
+    position: {
+        x: 0,
+        y: 0,
+        z: 0
+    },
+    movement: {
+        enabled: false
+    },
+    positioning: {
+        mode: 'fixed',
+    },
+    shaderOptions: {
+        color: 0xFFFFFF,
+        opacity: { min: 0.1, max: 0.4 },
+        scale: { min: 2, max: 8 },
+    }
+};
+
+const DEFAULT_ANIMATION_PARAMS = {
+    group: {
+        rotation: {
+            x: { speed: 0.3, amplitude: 0.5, phase: 0 },
+            y: { speed: 0.3, amplitude: 0.5, phase: 0 },
+            z: { speed: 0.3, amplitude: 0.5, phase: 0 },
+        },
+    position: {
+        x: { speed: 0.1, amplitude: 0.1, phase: 0 },
+        y: { speed: 0.1, amplitude: 0.1, phase: 0 },
+        z: { speed: 0.1, amplitude: 10, basePosition: 0, phase: 0 }
+
+    },
+    scale: { speed: 0.1, amplitude: 0.02 },
+    },
+    mesh: {
+        rotation: {
+            x: { speed: 0.1, amplitude: 0.1, phase: 0 },
+            y: { speed: 0.1, amplitude: 0.1, phase: 0 },
+            z: { speed: 0.5, amplitude: 1, phase: 0 },
+        },
+    }
+};
+
+const DEFAULT_LIGHTS_CONFIG = {
+    ambientIntensity: 0.3,
+    pointIntensity: 0.6,
+    pointPosition: { x: 2, y: 2, z: 2 },
+    directionalEnabled: true,
+    directionalIntensity: 1.5,
+    directionalPosition: { x: 10, y: 10, z: 10 },
+    hemiEnabled: true,
+    hemiSkyColor: 0xffffff,
+    hemiGroundColor: 0x222233,
+    hemiIntensity: 0.5
+};
 
 export class Dynamics3D extends AnimationController {
     constructor(container, options = {}) {
@@ -15,8 +122,11 @@ export class Dynamics3D extends AnimationController {
         this.decorationMesh = null;
         this.glowEffect = null;
         this.group = new THREE.Group();
+        
+        console.log(DEFAULT_ANIMATION_PARAMS);
+        console.log(this.options.animationParams);
 
-        this.animationParams = this.getAnimationParams();
+        this.animationParams = mergeOptions(DEFAULT_ANIMATION_PARAMS, this.options.animationParams);
 
         this.logger.log({
             conditions: ['init'],
@@ -25,8 +135,6 @@ export class Dynamics3D extends AnimationController {
                 options: this.options
             }
         });
-        
-
         // Add resize handler
         // this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
         // if (this.container) {
@@ -34,8 +142,11 @@ export class Dynamics3D extends AnimationController {
         // }
     }
 
+    /**
+     * @description Sets up the scene for the dynamics3d component
+     * @returns {Promise<void>}
+     */
     async setupScene() {
-
         if (!this.scene) {
             this.logger.log('Scene not available for setup', {
                 conditions: ['error'],
@@ -57,42 +168,12 @@ export class Dynamics3D extends AnimationController {
             }
         });
 
-        const rect = this.container.getBoundingClientRect();
-        const size = Math.min(rect.width, rect.height);
-        this.renderer.setSize(size, size, false);
+        this._setRendererSizeToContainer();
 
         try {
-            // if (this.options.glow.enabled) {
-            //     this.createGlowEffect();
-            // }
-
-            this.decorationMesh = await this._createDecoration();
-            if (this.decorationMesh) {
-                this.decorationMesh.position.z = 0;
-                this.group.add(this.decorationMesh);
-            }
-
-            const geometry = this.createGeometry();
-            const material = this.createGlowMaterial();
-            this.mesh = new THREE.Mesh(geometry, material);
-            
-            switch(this.options.type) {
-                case 'GUARDIANS_CARD':
-                    this.mesh.scale.set(0.8, 0.8, 1);
-                    this.mesh.position.z = -0.5;
-                    break;
-                case 'METAVERSE_CARD':
-                    this.mesh.scale.set(0.7, 0.7, 1);
-                    this.mesh.position.z = -0.5;
-                    break;
-                case 'SANKOPA_CARD':
-                    this.mesh.scale.set(0.8, 0.5, 1);
-                    this.mesh.position.y = 0.5;
-                    this.mesh.position.z = -0.5;
-                    break;
-            }
-            
-            this.group.add(this.mesh);
+            this._createGlowEffect();
+            await this._createAndAddDecorationMesh();
+            this._createAndAddMainMesh();
         } catch (error) {
             this.logger.log(`Failed to create scene elements: ${error}`, {
                 conditions: ['error'],
@@ -101,98 +182,264 @@ export class Dynamics3D extends AnimationController {
         }
         
         this.scene.add(this.group);
-        
-        this.setupLights();
-        this.logger.log('Scene setup complete', {
-            conditions: ['setup-complete'],
-            functionName: 'setupScene',
-            type: 'success',
-        });
+        this.setupLights(DEFAULT_LIGHTS_CONFIG);
     }
 
+    /**
+     * @description Sets the renderer size to the container size
+     * @returns {void}
+     */
+    _setRendererSizeToContainer() {
+        const rect = this.container.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height);
+        this.renderer.setSize(size, size, false);
+    }
+    
+    /**
+     * @description Creates and adds the decoration mesh to the group
+     * @returns {Promise<void>}
+     */
+    async _createAndAddDecorationMesh() {
+        this.decorationMesh = await this._createDecoration();
+        if (this.decorationMesh) {
+            this.decorationMesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
+            this.group.add(this.decorationMesh);
+        }
+    }
+
+    /**
+     * @description Creates the decoration mesh
+     * @returns {Promise<THREE.Mesh>}
+     */
     async _createDecoration() {
-        this.logger.log({
-            functionName: 'createDecoration',
-        });
-        if (!this.options.decoration) {
-            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
-            const material = new THREE.MeshBasicMaterial({
-                color: this.options.color,
-                transparent: true,
-                opacity: 1,
-                side: THREE.DoubleSide
-            });
-            const decoration = new THREE.Mesh(geometry, material);
-            decoration.position.z = -0.2;
-            return decoration;
+        if (!this.options.decoration.patch) {
+            return;
         }
 
-        const loader = new THREE.TextureLoader();
-        const planeGeometry = new THREE.PlaneGeometry(6, 6, 64, 64);
-        
-        try {
-            const texture = await new Promise((resolve, reject) => {
-                loader.load(
-                    this.options.decoration,
-                    (texture) => resolve(texture),
-                    undefined,
-                    (error) => reject(error)
-                );
-            });
+        const { material, size } = await this._getDecorationMaterial();
 
-            let materialConfig = {
-                map: texture,
-                transparent: true,
-                opacity: 1,
-                emissive: this.options.color,
-                emissiveIntensity: 1.2,
-                side: THREE.DoubleSide,
-                metalness: 0.5,
-                roughness: 0.2
-            };
-
-            switch(this.options.type) {
-                case 'GUARDIANS_CARD':
-                    materialConfig.emissiveIntensity = 1.5;
-                    materialConfig.metalness = 0.8;
-                    materialConfig.roughness = 0.1;
-                    break;
-                case 'METAVERSE_CARD':
-                    materialConfig.emissiveIntensity = 1.8;
-                    materialConfig.metalness = 0.7;
-                    materialConfig.roughness = 0.15;
-                    break;
-                case 'SANKOPA_CARD':
-                    materialConfig.emissiveIntensity = 5.0;
-                    materialConfig.metalness = 0.9;
-                    materialConfig.roughness = 0;
-                    break;
-            }
-
-            const material = new THREE.MeshStandardMaterial(materialConfig);
-            
-            const decoration = new THREE.Mesh(planeGeometry, material);
-            decoration.position.z = 0;
-            return decoration;
-        } catch (error) {
-            this.logger.log(`Failed to load decoration texture: ${error}`, {
-                conditions: ['error'],
+        if (!material || !size) {
+            this.logger.log('Failed to get decoration material', {
+                type: 'error',
                 functionName: 'createDecoration'
             });
-            
-            // Fallback to detailed plane geometry for wave animation
-            const geometry = new THREE.PlaneGeometry(3, 3, 64, 64);
-            const material = new THREE.MeshBasicMaterial({
-                color: this.options.color,
-                transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide
+            return ;
+        }
+
+        const geometry = new THREE.PlaneGeometry(size.width, size.height, 64, 64);
+        const decoration = new THREE.Mesh(geometry, material);
+        decoration.position.z = 0;
+        return decoration; 
+    }
+
+    /**
+     * @description Gets the decoration material
+     * @returns {Promise<{material: THREE.MeshStandardMaterial, size: {width: number, height: number}}>}
+     */ 
+    async _getDecorationMaterial() {
+        let materialConfig = mergeOptions(DEFAULT_MATERIAL_CONFIG.options, this.options.decoration.options);
+        delete materialConfig.texture;
+        let materialSize = mergeOptions(DEFAULT_MATERIAL_CONFIG.size, this.options.decoration.size);
+    
+        const loader = new THREE.TextureLoader();
+        const texturePath = this.options.decoration.patch;
+    
+        const texture = await new Promise((resolve, reject) => {
+            loader.load(
+                texturePath,
+                (texture) => resolve(texture),
+                undefined,
+                (error) => reject(error)
+            );
+        });
+    
+        materialConfig.map = texture;
+    
+        return {
+            material: new THREE.MeshStandardMaterial(materialConfig),
+            size: materialSize
+        };
+    }
+    
+    /**
+     * @description Creates and adds the main mesh to the group
+     * @returns {void}
+     */
+    _createAndAddMainMesh() {
+        const geometry = this._createGeometry();
+        const material = this._createGlowMaterial();
+
+        if (!geometry || !material) {
+            this.logger.log('Failed to create main mesh', {
+                conditions: ['error'],
+                functionName: 'createAndAddMainMesh'
             });
-            const decoration = new THREE.Mesh(geometry, material);
-            decoration.position.z = 0;
-            return decoration;
+            return ;
+        }
+
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
+    
+        const meshOptions = this.options.mesh || {};
+        this._applyMeshTransform(this.mesh, meshOptions);
+    
+        this.group.add(this.mesh);
+    }
+
+    /**
+     * @description Creates the main mesh geometry
+     * @returns {THREE.Geometry}
+     */
+    _createGeometry() {
+        switch (this.options.mesh.shape) {
+            case 'circle':
+                return new THREE.CircleGeometry(...this.options.mesh.geometry);
+            case 'box':
+                return new THREE.BoxGeometry(...this.options.mesh.geometry);
+            default:
+                return new THREE.CircleGeometry(1, 64);
         }
     }
+
+    _createGlowMaterial() {
+        const object3dConfig = mergeOptions(DEFAULT_OBJECT_3D_CONFIG.material, this.options.mesh.material);
+        const material = new THREE.MeshStandardMaterial(object3dConfig);
+
+        return material;
+    }
+
+    /**
+     * @description Applies the mesh transform
+     * @param {THREE.Mesh} mesh - The mesh to apply the transform to
+     * @param {Object} meshOptions - The mesh options
+     * @returns {void}
+     */
+    _applyMeshTransform(mesh, meshOptions = {}) {
+        const scale = meshOptions.scale || { x: 1, y: 1, z: 1 };
+        mesh.scale.set(scale.x, scale.y, scale.z);
+ 
+        const position = meshOptions.position || { x: 0, y: 0, z: 0 };
+        mesh.position.set(
+            position.x ?? 0,
+            position.y ?? 0,
+            position.z ?? 0
+        );
+    }
+
+    /**
+     * @description Creates the glow effect
+     * @returns {void}
+     */
+    _createGlowEffect() {
+        this.logger.log({
+            functionName: 'createGlowEffect',
+            customData: {
+                options: this.options
+            }
+        });
+
+        if (!this.options.glow && !this.options.glow.enabled) {
+            return;
+        }
+        
+        const options = getFinalGlowOptions(
+            {}, 
+            GLOW_DYNAMIC_DEFAULTS_OPTIONS, 
+            this.options.glow.options      
+        );
+
+        this.glowEffect = new SingleGlow(
+            this.scene,
+            this.renderer,
+            this.container,
+            this.camera,
+            options,
+        );
+        this.glowEffect.setup();
+
+        if (this.glowEffect.mesh) {
+            this.group.add(this.glowEffect.mesh);
+        }
+    }
+
+    /**
+     * @description Applies the group animation
+     * @param {number} t - The time
+     * @param {Object} params - The animation parameters
+     * @returns {void}
+     */
+    _applyGroupAnimation(t, params) {
+        const rot = getAnimatedRotation(t, params.rotation);
+        this.group.rotation.set(rot.x, rot.y, rot.z);
+    
+        const pos = getAnimatedPosition(t, params.position);
+        this.group.position.set(pos.x, pos.y, pos.z);
+    
+        const scale = getAnimatedScale(t, params.scale);
+        this.group.scale.set(scale.x, scale.y, scale.z);
+    }
+
+    _applyMeshAnimation(t, params) {
+        const rot = getAnimatedRotation(t, params.rotation);
+        this.mesh.rotation.set(rot.x, rot.y, rot.z);
+    }
+
+    /**
+     * @description Updates the group animation
+     * @returns {void}
+     */
+    update() {
+        if (!this.group) return;
+
+        const t = performance.now() * 0.001;
+
+        this._applyGroupAnimation(t, this.animationParams.group);
+
+        if (this.mesh && this.animationParams.mesh) {
+            this._applyMeshAnimation(t, this.animationParams.mesh);
+        }
+
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+
+    cleanup() {
+        this.logger.log({
+            functionName: 'cleanup',
+        });
+        // Dispose glow resources
+        if (this.glowEffect) {
+            // this.glowEffect.dispose();
+            this.glowEffect = null;
+        }
+
+        // Dispose geometries
+        if (this.mesh) {
+            this.mesh.geometry.dispose();
+            this.mesh.material.dispose();
+        }
+
+        if (this.decorationMesh) {
+            this.decorationMesh.geometry.dispose();
+            this.decorationMesh.material.dispose();
+        }
+
+        // Remove resize observer
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
+        // Remove from scene
+        if (this.scene && this.group) {
+            this.scene.remove(this.group);
+        }
+
+        // Call parent dispose
+        super.cleanup();
+    }
+
+    
 
     handleResize() {    
         this.logger.log({
@@ -222,357 +469,5 @@ export class Dynamics3D extends AnimationController {
             conditions: ['resize'],
             functionName: 'handleResize'
         });
-    }
-
-    getAnimationParams() {  
-        this.logger.log({
-            functionName: 'getAnimationParams',
-        });
-        const baseParams = {
-            texture: {
-                rotation: { speed: 0.2, amplitude: 0.1 },
-                pulse: { speed: 0.5, amplitude: 0.05 },
-                wave: { 
-                    speed: 0.3, 
-                    amplitude: 0.1,
-                    frequency: 2
-                }
-            }
-        };
-
-        switch(this.options.type) {
-            case 'GUARDIANS_CARD':
-                return {
-                    ...baseParams,
-                    texture: {
-                        ...baseParams.texture,
-                        rotation: { speed: 0.15, amplitude: 0.08 },
-                        pulse: { speed: 0.4, amplitude: 0.04 },
-                        wave: { 
-                            speed: 0.25, 
-                            amplitude: 0.08,
-                            frequency: 2.5
-                        }
-                    },
-                    rotation: {
-                        x: { speed: 0.5, amplitude: 0.2 },
-                        y: { speed: 0.7, amplitude: 0.2 },
-                        z: { speed: 0.3, amplitude: 0.15 }
-                    },
-                    scale: { speed: 0.4, amplitude: 0.05 },
-                    position: { 
-                        y: { speed: 0.3, amplitude: 0.1 },
-                        z: { speed: 0.2, amplitude: -4, basePosition: -1 }
-                    }
-                };
-            case 'METAVERSE_CARD':
-                return {
-                    ...baseParams,
-                    texture: {
-                        ...baseParams.texture,
-                        rotation: { speed: 0.2, amplitude: 0.1 },
-                        pulse: { speed: 0.6, amplitude: 0.06 },
-                        wave: { 
-                            speed: 0.35, 
-                            amplitude: 0.12,
-                            frequency: 3
-                        }
-                    },
-                    rotation: {
-                        x: { speed: 0.7, amplitude: 0.25 },
-                        y: { speed: 0.5, amplitude: 0.2 },
-                        z: { speed: 0.4, amplitude: 0.15 }
-                    },
-                    scale: { speed: 0.6, amplitude: 0.05 },
-                    position: { 
-                        y: { speed: 0.5, amplitude: 0.1 },
-                        z: { speed: 0.23, amplitude: -4, basePosition: -1 }
-                    }
-                };
-            case 'SANKOPA_CARD':
-                return {
-                    ...baseParams,
-                    texture: {
-                        ...baseParams.texture,
-                        rotation: { speed: 0.25, amplitude: 0.12 },
-                        pulse: { speed: 0.7, amplitude: 0.08 },
-                        wave: { 
-                            speed: 0.4, 
-                            amplitude: 0.15,
-                            frequency: 3.5
-                        }
-                    },
-                    rotation: {
-                        x: { speed: 0.4, amplitude: 0.2 },
-                        y: { speed: 0.6, amplitude: 0.25 },
-                        z: { speed: 0.5, amplitude: 0.15 }
-                    },
-                    scale: { speed: 0.7, amplitude: 0.05 },
-                    position: { 
-                        y: { speed: 0.4, amplitude: 0.1 },
-                        z: { speed: 0.18, amplitude: -4, basePosition: -1 }
-                    }
-                };
-            default:
-                return {
-                    ...baseParams,
-                    rotation: {
-                        x: { speed: 0.5, amplitude: 0.2 },
-                        y: { speed: 0.7, amplitude: 0.2 },
-                        z: { speed: 0.3, amplitude: 0.15 }
-                    },
-                    scale: { speed: 0.4, amplitude: 0.05 },
-                    position: { 
-                        y: { speed: 0.3, amplitude: 0.1 },
-                        z: { speed: 0.2, amplitude: -3.5, basePosition: 0 }
-                    }
-                };
-        }
-    }
-
-    createGeometry() {
-        this.logger.log({
-            functionName: 'createGeometry',
-        });
-        switch(this.options.type) {
-            case 'GUARDIANS_CARD':
-                const radius = 1;
-                const segments = 64;
-                return new THREE.CircleGeometry(radius, segments);
-            case 'METAVERSE_CARD':
-                return new THREE.BoxGeometry(1.5, 1.5, 0.5);
-            case 'SANKOPA_CARD':
-                return new THREE.BoxGeometry(1.8, 1, 0.4);
-            default:
-                return new THREE.CircleGeometry(1, 64);
-        }
-    }
-
-    createGlowMaterial() {
-        this.logger.log({
-            functionName: 'createGlowMaterial',
-        });
-        const baseColor = this.options.color;
-        const material = new THREE.MeshStandardMaterial({
-            color: baseColor,
-            emissive: baseColor,
-            emissiveIntensity: 0.5,
-            metalness: 0.9,
-            roughness: 0.2,
-            transparent: true,
-            opacity: 1,
-            side: THREE.DoubleSide
-        });
-
-        if (this.options.type === 'METAVERSE_CARD' || this.options.type === 'SANKOPA_CARD') {
-            const edgesMaterial = new THREE.LineBasicMaterial({ 
-                color: baseColor,
-                transparent: true,
-                opacity: 0.7
-            });
-            
-            const edges = new THREE.EdgesGeometry(this.mesh?.geometry);
-            this.wireframe = new THREE.LineSegments(edges, edgesMaterial);
-            this.wireframe.position.z = -0.51; // Чуть позади основной фигуры
-            this.group.add(this.wireframe);
-        }
-
-        return material;
-    }
-
-    createGlowEffect() {
-        this.logger.log({
-            functionName: 'createGlowEffect',
-        });
-        const glowColor = this.options.glow.color || this.options.color;
-        
-        this.glowEffect = new SingleGlow(
-            this.scene,
-            this.renderer,
-            this.container,
-            {
-                color: glowColor,
-                size: this.options.glow.size,
-                opacity: {
-                    min: this.options.glow.opacity * 0.8,
-                    max: this.options.glow.opacity
-                },
-                scale: {
-                    min: this.options.glow.scale.min,
-                    max: this.options.glow.scale.max
-                },
-                position: { x: 0, y: 0, z: -1 },
-                movement: {
-                    enabled: false
-                }
-            }
-        );
-
-        // Добавляем блик в группу для синхронизации анимаций
-        if (this.glowEffect.mesh) {
-            this.group.add(this.glowEffect.mesh);
-        }
-    }
-
-    setupLights() {
-        this.logger.log({
-            functionName: 'setupLights',
-        });
-        const frontLight = new THREE.DirectionalLight(0xffffff, 1);
-        frontLight.position.set(0, 0, 5);
-        this.scene.add(frontLight);
-
-        const topLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        topLight.position.set(0, 5, 0);
-        this.scene.add(topLight);
-
-        const leftLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        leftLight.position.set(-5, 0, 2);
-        this.scene.add(leftLight);
-
-        const rightLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        rightLight.position.set(5, 0, 2);
-        this.scene.add(rightLight);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-        this.scene.add(ambientLight);
-    }
-
-    update() {
-        
-    if (!this.options || !this.options.glow || !this.options.glow.scale) {
-        // Optionally log a warning here
-        return;
-    }
-        if (!this.group) return;
-
-        const time = performance.now() * 0.001;
-        const params = this.animationParams;
-
-        const zPosition = Math.min(
-            params.position.z.basePosition,
-            params.position.z.basePosition + Math.sin(time * params.position.z.speed) * params.position.z.amplitude
-        );
-
-        const zRange = {
-            min: params.position.z.basePosition + params.position.z.amplitude,
-            max: params.position.z.basePosition 
-        };
-
-        let normalizedZ = (zPosition - zRange.min) / (zRange.max - zRange.min);
-        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
-
-        const glowScale = {
-            min: this.options.glow.scale.min,
-            max: this.options.glow.scale.max
-        };
-
-        const glowOpacity = {
-            min: 0.1,
-            max: 0.8
-        };
-
-        const currentScale = glowScale.min + (glowScale.max - glowScale.min) * normalizedZ;
-        const currentOpacity = glowOpacity.min + (glowOpacity.max - glowOpacity.min) * normalizedZ;
-
-        if (this.glowEffect && this.glowEffect.mesh) {
-            this.glowEffect.mesh.scale.set(currentScale, currentScale, 1);
-            this.glowEffect.mesh.material.opacity = currentOpacity;
-        }
-
-        // Texture animation
-        if (this.decorationMesh && this.options.textureAnimation) {
-            const textureParams = params.texture;
-
-            // Rotation animation
-            if (this.options.textureAnimation.rotation) {
-                this.decorationMesh.rotation.z = Math.sin(time * textureParams.rotation.speed) * textureParams.rotation.amplitude;
-            }
-
-            // Pulse animation
-            if (this.options.textureAnimation.pulse) {
-                const pulseScale = 1 + Math.sin(time * textureParams.pulse.speed) * textureParams.pulse.amplitude;
-                this.decorationMesh.scale.set(pulseScale, pulseScale, 1);
-            }
-
-            // Wave animation
-            if (this.options.textureAnimation.wave) {
-                const vertices = this.decorationMesh.geometry.attributes.position.array;
-                const count = vertices.length / 3;
-                
-                for (let i = 0; i < count; i++) {
-                    const x = vertices[i * 3];
-                    const y = vertices[i * 3 + 1];
-                    const distance = Math.sqrt(x * x + y * y);
-                    
-                    vertices[i * 3 + 2] = Math.sin(distance * textureParams.wave.frequency - time * textureParams.wave.speed) 
-                        * textureParams.wave.amplitude;
-                }
-                
-                this.decorationMesh.geometry.attributes.position.needsUpdate = true;
-            }
-        }
-
-        // Update wireframe position with main figure
-        if (this.wireframe) {
-            this.wireframe.rotation.copy(this.mesh.rotation);
-            this.wireframe.position.z = this.mesh.position.z - 0.01;
-        }
-
-        // Group animation
-        this.group.rotation.x = Math.sin(time * params.rotation.x.speed) * params.rotation.x.amplitude;
-        this.group.rotation.y = Math.cos(time * params.rotation.y.speed) * params.rotation.y.amplitude;
-        this.group.rotation.z = Math.sin(time * params.rotation.z.speed) * params.rotation.z.amplitude;
-
-        // Scale animation with unique parameters
-        const scale = 1 + Math.sin(time * params.scale.speed) * params.scale.amplitude;
-        this.group.scale.set(scale, scale, scale);
-
-        // Position animation with unique parameters
-        this.group.position.y = Math.sin(time * params.position.y.speed) * params.position.y.amplitude;
-        
-        // Update group z-position
-        this.group.position.z = zPosition;
-
-        // Render the scene
-        if (this.renderer && this.scene && this.camera) {
-            console.log('render');
-            this.renderer.render(this.scene, this.camera);
-        }
-    }
-
-    cleanup() {
-        this.logger.log({
-            functionName: 'cleanup',
-        });
-        // Dispose glow resources
-        if (this.glowEffect) {
-            this.glowEffect.dispose();
-            this.glowEffect = null;
-        }
-
-        // Dispose geometries
-        if (this.mesh) {
-            this.mesh.geometry.dispose();
-            this.mesh.material.dispose();
-        }
-
-        if (this.decorationMesh) {
-            this.decorationMesh.geometry.dispose();
-            this.decorationMesh.material.dispose();
-        }
-
-        // Remove resize observer
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-        }
-
-        // Remove from scene
-        if (this.scene && this.group) {
-            this.scene.remove(this.group);
-        }
-
-        // Call parent dispose
-        super.cleanup();
     }
 }
