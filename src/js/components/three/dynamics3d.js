@@ -50,7 +50,7 @@ const GLOW_DYNAMIC_DEFAULTS_OPTIONS = {
     },
     opacity: {
         min: 0.1,
-        max: 0.4
+        max: 0.3
     },
     scale: {
         min: 2,
@@ -121,10 +121,7 @@ export class Dynamics3D extends AnimationController {
         this.mesh = null;
         this.decorationMesh = null;
         this.glowEffect = null;
-        this.group = new THREE.Group();
-        
-        console.log(DEFAULT_ANIMATION_PARAMS);
-        console.log(this.options.animationParams);
+        this.group = null;
 
         this.animationParams = mergeOptions(DEFAULT_ANIMATION_PARAMS, this.options.animationParams);
 
@@ -135,11 +132,6 @@ export class Dynamics3D extends AnimationController {
                 options: this.options
             }
         });
-        // Add resize handler
-        // this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
-        // if (this.container) {
-        //     this.resizeObserver.observe(this.container);
-        // }
     }
 
     /**
@@ -167,7 +159,7 @@ export class Dynamics3D extends AnimationController {
                 options: this.options,
             }
         });
-
+        this.group = new THREE.Group();
         this._setRendererSizeToContainer();
 
         try {
@@ -203,7 +195,9 @@ export class Dynamics3D extends AnimationController {
         this.decorationMesh = await this._createDecoration();
         if (this.decorationMesh) {
             this.decorationMesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
-            this.group.add(this.decorationMesh);
+            if (this.decorationMesh instanceof THREE.Object3D) {
+                this.group.add(this.decorationMesh);
+            }
         }
     }
 
@@ -283,7 +277,9 @@ export class Dynamics3D extends AnimationController {
         const meshOptions = this.options.mesh || {};
         this._applyMeshTransform(this.mesh, meshOptions);
     
-        this.group.add(this.mesh);
+        if (this.mesh instanceof THREE.Object3D) {
+            this.group.add(this.mesh);
+        }
     }
 
     /**
@@ -358,7 +354,9 @@ export class Dynamics3D extends AnimationController {
         this.glowEffect.setup();
 
         if (this.glowEffect.mesh) {
-            this.group.add(this.glowEffect.mesh);
+            if (this.glowEffect.mesh instanceof THREE.Object3D) {
+                this.group.add(this.glowEffect.mesh);
+            }
         }
     }
 
@@ -379,9 +377,43 @@ export class Dynamics3D extends AnimationController {
         this.group.scale.set(scale.x, scale.y, scale.z);
     }
 
+    /**
+     * @description Applies the mesh animation
+     * @param {number} t - The time
+     * @param {Object} params - The animation parameters
+     * @returns {void}
+     */
     _applyMeshAnimation(t, params) {
+        if (!this.mesh || !params || !params.rotation) return;
         const rot = getAnimatedRotation(t, params.rotation);
         this.mesh.rotation.set(rot.x, rot.y, rot.z);
+    }
+
+    /**
+     * @description Animates the glow effect based on the object's position
+     * @param {number} t - The time
+     * @returns {void}
+     */
+    _animateGlowEffect(t) {
+        if (this.glowEffect && this.glowEffect.mesh) {
+            const z = this.group.position.z;
+            const minScale = 1;
+            const maxScale = 2;
+            const minZ = -10;
+            const maxZ = 0;
+            const k = (z - minZ) / (maxZ - minZ);
+            const scale = minScale + (maxScale - minScale) * k;
+            this.glowEffect.mesh.scale.set(scale, scale, scale);
+        }
+    }
+
+    /**
+     * @description Handles external resize events (calls parent logic and updates renderer size)
+     * @returns {void}
+     */
+    onResize() {
+        this.logger.log({ functionName: 'onResize' });
+        if (super.onResize) super.onResize();
     }
 
     /**
@@ -393,81 +425,41 @@ export class Dynamics3D extends AnimationController {
 
         const t = performance.now() * 0.001;
 
+        this._applyMeshAnimation(t, this.animationParams.mesh);
         this._applyGroupAnimation(t, this.animationParams.group);
-
-        if (this.mesh && this.animationParams.mesh) {
-            this._applyMeshAnimation(t, this.animationParams.mesh);
-        }
-
-        if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-        }
+        this._animateGlowEffect(t);
+        this.renderScene();
     }
 
+    /**
+     * @description Cleans up the dynamics3d component
+     * @returns {void}
+     */
     cleanup() {
-        this.logger.log({
-            functionName: 'cleanup',
-        });
-        // Dispose glow resources
+        let logMessage = `starting cleanup in ${this.constructor.name}\n`;
+
         if (this.glowEffect) {
-            // this.glowEffect.dispose();
+            if (typeof this.glowEffect.dispose === 'function') {
+                this.glowEffect.dispose();
+            }
             this.glowEffect = null;
+            logMessage += `Glow effect disposed\n`;
         }
 
-        // Dispose geometries
-        if (this.mesh) {
-            this.mesh.geometry.dispose();
-            this.mesh.material.dispose();
+        if (this.group) {
+            this.group.clear();
+            if (this.scene) {
+                this.scene.remove(this.group);
+            }
+            this.group = null;
+                logMessage += `Group removed from scene\n`;
         }
 
-        if (this.decorationMesh) {
-            this.decorationMesh.geometry.dispose();
-            this.decorationMesh.material.dispose();
-        }
+        this.mesh = null;
+        logMessage += `Mesh removed from scene\n`;
+        this.decorationMesh = null;
+        logMessage += `Decoration mesh removed from scene\n`;
 
-        // Remove resize observer
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-        }
-
-        // Remove from scene
-        if (this.scene && this.group) {
-            this.scene.remove(this.group);
-        }
-
-        // Call parent dispose
-        super.cleanup();
-    }
-
-    
-
-    handleResize() {    
-        this.logger.log({
-            functionName: 'handleResize',
-        });
-        if (!this.container || !this.camera || !this.renderer) return;
-
-        // Get container dimensions
-        const rect = this.container.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height || width; 
-
-        // Update camera
-        this.camera.aspect = 1; 
-        this.camera.updateProjectionMatrix();
-
-        // Update renderer size
-        this.renderer.setSize(width, height, false);
-
-        // Force a re-render
-        if (this.scene) {
-            this.renderer.render(this.scene, this.camera);
-        }
-
-        // Log resize for debugging
-        this.logger.log(`Resizing canvas: ${width}x${height}`, {
-            conditions: ['resize'],
-            functionName: 'handleResize'
-        });
+        super.cleanup(logMessage);
     }
 }
