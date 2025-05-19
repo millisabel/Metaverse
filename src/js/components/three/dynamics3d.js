@@ -49,8 +49,8 @@ const GLOW_DYNAMIC_DEFAULTS_OPTIONS = {
         max: 2
     },
     opacity: {
-        min: 0.1,
-        max: 0.2
+        min: 0,
+        max: 0.05
     },
     scale: {
         min: 2,
@@ -122,6 +122,7 @@ export class Dynamics3D extends AnimationController {
         this.decorationMesh = null;
         this.glowEffect = null;
         this.group = null;
+        this.currentScale =  {};
 
         this.animationParams = mergeOptions(DEFAULT_ANIMATION_PARAMS, this.options.animationParams);
 
@@ -375,6 +376,12 @@ export class Dynamics3D extends AnimationController {
     
         const scale = getAnimatedScale(t, params.scale);
         this.group.scale.set(scale.x, scale.y, scale.z);
+
+        this.currentScale = {
+            rotation: rot,
+            position: pos,
+            scale: scale
+        }
     }
 
     /**

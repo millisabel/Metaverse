@@ -14,7 +14,7 @@ import initModal from './components/common/modal';
 import { updateCopyrightYear } from './utils/utils';
 
 if(process.env.NODE_ENV === 'development') {
-    Logger.enableGlobalLogging(false);
+    Logger.enableGlobalLogging();
     Logger.disableLoggerFor('AnimationObserverCSS');
 
     Logger.disableLoggerFor('BaseSetup');
@@ -60,7 +60,7 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
-    // Logger.disableLoggerFor('Dynamics3D');
+    Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
     Logger.disableLoggerFor('SingleGlow');
 

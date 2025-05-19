@@ -5,29 +5,7 @@ import { getWorldScaleForPixelSize } from '../../utilsThreeD/utilsThreeD';
 import vertexShader from '../../shaders/glow.vert';
 import fragmentShader from '../../shaders/glow.frag';
 
-const DEFAULT_OPTIONS = {
-    shaderOptions: {
-        color: 0xFFFFFF,
-    opacity: {
-            min: 0.5, 
-        max: 1
-    },
-    scale: {
-            min: 1, 
-        max: 2
-    },
-    pulse: {
-            enabled: true, 
-            speed: { 
-                min: 0.1, 
-                max: 0.3 
-            }, 
-        intensity: 2,
-            randomize: false,
-            sync: false,
-        },
-        objectPulse: 0
-    },
+export const SINGLE_GLOW_DEFAULT_OPTIONS = {
     sizePx: 100,
     size: {
         min: 1,
@@ -38,9 +16,9 @@ const DEFAULT_OPTIONS = {
         zEnabled: false,
         speed: 0.1,
         range: {
-            x: 2,
-            y: 4,   
-            z: 0.5,
+            x: 0,
+            y: 0,   
+            z: 0,
         }
     },
     intersection: {
@@ -54,7 +32,30 @@ const DEFAULT_OPTIONS = {
         targetSelector: null,
         align: 'center center',
         offset: { x: 0, y: 0 }
-    }
+    },
+    shaderOptions: {
+        color: 0xFFFFFF,
+        opacity: {
+            min: 0.5, 
+            max: 1
+        },
+        scale: {
+            min: 1, 
+            max: 2
+        },
+        pulse: {
+            enabled: true, 
+            speed: { 
+                min: 0.1, 
+                max: 0.3 
+            }, 
+            intensity: 2,
+            randomize: false,
+            sync: false,
+        },
+        objectPulse: 0
+    },
+    individualOptions: []
 };
 
 // Константа для uniforms, используемых в шейдере
@@ -70,6 +71,18 @@ const SHADER_UNIFORMS = {
     syncWithObject: v => ({ value: v.options.shaderOptions.pulse.sync ? 1.0 : 0.0 })
 };
 
+// Utility to strip alpha from rgba color string
+function stripAlphaFromColor(colorStr) {
+    // rgba(255,255,255,0.05) -> rgb(255,255,255)
+    if (typeof colorStr === 'string' && colorStr.startsWith('rgba')) {
+        const match = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+        if (match) {
+            return `rgb(${match[1]},${match[2]},${match[3]})`;
+        }
+    }
+    return colorStr;
+}
+
 /**
  * SingleGlow class
  * @param {THREE.Scene} parentScene - The parent scene
@@ -82,14 +95,12 @@ export class SingleGlow {
     constructor(parentScene, parentRenderer, container, camera, options = {}) {
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
-
-        // Итоговые опции для одного блика
-        this.options = { ...DEFAULT_OPTIONS, ...options };
+        this.options = { ...SINGLE_GLOW_DEFAULT_OPTIONS, ...options };
 
         this.scene = parentScene;
         this.renderer = parentRenderer;
         this.container = container;
-        this.camera = camera;
+        this.camera = camera || options.camera || null;
 
         this.logger.log('Creating glow', {
             conditions: ['init'],
@@ -122,7 +133,7 @@ export class SingleGlow {
         this._currentColor = new THREE.Color(this.options.shaderOptions.color);
         this._targetColor = new THREE.Color(this.options.shaderOptions.color);
         this._objectPulse = this.options.shaderOptions.objectPulse ?? 0;
-        this._targetObjectPulse = this._objectPulse;
+        this._targetObjectPulse = this._objectPulse;  
     }
 
     /**
@@ -304,7 +315,11 @@ export class SingleGlow {
             functionName: '_setPositionByElement',
         });
         const el = document.querySelector(targetSelector);
-        if (!el) return;
+        if (!el) {
+            console.warn('Glow: targetSelector not found', targetSelector, ' — will retry');
+            setTimeout(() => this._setPositionByElement({ targetSelector, ...this.options.positioning }), 100);
+            return;
+        }
       
         const rect = el.getBoundingClientRect();
         const containerRect = this.container.getBoundingClientRect();
@@ -332,27 +347,6 @@ export class SingleGlow {
             case 'bottom': y = rect.top + rect.height - sizePx / 2; break;
             default:       y = rect.top + rect.height / 2;
         }
-
-        // Логирование для отладки позиционирования
-        this.logger.log('[Glow align debug]', {
-            functionName: '_setPositionByElement',
-            styles: {
-                headerBackground: '#b4a631'
-            },
-            customData: {
-                rect,
-                containerRect,
-                align,
-                vertical,
-                horizontal,
-                x_before_offset: x - containerRect.left,
-                y_before_offset: y - containerRect.top,
-                x_final: x - containerRect.left + (offset.x || 0),
-                y_final: y - containerRect.top + (offset.y || 0),
-                sizePx,
-                offset
-            }
-        });
 
         x -= containerRect.left;
         y -= containerRect.top;
@@ -490,20 +484,8 @@ export class SingleGlow {
      * @returns {void}
      */
     update(time) {
-        if (!this.options.movement?.enabled) return;
         this.mesh.material.uniforms.time.value = time;
-        // Уникальная волнистая траектория для каждого блика
-        const { speed = 1, zEnabled = true } = this.options.movement;
-        const t = time * speed;
-        const base = this.options.position;
-        const tr = this._trajectory;
-        const dx = Math.sin(t * tr.freqX + tr.phaseX) * tr.ampX;
-        const dy = Math.cos(t * tr.freqY + tr.phaseY) * tr.ampY;
-        const dz = zEnabled ? Math.sin(t * tr.freqZ + tr.phaseZ) * tr.ampZ : 0;
-        this.mesh.position.x = base.x + dx;
-        this.mesh.position.y = base.y + dy;
-        this.mesh.position.z = base.z + dz;
-
+        this._applyMovement(time);
         // --- Intersection logic ---
         if (this.options.intersection?.enabled) {
             this._updateIntersectionColor();
@@ -559,7 +541,9 @@ export class SingleGlow {
                 }
                 if (colorStr) {
                     try {
-                        foundColors.push(new THREE.Color(colorStr));
+                        // Удаляем альфа-канал, если есть
+                        const safeColor = stripAlphaFromColor(colorStr);
+                        foundColors.push(new THREE.Color(safeColor));
                     } catch (e) {
                         // Log color parse error
                         console.warn('Failed to parse color:', colorStr, e);
@@ -577,8 +561,6 @@ export class SingleGlow {
             // Fallback to initial color
             this._targetColor.set(this.options.shaderOptions.color);
         }
-        // Debug log
-        // console.log('Glow intersection:', { x, y, foundColors, target: this._targetColor.getStyle() });
     }
 
     /**
@@ -593,6 +575,29 @@ export class SingleGlow {
                 this.scene.remove(this.mesh);
             }
             this.mesh = null;
+        }
+    }
+
+        // Уникальная волнистая траектория для каждого блика
+    _applyMovement(time) {
+        const { movement, position } = this.options;
+        if (!movement?.enabled) return;
+        const { speed = 1, zEnabled = true } = movement;
+        const t = time * speed;
+        const tr = this._trajectory;
+        const dx = Math.sin(t * tr.freqX + tr.phaseX) * tr.ampX;
+        const dy = Math.cos(t * tr.freqY + tr.phaseY) * tr.ampY;
+        const dz = zEnabled ? Math.sin(t * tr.freqZ + tr.phaseZ) * tr.ampZ : 0;
+        this.mesh.position.x = position.x + dx;
+        this.mesh.position.y = position.y + dy;
+        this.mesh.position.z = position.z + dz;
+    }
+
+    setOpacity(opacity) {
+        if (!this.mesh) return;
+        this.options.shaderOptions.opacity.max = opacity;
+        if (this.mesh.material.uniforms && this.mesh.material.uniforms.opacity) {
+            this.mesh.material.uniforms.opacity.value = opacity;
         }
     }
 } 

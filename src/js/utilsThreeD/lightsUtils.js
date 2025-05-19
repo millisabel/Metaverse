@@ -23,11 +23,13 @@ export const DEFAULT_LIGHTS = {
  * @returns {Object} - The lights
  */
 export function addLightsToScene(scene, config) {
-    addAmbientLight(scene, config);
-    addPointLight(scene, config);
-    addDirectionalLight(scene, config);
-    addSpotLight(scene, config);
-    addHemisphereLight(scene, config);
+    const lights = {};
+    lights.ambient = addAmbientLight(scene, config);
+    lights.point = addPointLight(scene, config);
+    lights.directional = addDirectionalLight(scene, config);
+    lights.spot = addSpotLight(scene, config);
+    lights.hemisphere = addHemisphereLight(scene, config);
+    return lights;
 }
 
 /**

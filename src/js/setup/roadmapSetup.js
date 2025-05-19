@@ -19,7 +19,7 @@ const CONFIG_3D = {
         },
         objectConfig: {
             count: isMobile() ? 3 : 12,
-            color: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
+            colorPalette: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
             sizePx: 150,
             size: {

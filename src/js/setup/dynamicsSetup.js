@@ -19,12 +19,15 @@ const CARD_COLORS = {
     METAVERSE: 0x4169FF,
     SANKOPA: 0xFF00FF,
 };
+const CARD_NAMES = {
+    GUARDIANS: 'CARD_GUARDIANS',
+    METAVERSE: 'CARD_METAVERSE',
+    SANKOPA: 'CARD_SANKOPA',
+};
 const CONFIG_CARDS = {  
     GUARDIANS: {
         containerName: 'guardians3d',
         classRef: Dynamics3D,
-        isSectionController: false, 
-        id: 'guardians3d',
         zIndex: Z_INDEX.CARD, 
         objectConfig: {
             type: 'guardians',
@@ -77,8 +80,6 @@ const CONFIG_CARDS = {
     METAVERSE: {
         containerName: 'metaverse3d',
         classRef: Dynamics3D,
-        isSectionController: false, 
-        id: 'metaverse3d',
         zIndex: Z_INDEX.CARD,
         objectConfig: {
             type: 'metaverse',
@@ -121,15 +122,11 @@ const CONFIG_CARDS = {
     },
     SANKOPA: {
         containerName: 'sankopa3d', 
-        classRef: Dynamics3D,
-        isSectionController: false, 
-        id: 'sankopa3d',
+        classRef: Dynamics3D, 
         zIndex: Z_INDEX.CARD,
         objectConfig: {
             type: 'sankopa',
             color: CARD_COLORS.SANKOPA,
-            object_3d: {
-            },
             decoration: {
                 patch: decoration3Svg,
                 options: {
@@ -175,25 +172,47 @@ const CONFIG_CARDS = {
 const CONFIG_GLOW = {
     containerName: 'DYNAMICS_GLOW',
     zIndex: Z_INDEX.GLOW,
-    camera: {
-        position: {
-            x: 0,
-            y: 0,
-            z: 0
-        }
-    },
     classRef: Glow,
     objectConfig: {
-        colorPalette: ['#56FFEB', '#4642F4', '#F00AFE'],
-        size: { min: 1, max: 1 }, 
+        size: { min: 0.1, max: 0.1 }, 
+        movement: {
+            enabled: false,
+            zEnabled: true,
+            speed: 0.1,
+            range: {
+                x: 0,
+                y: 0,   
+                z: 0.5,
+            }
+        },
         positioning: {
             mode: 'element',
-            align: 'top center',
-            offset: { x: 0, y: 20 }
+            align: 'center center',
+            offset: { x: 0, y: 100 }
         },
         pulseControl: {
             enabled: true,
             randomize: false
+        },
+        shaderOptions: {
+            scale: {
+                min: 0, 
+                max: 0.5
+            },
+            opacity: {
+                min: 0, 
+                max: 0.2
+            },
+            pulse: {
+                enabled: true, 
+                speed: { 
+                    min: 0.1, 
+                    max: 0.3 
+                }, 
+                intensity: 1,
+                randomize: false,
+                sync: true,
+            },
         },
         individualOptions: [
             {
@@ -201,7 +220,6 @@ const CONFIG_GLOW = {
                     color: '#56FFEB',
                 },
                 positioning: {
-                    mode: 'element',
                     targetSelector: '.dynamics .card--3d-left', 
                 }
             },
@@ -224,12 +242,12 @@ const CONFIG_GLOW = {
         ]
     }
 };
-
+const cardKeys = ['CARD_GUARDIANS', 'CARD_METAVERSE', 'CARD_SANKOPA'];
 const CONFIG = {
     CARD_GUARDIANS: CONFIG_CARDS.GUARDIANS,
     CARD_METAVERSE: CONFIG_CARDS.METAVERSE,
     CARD_SANKOPA: CONFIG_CARDS.SANKOPA,
-    // GLOW: CONFIG_GLOW,
+    GLOW: CONFIG_GLOW,
 };
 
 export class DynamicsSetup extends Universal3DSection {
@@ -237,15 +255,20 @@ export class DynamicsSetup extends Universal3DSection {
         super(SECTION_ID, CONFIG, Z_INDEX.SECTION);
     }
 
-    /**
-     * @description Sets the objectPulse value for a glow under a card (for external sync)
-     * @param {number} cardIndex - Card index (0-based)
-     * @param {number} value - Target value (0..1)
-     */
-    setGlowPulseForCard(cardIndex, value) {
-        if (this.backgroundGlows && typeof this.backgroundGlows.setGlowPulse === 'function') {
-            this.backgroundGlows.setGlowPulse(cardIndex, value);
+    syncWithCard(card3D, cardIndex) {
+        if (this.controllers.GLOW && typeof this.controllers.GLOW.syncWithCard === 'function') {
+            this.controllers.GLOW.syncWithCard(card3D, cardIndex);
         }
+    }
+
+    update() {
+        super.update();
+        cardKeys.forEach((key, index) => {
+            const card = this.controllers[key];
+            if (card) {
+                this.syncWithCard(card, index);
+            }
+        });
     }
 }
 
