@@ -50,7 +50,7 @@ const GLOW_DYNAMIC_DEFAULTS_OPTIONS = {
     },
     opacity: {
         min: 0.1,
-        max: 0.3
+        max: 0.2
     },
     scale: {
         min: 2,
@@ -403,7 +403,11 @@ export class Dynamics3D extends AnimationController {
             const maxZ = 0;
             const k = (z - minZ) / (maxZ - minZ);
             const scale = minScale + (maxScale - minScale) * k;
-            this.glowEffect.mesh.scale.set(scale, scale, scale);
+                this.glowEffect.mesh.scale.set(scale, scale, scale);
+            
+            if (this.sectionController && typeof this.sectionController.setGlowScaleForCard === 'function') {
+                this.sectionController.setGlowScaleForCard(this.cardIndex, scale);
+            }
         }
     }
 
