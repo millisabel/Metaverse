@@ -187,8 +187,8 @@ const CONFIG_GLOW = {
         },
         positioning: {
             mode: 'element',
-            align: 'center center',
-            offset: { x: 0, y: 100 }
+            align: isMobile ? 'top center' : 'center center',
+            offset: { x: 0, y: isMobile ? 0 : -100 }
         },
         pulseControl: {
             enabled: true,
@@ -197,11 +197,11 @@ const CONFIG_GLOW = {
         shaderOptions: {
             scale: {
                 min: 0, 
-                max: 0.5
+                max: 100
             },
             opacity: {
                 min: 0, 
-                max: 0.2
+                max: 0.3,
             },
             pulse: {
                 enabled: true, 
@@ -211,7 +211,11 @@ const CONFIG_GLOW = {
                 }, 
                 intensity: 1,
                 randomize: false,
-                sync: true,
+                sync: {
+                    enabled: true,
+                    scale: true,
+                    opacity: true,
+                },
             },
         },
         individualOptions: [

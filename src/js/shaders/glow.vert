@@ -5,6 +5,9 @@ uniform float pulseSpeed;
 uniform float pulseIntensity;
 uniform float objectPulse;
 uniform float syncWithObject;
+uniform float cardProgress;
+uniform float syncScale;
+uniform float cardScale;
 varying vec2 vUv;
 varying float vPulse;
 
@@ -18,7 +21,12 @@ void main() {
         basePulse * (1.0 + objectInfluence),
         smoothstep(0.0, 1.0, objectInfluence)
     );
-    float scale = scaleMin + (scaleMax - scaleMin) * pow(combinedEffect, 1.2);
+    float scale;
+    if (syncScale > 0.5) {
+        scale = cardScale;
+    } else {
+        scale = scaleMin + (scaleMax - scaleMin) * (cardProgress * pow(combinedEffect, 1.2));
+    }
     vPulse = scale;
     vec3 scaledPosition = position * scale;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(scaledPosition, 1.0);

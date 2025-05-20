@@ -48,7 +48,11 @@ export const GLOWS_DEFAULT_OPTIONS = {
         pulse: { // только параметры для шейдера
             speed: { min: 0.1, max: 0.3 }, 
             intensity: 2, 
-            sync: false,
+            sync: {
+                enabled: false,
+                scale: false,
+                opacity: false
+            },
         },
         objectPulse: 0
     },
@@ -170,86 +174,7 @@ export class Glow extends AnimationController {
      */
     syncWithCard(card, glowIndex = 0) {
         if (!card || !this.glows || !this.glows[glowIndex]) return;
-        
-        this._prevZ = this._prevZ || [];
-        if (this._prevZ[glowIndex] === card.currentScale.position.z) return;
-        this._prevZ[glowIndex] = card.currentScale.position.z;
-
-        const glow = this.glows[glowIndex];
-        const glowShaderOptions = glow.options.shaderOptions;
-
-        const position = card.currentScale.position;
-        
-        const z = position.z;
-
-        const zParams = card.animationParams.group?.position?.z || {};
-        const baseZ = zParams.basePosition ?? 0;
-        const amplitudeZ = zParams.amplitude ?? 0;
-        
-        const realMinZ = amplitudeZ * -1;
-        const realMaxZ = baseZ;
-
-        const tolerance = Math.abs(amplitudeZ) * 0.005;
-        const minZ = realMinZ - tolerance;
-        const maxZ = realMaxZ + tolerance;
-
-        let normalizedZ = (z - minZ) / (maxZ - minZ);
-        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
-
-        if (minZ > maxZ) {
-            normalizedZ = 1 - normalizedZ;
-        }
-        
-// 
-        const scaleRange = glowShaderOptions.scale;
-        const opacityRange = glowShaderOptions.opacity;
-
-        const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
-        const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
-        
-        if(normalizedZ > 0.9) {
-            console.log(glowIndex, 'z', z, 'minZ', minZ, 'maxZ', maxZ, 'normalizedZ', normalizedZ, 'scale', scale, 'opacity', opacity, 'baseZ', baseZ, 'amplitudeZ', amplitudeZ);
-        }
-
-        if (glow.mesh) {
-            const currentScale = glow.mesh.scale.x;
-            if (Math.abs(currentScale - scale) > 0.001) {
-                glow.mesh.scale.set(scale, scale, 1);
-            }
-        
-            const currentOpacity = glow.mesh.material.uniforms?.opacity.value;
-            if (currentOpacity !== undefined && Math.abs(currentOpacity - opacity) > 0.01) {
-                glow.mesh.material.uniforms.opacity.value = opacity;
-            }
-        }
+        this.glows[glowIndex].syncWithCard(card);
     }
 }
-/*
-const groupZPosition = card.group.position.z;
-const meshZPosition = card.mesh ? card.mesh.position.z : 0;
-const zPosition = groupZPosition + meshZPosition;
 
-const params = card.animationParams;
-
-// Calculate z-position range based on animation parameters
-const zRange = {
-    min: params.position.z.basePosition + params.position.z.amplitude, // Maximum distance
-    max: params.position.z.basePosition // Maximum proximity
-};
-
-// Calculate normalized position (0 to 1)
-let normalizedZ = (zPosition - zRange.min) / (zRange.max - zRange.min);
-normalizedZ = Math.max(0, Math.min(1, normalizedZ));
-
-// Calculate scale and opacity using exponential scaling for more dramatic effect
-const scaleRange = this.options.scale;
-const opacityRange = this.options.opacity;
-
-// Use exponential scaling for more dramatic effect when object is closer
-const scaleFactor = Math.pow(normalizedZ, 1.5); // Exponential scaling
-const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * scaleFactor;
-
-// Opacity follows a similar curve but with different power
-const opacityFactor = Math.pow(normalizedZ, 2); // More dramatic opacity change
-const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * opacityFactor;
-*/

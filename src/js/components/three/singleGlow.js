@@ -51,7 +51,11 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
             }, 
             intensity: 2,
             randomize: false,
-            sync: false,
+            sync: {
+                enabled: false,
+                scale: false,
+                opacity: false
+            },
         },
         objectPulse: 0
     },
@@ -242,9 +246,15 @@ export class SingleGlow {
         });
         // Формируем uniforms на основе константы
         const uniforms = {};
+        uniforms.cardProgress = { value: 1 };
         for (const key in SHADER_UNIFORMS) {
             uniforms[key] = SHADER_UNIFORMS[key](this);
         }
+        // Новые uniforms для sync
+        uniforms.syncScale = { value: this.options.shaderOptions.pulse?.sync?.scale ? 1.0 : 0.0 };
+        uniforms.cardScale = { value: 1.0 };
+        uniforms.syncOpacity = { value: this.options.shaderOptions.pulse?.sync?.opacity ? 1.0 : 0.0 };
+        uniforms.cardOpacity = { value: this.options.shaderOptions.opacity.max };
         return new THREE.ShaderMaterial({
             uniforms,
             vertexShader,
@@ -252,7 +262,7 @@ export class SingleGlow {
             transparent: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
         });
     }
 
@@ -598,6 +608,45 @@ export class SingleGlow {
         this.options.shaderOptions.opacity.max = opacity;
         if (this.mesh.material.uniforms && this.mesh.material.uniforms.opacity) {
             this.mesh.material.uniforms.opacity.value = opacity;
+        }
+    }
+
+    /**
+     * @description Синхронизирует блик с позицией и анимацией карточки
+     * @param {Dynamics3D} card - объект карточки Dynamics3D
+     */
+    syncWithCard(card) {
+        if (!card || !this.mesh || !this.mesh.material || !this.mesh.material.uniforms) return;
+        const glowShaderOptions = this.options.shaderOptions;
+        const syncOptions = glowShaderOptions.pulse?.sync || {};
+        const position = card.currentScale.position;
+        const z = position?.z;
+        const zParams = card.animationParams.group?.position?.z || {};
+        const baseZ = zParams.basePosition ?? 0;
+        const amplitudeZ = zParams.amplitude ?? 0;
+        const realMinZ = amplitudeZ * -1;
+        const realMaxZ = baseZ;
+        const tolerance = Math.abs(amplitudeZ) * 0;
+        const minZ = realMinZ - tolerance;
+        const maxZ = realMaxZ + tolerance;
+        let normalizedZ = (z - minZ) / (maxZ - minZ);
+        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
+        if (minZ > maxZ) {
+            normalizedZ = 1 - normalizedZ;
+        }
+        const scaleRange = glowShaderOptions.scale;
+        const opacityRange = glowShaderOptions.opacity;
+        const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
+        const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
+        // Прокидываем значения для uniforms, если sync включён
+        if (this.mesh.material.uniforms.cardProgress) {
+            this.mesh.material.uniforms.cardProgress.value = normalizedZ;
+        }
+        if (syncOptions.scale && this.mesh.material.uniforms.cardScale) {
+            this.mesh.material.uniforms.cardScale.value = scale;
+        }
+        if (syncOptions.opacity && this.mesh.material.uniforms.cardOpacity) {
+            this.mesh.material.uniforms.cardOpacity.value = opacity;
         }
     }
 } 
