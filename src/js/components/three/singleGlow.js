@@ -56,8 +56,8 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
                 scale: false,
                 opacity: false
             },
+            highlightIntensity: 0
         },
-        objectPulse: 0
     },
     individualOptions: []
 };
@@ -136,8 +136,8 @@ export class SingleGlow {
         // Цвет для плавного перехода
         this._currentColor = new THREE.Color(this.options.shaderOptions.color);
         this._targetColor = new THREE.Color(this.options.shaderOptions.color);
-        this._objectPulse = this.options.shaderOptions.objectPulse ?? 0;
-        this._targetObjectPulse = this._objectPulse;  
+        this._highlightIntensity = this.options.shaderOptions.pulse?.highlightIntensity ?? 0;
+        this._targetHighlightIntensity = this._highlightIntensity;
     }
 
     /**
@@ -255,6 +255,7 @@ export class SingleGlow {
         uniforms.cardScale = { value: 1.0 };
         uniforms.syncOpacity = { value: this.options.shaderOptions.pulse?.sync?.opacity ? 1.0 : 0.0 };
         uniforms.cardOpacity = { value: this.options.shaderOptions.opacity.max };
+        uniforms.highlightIntensity = { value: this.options.shaderOptions.pulse?.highlightIntensity ?? 0 };
         return new THREE.ShaderMaterial({
             uniforms,
             vertexShader,
@@ -484,8 +485,8 @@ export class SingleGlow {
      * @description Sets the target value for objectPulse (for external sync)
      * @param {number} value - Target value (0..1)
      */
-    setObjectPulse(value) {
-        this._targetObjectPulse = value;
+    setHighlightIntensity(value) {
+        this._targetHighlightIntensity = value;
     }
 
     /**
@@ -507,12 +508,11 @@ export class SingleGlow {
             }
         }
 
-        // --- Object pulse sync ---
-        // Плавно меняем objectPulse к целевому значению
-        if (typeof this._targetObjectPulse === 'number') {
-            this._objectPulse += (this._targetObjectPulse - this._objectPulse) * 0.1;
-            if (this.mesh.material.uniforms.objectPulse) {
-                this.mesh.material.uniforms.objectPulse.value = this._objectPulse;
+        // --- Highlight intensity sync ---
+        if (typeof this._targetHighlightIntensity === 'number') {
+            this._highlightIntensity += (this._targetHighlightIntensity - this._highlightIntensity) * 0.1;
+            if (this.mesh.material.uniforms.highlightIntensity) {
+                this.mesh.material.uniforms.highlightIntensity.value = this._highlightIntensity;
             }
         }
     }

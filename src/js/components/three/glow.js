@@ -149,14 +149,13 @@ export class Glow extends AnimationController {
     }
 
     /**
-     * @description Sets the objectPulse value for a specific glow (for external sync)
+     * @description Sets the highlightIntensity value for a specific glow (for external sync)
      * @param {number} index - Glow index
      * @param {number} value - Target value (0..1)
      */
-    setGlowPulse(index, value) {
-        console.log('setGlowPulse', index, value);
-        if (this.glows[index] && typeof this.glows[index].setObjectPulse === 'function') {
-            this.glows[index].setObjectPulse(value);
+    setGlowHighlightIntensity(index, value) {
+        if (this.glows[index] && typeof this.glows[index].setHighlightIntensity === 'function') {
+            this.glows[index].setHighlightIntensity(value);
         }
     }
 

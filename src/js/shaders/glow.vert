@@ -3,7 +3,7 @@ uniform float scaleMin;
 uniform float scaleMax;
 uniform float pulseSpeed;
 uniform float pulseIntensity;
-uniform float objectPulse;
+uniform float highlightIntensity;
 uniform float syncWithObject;
 uniform float cardProgress;
 uniform float syncScale;
@@ -15,7 +15,7 @@ void main() {
     vUv = uv;
     float basePulse = sin(time * pulseSpeed) * 0.5 + 0.5;
     basePulse = pow(basePulse, 1.5) * pulseIntensity;
-    float objectInfluence = smoothstep(0.0, 1.0, objectPulse) * syncWithObject;
+    float objectInfluence = smoothstep(0.0, 1.0, highlightIntensity) * syncWithObject;
     float combinedEffect = mix(
         basePulse,
         basePulse * (1.0 + objectInfluence),

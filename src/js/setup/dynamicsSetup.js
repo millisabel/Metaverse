@@ -201,7 +201,7 @@ const CONFIG_GLOW = {
             },
             opacity: {
                 min: 0, 
-                max: 0.3,
+                max: 1,
             },
             pulse: {
                 enabled: true, 
