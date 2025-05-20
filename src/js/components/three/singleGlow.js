@@ -6,60 +6,45 @@ import vertexShader from '../../shaders/glow.vert';
 import fragmentShader from '../../shaders/glow.frag';
 
 export const SINGLE_GLOW_DEFAULT_OPTIONS = {
-    sizePx: 100,
-    size: {
-        min: 1,
-        max: 1
-    },
-    movement: {
-        enabled: false,
-        zEnabled: false,
-        speed: 0.1,
-        range: {
-            x: 0,
-            y: 0,   
-            z: 0,
-        }
-    },
-    intersection: {
-        enabled: false,
-        selector: null,
-        lerpSpeed: 0.01,
-    },
-    position: { x: 0, y: 0, z: 0 },
-    positioning: {
-        mode: 'random', // 'element' | 'fixed' | 'random'
-        targetSelector: null,
-        align: 'center center',
-        offset: { x: 0, y: 0 }
+    objectOptions: {
+        sizePx: 100,
+        size: { min: 1, max: 1 },
+        scale: { min: 1, max: 1 },
+        positioning: {
+            mode: 'random',
+            targetSelector: null,
+            align: 'center center',
+            offset: { x: 0, y: 0 },
+            initialPosition: { x: 0, y: 0, z: 0 },
+        },
+        movement: {
+            enabled: false,
+            zEnabled: false,
+            speed: 0.1,
+            range: { x: 0, y: 0, z: 0 },
+        },
+        pulseControl: {
+            enabled: false,
+            randomize: false,
+        },
+        opacity: { min: 1, max: 1 },
     },
     shaderOptions: {
         color: 0xFFFFFF,
-        opacity: {
-            min: 0.5, 
-            max: 1
-        },
-        scale: {
-            min: 1, 
-            max: 2
-        },
+        opacity: { min: 0.5, max: 1 },
+        scale: { min: 1, max: 2 },
         pulse: {
-            enabled: true, 
-            speed: { 
-                min: 0.1, 
-                max: 0.3 
-            }, 
+            enabled: true,
+            speed: { min: 0.1, max: 0.3 },
             intensity: 2,
             randomize: false,
             sync: {
-                enabled: false,
                 scale: false,
-                opacity: false
+                opacity: false,
             },
-            highlightIntensity: 0
+            highlightIntensity: 0,
         },
     },
-    individualOptions: []
 };
 
 // Константа для uniforms, используемых в шейдере
@@ -99,13 +84,21 @@ export class SingleGlow {
     constructor(parentScene, parentRenderer, container, camera, options = {}) {
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
-        this.options = { ...SINGLE_GLOW_DEFAULT_OPTIONS, ...options };
-
+        // Ожидаем, что options уже приведён к структуре { objectOptions, shaderOptions }
+        this.options = {
+            objectOptions: {
+                ...SINGLE_GLOW_DEFAULT_OPTIONS.objectOptions,
+                ...(options.objectOptions || {})
+            },
+            shaderOptions: {
+                ...SINGLE_GLOW_DEFAULT_OPTIONS.shaderOptions,
+                ...(options.shaderOptions || {})
+            }
+        };
         this.scene = parentScene;
         this.renderer = parentRenderer;
         this.container = container;
         this.camera = camera || options.camera || null;
-
         this.logger.log('Creating glow', {
             conditions: ['init'],
             functionName: 'constructor',
@@ -117,11 +110,9 @@ export class SingleGlow {
                 camera: this.camera
             }
         });
-
         this._randomOffset = Math.random() * Math.PI * 2;
-
         // Генерируем уникальные параметры траектории для блика
-        const range = this.options.movement?.range || { x: 1, y: 1, z: 0.1 };
+        const range = this.options.objectOptions.movement?.range || { x: 1, y: 1, z: 0.1 };
         this._trajectory = {
             freqX: Math.random() * 0.5 + 0.5,
             freqY: Math.random() * 0.5 + 0.5,
@@ -152,21 +143,18 @@ export class SingleGlow {
             });
             return;
         }
-
         this._pulseSpeed = this._generatePulseSpeed();
-        this.mesh = this._createMesh(); // СНАЧАЛА создаём меш
-
+        this.mesh = this._createMesh();
         // Затем выбираем режим позиционирования
-        const mode = this.options.positioning?.mode;
+        const mode = this.options.objectOptions.positioning?.mode;
         if (mode === 'element') {
-            this._setPositionByElement(this.options.positioning);
+            this._setPositionByElement(this.options.objectOptions.positioning);
         } else if (mode === 'fixed') {
-            this._setPosition(this.options.position);
+            this._setPosition(this.options.objectOptions.positioning.initialPosition);
         } else { // 'random' или fallback
-            this.options.position = this._calculateRandomPosition();
-            this._setPosition(this.options.position);
+            this.options.objectOptions.positioning.initialPosition = this._calculateRandomPosition();
+            this._setPosition(this.options.objectOptions.positioning.initialPosition);
         }
-
         this._setInitialSize();
         this.scene.add(this.mesh);
     }
@@ -198,7 +186,7 @@ export class SingleGlow {
             return this.options.initialPositions[idx];
         }
         // Иначе используем movement.range
-        const movement = this.options.movement || {};
+        const movement = this.options.objectOptions.movement || {};
         const xSpread = movement.range?.x || 1;
         const ySpread = movement.range?.y || 1;
         const zRange = movement.range?.z || 0.1;
@@ -246,11 +234,9 @@ export class SingleGlow {
         });
         // Формируем uniforms на основе константы
         const uniforms = {};
-        uniforms.cardProgress = { value: 1 };
         for (const key in SHADER_UNIFORMS) {
             uniforms[key] = SHADER_UNIFORMS[key](this);
         }
-        // Новые uniforms для sync
         uniforms.syncScale = { value: this.options.shaderOptions.pulse?.sync?.scale ? 1.0 : 0.0 };
         uniforms.cardScale = { value: 1.0 };
         uniforms.syncOpacity = { value: this.options.shaderOptions.pulse?.sync?.opacity ? 1.0 : 0.0 };
@@ -294,18 +280,18 @@ export class SingleGlow {
      */
     _setInitialSize() {
         this.logger.log('Setting initial size', { functionName: '_setInitialSize' });
-        if (this.options.sizePx && this.camera) {
-            // Выбираем случайный множитель в диапазоне [min, max]
-            const min = this.options.size?.min ?? 1;
-            const max = this.options.size?.max ?? min;
+        const { sizePx, size } = this.options.objectOptions;
+        if (sizePx && this.camera) {
+            const min = size?.min ?? 1;
+            const max = size?.max ?? min;
             const sizeFactor = (min === max) ? min : (Math.random() * (max - min) + min);
-            this._sizeFactor = sizeFactor; // сохраняем для анимации, если нужно
-            const pixelSize = this.options.sizePx * sizeFactor;
+            this._sizeFactor = sizeFactor;
+            const pixelSize = sizePx * sizeFactor;
             const worldScale = getWorldScaleForPixelSize(pixelSize, this.camera, this.mesh.position.z);
             this._baseWorldScale = worldScale;
             this.mesh.scale.set(worldScale, worldScale, 1);
         } else {
-            const min = this.options.size?.min ?? 1;
+            const min = size?.min ?? 1;
             this.mesh.scale.set(min, min, 1);
             this._baseWorldScale = min;
             this._sizeFactor = min;
@@ -328,13 +314,13 @@ export class SingleGlow {
         const el = document.querySelector(targetSelector);
         if (!el) {
             console.warn('Glow: targetSelector not found', targetSelector, ' — will retry');
-            setTimeout(() => this._setPositionByElement({ targetSelector, ...this.options.positioning }), 100);
+            setTimeout(() => this._setPositionByElement({ targetSelector, ...this.options.objectOptions.positioning }), 100);
             return;
         }
       
         const rect = el.getBoundingClientRect();
         const containerRect = this.container.getBoundingClientRect();
-        const sizePx = this.options.sizePx || 0;
+        const sizePx = this.options.objectOptions.sizePx || 0;
 
         let vertical = 'center', horizontal = 'center';
         if (align) {
@@ -476,9 +462,9 @@ export class SingleGlow {
      */
     setSize(size) {
         if (!this.mesh) return;
-        this.options.size.max = size;
+        this.options.objectOptions.size.max = size;
         this.mesh.scale.set(size * this.options.shaderOptions.scale.min, size * this.options.shaderOptions.scale.min, 1);
-        this.options.size = size;
+        this.options.objectOptions.size = size;
     }
 
     /**
@@ -588,9 +574,8 @@ export class SingleGlow {
         }
     }
 
-        // Уникальная волнистая траектория для каждого блика
     _applyMovement(time) {
-        const { movement, position } = this.options;
+        const { movement, positioning } = this.options.objectOptions;
         if (!movement?.enabled) return;
         const { speed = 1, zEnabled = true } = movement;
         const t = time * speed;
@@ -598,9 +583,9 @@ export class SingleGlow {
         const dx = Math.sin(t * tr.freqX + tr.phaseX) * tr.ampX;
         const dy = Math.cos(t * tr.freqY + tr.phaseY) * tr.ampY;
         const dz = zEnabled ? Math.sin(t * tr.freqZ + tr.phaseZ) * tr.ampZ : 0;
-        this.mesh.position.x = position.x + dx;
-        this.mesh.position.y = position.y + dy;
-        this.mesh.position.z = position.z + dz;
+        this.mesh.position.x = positioning.initialPosition.x + dx;
+        this.mesh.position.y = positioning.initialPosition.y + dy;
+        this.mesh.position.z = positioning.initialPosition.z + dz;
     }
 
     setOpacity(opacity) {
@@ -612,16 +597,44 @@ export class SingleGlow {
     }
 
     /**
-     * @description Синхронизирует блик с позицией и анимацией карточки
-     * @param {Dynamics3D} card - объект карточки Dynamics3D
+     * @description Sets the scale of the glow dynamically
+     * @param {number} scale - Новый масштаб блика
      */
-    syncWithCard(card) {
-        if (!card || !this.mesh || !this.mesh.material || !this.mesh.material.uniforms) return;
-        const glowShaderOptions = this.options.shaderOptions;
-        const syncOptions = glowShaderOptions.pulse?.sync || {};
-        const position = card.currentScale.position;
-        const z = position?.z;
-        const zParams = card.animationParams.group?.position?.z || {};
+    setScale(scale) {
+        if (!this.mesh) return;
+        this.mesh.scale.set(scale, scale, 1);
+    }
+
+    /**
+     * @description Устанавливает масштаб объекта (Three.js)
+     * @param {number} scale - Новый масштаб объекта
+     */
+    setObjectScale(scale) {
+        if (!this.mesh) return;
+        this.mesh.scale.set(scale, scale, 1);
+    }
+
+    /**
+     * @description Устанавливает масштаб блика через uniform (масштаб в шейдере)
+     * @param {number} scale - Новый масштаб для шейдера
+     */
+    setShaderScale(scale) {
+        if (this.mesh && this.mesh.material.uniforms.cardScale) {
+            this.mesh.material.uniforms.cardScale.value = scale;
+        }
+    }
+
+    /**
+     * @description Синхронизирует масштаб и прозрачность блика с позицией объекта (например, карточки) по оси Z
+     * @param {Dynamics3D} object - объект, с позицией которого синхронизируем
+     */
+    syncWithObjectPosition(object) {
+        const syncOptions = this.options.shaderOptions.pulse?.sync || {};
+        if (!syncOptions.scale && !syncOptions.opacity) return;
+        const position = object?.currentScale?.position;
+        if (!position || typeof position.z !== 'number') return;
+        const z = position.z;
+        const zParams = object.animationParams.group?.position?.z || {};
         const baseZ = zParams.basePosition ?? 0;
         const amplitudeZ = zParams.amplitude ?? 0;
         const realMinZ = amplitudeZ * -1;
@@ -634,19 +647,13 @@ export class SingleGlow {
         if (minZ > maxZ) {
             normalizedZ = 1 - normalizedZ;
         }
-        const scaleRange = glowShaderOptions.scale;
-        const opacityRange = glowShaderOptions.opacity;
+        const scaleRange = this.options.shaderOptions.scale;
+        const opacityRange = this.options.shaderOptions.opacity;
         const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
         const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
-        // Прокидываем значения для uniforms, если sync включён
-        if (this.mesh.material.uniforms.cardProgress) {
-            this.mesh.material.uniforms.cardProgress.value = normalizedZ;
-        }
-        if (syncOptions.scale && this.mesh.material.uniforms.cardScale) {
-            this.mesh.material.uniforms.cardScale.value = scale;
-        }
-        if (syncOptions.opacity && this.mesh.material.uniforms.cardOpacity) {
-            this.mesh.material.uniforms.cardOpacity.value = opacity;
-        }
+        // Управляем только шейдерным масштабом
+        if (syncOptions.scale) this.setShaderScale(scale);
+        if (syncOptions.opacity) this.setOpacity(opacity);
+        // Для управления объектом используйте setObjectScale и objectOptions
     }
 } 

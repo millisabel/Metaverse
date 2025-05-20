@@ -8,55 +8,49 @@ import { getGlowGroupOptions, getSingleGlowOptions, getAllSingleGlowOptions } fr
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from './singleGlow';
 
 export const GLOWS_DEFAULT_OPTIONS = {
-    count: 1, // количество бликов
-    colorPalette: [],
-    shuffleColors: false, // перемешать цвета из массива цветов
-    size: {// минимальный и максимальный размер блика
-        min: 1, 
-        max: 1
-    },
-    movement: { //  движения блика  
-        enabled: false, // включение/выключение движения блика  
-        zEnabled: true, // включение/выключение движения блика по оси Z
-        speed: 0.1, // скорость движения блика
-        range: { // диапазон движения блика
-            x: 2, 
-            y: 2, 
-            z: 1 } 
-    },
-    position: { x: 0, y: 0, z: 0 }, // позиция блика
-    positioning: {
-        mode: 'random', // 'element' | 'fixed' | 'random'
-        targetSelector: null,
-        align: 'center center',
-        offset: { x: 0, y: 0 }
-    },
-    pulseControl: {
-        enabled: false, // управляет наличием пульсации (JS-логика)
-        randomize: false // управляет рандомизацией параметров пульсации (JS-логика)
+    objectOptions: {
+        sizePx: 100,
+        size: { min: 1, max: 1 },
+        scale: { min: 1, max: 1 },
+        positioning: {
+            mode: 'random',
+            targetSelector: null,
+            align: 'center center',
+            offset: { x: 0, y: 0 },
+            initialPosition: { x: 0, y: 0, z: 0 },
+        },
+        movement: {
+            enabled: false,
+            zEnabled: true,
+            speed: 0.1,
+            range: { x: 2, y: 2, z: 1 },
+        },
+        pulseControl: {
+            enabled: false,
+            randomize: false,
+        },
+        opacity: { min: 1, max: 1 },
     },
     shaderOptions: {
-        color: null, // цвет блика
-        opacity: { // минимальная и максимальная прозрачность блика
-            min: 0, 
-            max: 1 
-        },
-        scale: { // минимальный и максимальный масштаб блика
-            min: 0, 
-            max: 1.0
-        },
-        pulse: { // только параметры для шейдера
-            speed: { min: 0.1, max: 0.3 }, 
-            intensity: 2, 
+        color: null,
+        opacity: { min: 0, max: 1 },
+        scale: { min: 0, max: 1 },
+        pulse: {
+            enabled: false,
+            speed: { min: 0.1, max: 0.3 },
+            intensity: 2,
+            randomize: false,
             sync: {
-                enabled: false,
                 scale: false,
-                opacity: false
+                opacity: false,
             },
+            highlightIntensity: 0,
         },
-        objectPulse: 0
     },
     individualOptions: [],
+    colorPalette: [],
+    shuffleColors: false,
+    count: 1,
 };
 
 /**
@@ -173,7 +167,7 @@ export class Glow extends AnimationController {
      */
     syncWithCard(card, glowIndex = 0) {
         if (!card || !this.glows || !this.glows[glowIndex]) return;
-        this.glows[glowIndex].syncWithCard(card);
+        this.glows[glowIndex].syncWithObjectPosition(card);
     }
 }
 

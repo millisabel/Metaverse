@@ -5,7 +5,6 @@ uniform float pulseSpeed;
 uniform float pulseIntensity;
 uniform float highlightIntensity;
 uniform float syncWithObject;
-uniform float cardProgress;
 uniform float syncScale;
 uniform float cardScale;
 varying vec2 vUv;
@@ -25,7 +24,7 @@ void main() {
     if (syncScale > 0.5) {
         scale = cardScale;
     } else {
-        scale = scaleMin + (scaleMax - scaleMin) * (cardProgress * pow(combinedEffect, 1.2));
+        scale = scaleMin + (scaleMax - scaleMin) * pow(combinedEffect, 1.2);
     }
     vPulse = scale;
     vec3 scaledPosition = position * scale;

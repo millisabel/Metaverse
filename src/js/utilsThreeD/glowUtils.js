@@ -62,9 +62,9 @@ export function getSingleGlowOptions(baseOptions, individualOptions = {}, index 
         SINGLE_GLOW_DEFAULT_OPTIONS
     );
 
-    // Корректируем positioning и position
-    finalOptions.positioning = resolvePositioningMode(finalOptions);
-    finalOptions.position = resolveGlowPosition(finalOptions, index);
+    // Корректируем objectOptions.positioning и objectOptions.initialPosition
+    finalOptions.objectOptions.positioning = resolvePositioningMode(finalOptions.objectOptions);
+    finalOptions.objectOptions.positioning.initialPosition = resolveGlowPosition(finalOptions.objectOptions, index);
     // Корректируем цвет (индивидуальный/групповой)
     finalOptions.shaderOptions.color = resolveGlowColor(
         index,
@@ -74,21 +74,20 @@ export function getSingleGlowOptions(baseOptions, individualOptions = {}, index 
     );
 
     // Корректируем pulseControl
-    const pulseControl = finalOptions.pulseControl || {};
-    const individualPulse = individualOptions.pulseControl || {};
-    finalOptions.pulseControl = {
+    const pulseControl = finalOptions.objectOptions.pulseControl || {};
+    const individualPulse = individualOptions.objectOptions?.pulseControl || {};
+    finalOptions.objectOptions.pulseControl = {
         enabled: individualPulse.enabled !== undefined ? individualPulse.enabled : pulseControl.enabled,
         randomize: individualPulse.randomize !== undefined ? individualPulse.randomize : pulseControl.randomize
     };
 
     if (
-        finalOptions.pulseControl.randomize &&
+        finalOptions.objectOptions.pulseControl.randomize &&
         (!individualOptions.shaderOptions || !individualOptions.shaderOptions.pulse)
     ) {
         applyRandomizedPulseOptions(finalOptions.shaderOptions);
     }
 
-    // Временное логирование для отладки
     if (typeof window !== 'undefined') {
         console.log('SingleGlow FINAL options:', finalOptions);
     }
@@ -243,11 +242,9 @@ export function getAllSingleGlowOptions(groupOptions, classDefaults, singleDefau
     const individualOptions = Array.isArray(groupOptions.individualOptions) ? groupOptions.individualOptions : [];
     let count = groupOptions.count || 1;
     if (individualOptions.length > count) count = individualOptions.length;
-    // Если individualOptions меньше count, остальные блики по groupOptions
     const palette = Array.isArray(groupOptions.colorPalette) ? [...groupOptions.colorPalette] : [];
     const useShuffle = !!groupOptions.shuffleColors;
     if (palette.length && useShuffle) {
-        // Перемешиваем цвета, если нужно
         for (let i = palette.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [palette[i], palette[j]] = [palette[j], palette[i]];
@@ -275,6 +272,9 @@ export function getAllSingleGlowOptions(groupOptions, classDefaults, singleDefau
             singleDefaults,
             palette
         );
+        // Корректируем objectOptions.positioning и objectOptions.initialPosition
+        merged.objectOptions.positioning = resolvePositioningMode(merged.objectOptions);
+        merged.objectOptions.positioning.initialPosition = resolveGlowPosition(merged.objectOptions, i);
         result.push(merged);
     }
     return result;

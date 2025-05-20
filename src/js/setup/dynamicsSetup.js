@@ -174,34 +174,40 @@ const CONFIG_GLOW = {
     zIndex: Z_INDEX.GLOW,
     classRef: Glow,
     objectConfig: {
-        size: { min: 0.1, max: 0.1 }, 
-        movement: {
-            enabled: false,
-            zEnabled: true,
-            speed: 0.1,
-            range: {
-                x: 0,
-                y: 0,   
-                z: 0.5,
-            }
-        },
-        positioning: {
-            mode: 'element',
-            align: isMobile ? 'top center' : 'center center',
-            offset: { x: 0, y: isMobile ? 0 : -100 }
-        },
-        pulseControl: {
-            enabled: true,
-            randomize: false
+        objectOptions: {
+            size: { min: 0.1, max: 0.1 }, 
+            movement: {
+                enabled: false,
+                zEnabled: true,
+                speed: 0.1,
+                range: {
+                    x: 0,
+                    y: 0,   
+                    z: 0.5,
+                }
+            },
+            scale: {
+                min: 0, 
+                max: 10
+            },
+            positioning: {
+                mode: 'element',
+                align: isMobile ? 'top center' : 'center center',
+                offset: { x: 0, y: isMobile ? 0 : -100 }
+            },
+            pulseControl: {
+                enabled: true,
+                randomize: false,
+            },
         },
         shaderOptions: {
             scale: {
                 min: 0, 
-                max: 100
+                max: 10
             },
             opacity: {
                 min: 0, 
-                max: 1,
+                max: 0.3,
             },
             pulse: {
                 enabled: true, 
@@ -212,7 +218,7 @@ const CONFIG_GLOW = {
                 intensity: 1,
                 randomize: false,
                 sync: {
-                    enabled: true,
+                    enabled: false,
                     scale: true,
                     opacity: true,
                 },
@@ -223,25 +229,31 @@ const CONFIG_GLOW = {
                 shaderOptions: {
                     color: '#56FFEB',
                 },
-                positioning: {
-                    targetSelector: '.dynamics .card--3d-left', 
+                objectOptions: {
+                    positioning: {
+                        targetSelector: '.dynamics .card--3d-left', 
+                    }
                 }
             },
             {
                 shaderOptions: {
                     color: '#4642F4', 
                 },
-                positioning: {
-                    targetSelector: '.dynamics .card--3d-center',
-              }
+                objectOptions: {
+                    positioning: {
+                        targetSelector: '.dynamics .card--3d-center',
+                    }
+                }
             },
             {
                 shaderOptions: {
                     color: '#F00AFE', 
                 },
-                positioning: {
-                    targetSelector: '.dynamics .card--3d-right',
-              }
+                objectOptions: {
+                    positioning: {
+                        targetSelector: '.dynamics .card--3d-right',
+                    }
+                }
             }
         ]
     }
