@@ -21,9 +21,8 @@ if(process.env.NODE_ENV === 'development') {
     // Logger.disableLoggerFor('Universal3DSection');
     // Logger.disableLoggerFor('AnimationController');
     Logger.disableLoggerFor('CameraController');
-    Logger.disableLoggerFor('ThreeDContainerManager');
+    // Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('CanvasUtils');
-    Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('RendererManager');
 
     // Logger.disableLoggerFor('HeroSetup');

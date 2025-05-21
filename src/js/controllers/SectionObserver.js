@@ -8,7 +8,7 @@ import { createLogger } from '../utils/logger';
  * @returns {BaseSetup}
  */
 export class SectionObserver {
-    constructor(containerId, zIndex) {
+    constructor(containerId) {
         this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
 

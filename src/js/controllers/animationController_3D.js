@@ -31,7 +31,6 @@ export class AnimationController {
         this.logger = createLogger(this.name);
 
         this.container = container;
-        console.log('container', this.container);
 
         if (!this.container.id) {
             this.container.id = `threejs-container-${crypto.randomUUID()}`;
@@ -42,7 +41,6 @@ export class AnimationController {
 
         this.isVisible = false;
         this.isInitialized = false;
-        this.animationFrameId = null;
         this.resizeTimeout = null;
         this.observer = null;
         this.isResizing = false;
@@ -175,7 +173,7 @@ export class AnimationController {
                         // this.initScene();
                     }
                     if (!this.isResizing) {
-                        // this.animate();
+                        this.animate();
                     }
                 } else {
                     this.isVisible = false;
@@ -183,8 +181,8 @@ export class AnimationController {
                         conditions: ['hidden'],
                         functionName: 'initVisibilityObserver'
                     });
-                    // this.stopAnimation();
-                    // this.cleanup();
+                    this.stopAnimation();
+                    this.cleanup();
                 }
             });
         }, {

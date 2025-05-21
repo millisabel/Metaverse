@@ -1,9 +1,10 @@
-import { isMobile } from "../utils/utils";
 import { Universal3DSection } from '../controllers/Universal3DSection';
-import { createLogger } from '../utils/logger';
 
 import { Stars } from "../components/three/stars";
 import { GalacticCloud } from '../components/three/galactic';
+
+import { isMobile } from "../utils/utils";
+
 
 /**
  * SECTION_ID
@@ -11,6 +12,27 @@ import { GalacticCloud } from '../components/three/galactic';
  * @type {string}
  */
 const SECTION_ID = 'hero';
+
+/**
+ * Z_INDEX
+ * @description The z-index for the hero section
+ * @type {Object}
+ */
+const Z_INDEX = {
+    SECTION: 0,
+    STARS: 2,
+    GALACTIC: 1,
+};
+
+/**
+ * NAME_3D_OBJECTS
+ * @description The name of the 3D objects
+ * @type {Object}
+ */
+const NAME_3D_OBJECTS = {
+    STARS: 'STARS',
+    GALACTIC: 'GALACTIC',
+};
 
 /**
  * HERO_3D_OBJECTS
@@ -22,10 +44,10 @@ const SECTION_ID = 'hero';
 const CONFIG = {
     STARS: {
         classRef: Stars,
-        containerName: 'STARS',
-        zIndex: 2, 
+        containerName: NAME_3D_OBJECTS.STARS,
+        zIndex: Z_INDEX.STARS, 
         camera: {
-            containerName: 'STARS',
+            containerName: NAME_3D_OBJECTS.STARS,
             rotation: true, 
             speed: { x: 0.000002, y: 0.000002 },
         },
@@ -56,8 +78,8 @@ const CONFIG = {
         },
     GALACTIC: {
         classRef: GalacticCloud,
-        containerName: 'GALACTIC',
-        zIndex: 1,
+        containerName: NAME_3D_OBJECTS.GALACTIC,
+        zIndex: Z_INDEX.GALACTIC,
         camera: {
             fov: 60,
             far: 1000,
@@ -103,18 +125,7 @@ const CONFIG = {
  */
 export class HeroSetup extends Universal3DSection {
     constructor() {
-
-      super(SECTION_ID, CONFIG);
-
-      this.name = this.constructor.name;
-      this.logger = createLogger(this.name);
-      
-      this.logger.log({
-        type: 'success',
-        functionName: 'constructor',
-        conditions: ['init'],
-        customData: { this: this }
-      });
+      super(SECTION_ID, CONFIG, Z_INDEX.SECTION);
     }
   }
 
