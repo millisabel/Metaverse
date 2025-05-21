@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { AnimationController } from '../../controllers/animationController_3D';
 import { SingleGlow } from './singleGlow';
 
 import { createLogger } from "../../utils/logger";

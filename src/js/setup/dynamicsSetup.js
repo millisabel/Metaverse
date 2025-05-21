@@ -1,4 +1,4 @@
-import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
+import { Universal3DSection } from '../controllers/Universal3DSection';
 import { Dynamics3D } from '../components/three/dynamics3d';
 import { Glow } from '../components/three/glow';
 

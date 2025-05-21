@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createLogger } from '../../utils/logger';
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { AnimationController } from '../../controllers/animationController_3D';
 
 /**
  * SocialCard - 3D card for social section

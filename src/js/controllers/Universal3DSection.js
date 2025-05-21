@@ -1,4 +1,4 @@
-import { SectionObserver } from '../controllers/SectionObserver';
+import { SectionObserver } from './SectionObserver';
 import { createLogger } from '../utils/logger';
 
 /**

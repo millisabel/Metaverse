@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
-import { CameraController } from './cameraController';
-import { RendererManager } from './rendererManager';
+import { CameraController } from '../utilsThreeD/cameraController';
+import { RendererManager } from '../utilsThreeD/rendererManager';
 import {createLogger} from "../utils/logger";
 import {createCanvas, updateThreeRendererSize} from "../utilsThreeD/canvasUtils";
-import { addLightsToScene, DEFAULT_LIGHTS } from './lightsUtils';
+import { addLightsToScene, DEFAULT_LIGHTS } from '../utilsThreeD/lightsUtils';
 import { mergeOptionsWithObjectConfig } from '../utils/utils';
 
 /**

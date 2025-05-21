@@ -1,4 +1,4 @@
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { AnimationController } from '../../controllers/animationController_3D';
 import { AnimatedSVGMesh } from './AnimatedSVGMesh';
 
 export class AnimatedSVGScene extends AnimationController {

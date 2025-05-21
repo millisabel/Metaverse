@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { AnimationController } from '../../controllers/animationController_3D';
 
 import vertexShader from '../../shaders/galacticCore.vert';
 import fragmentShader from '../../shaders/galacticCore.frag';

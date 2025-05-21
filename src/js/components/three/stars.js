@@ -4,7 +4,7 @@ import { createLogger } from "../../utils/logger";
 import { isMobile, getRandomValue } from '../../utils/utils';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { AnimationController } from '../../controllers/animationController_3D';
 
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 

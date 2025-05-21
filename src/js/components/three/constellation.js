@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import constellationsData from '../../data/constellations.json';
 
-import { AnimationController } from '../../utilsThreeD/animationController_3D';
+import { AnimationController } from '../../controllers/animationController_3D';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
 

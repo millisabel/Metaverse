@@ -1,5 +1,5 @@
 import { isMobile } from "../utils/utils";
-import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
+import { Universal3DSection } from '../controllers/Universal3DSection';
 import { createLogger } from '../utils/logger';
 
 import { Stars } from "../components/three/stars";
