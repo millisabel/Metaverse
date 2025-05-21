@@ -62,7 +62,7 @@ export const GLOWS_DEFAULT_OPTIONS = {
 export class Glow extends AnimationController {
     constructor(container, options = {}) {
         super(container, getGlowGroupOptions(options));
-        this.name = this.constructor.name + ' ' + (this.options.containerName || '');
+        this.name = this.constructor.name;
         this.logger = createLogger(this.name);
         this.glows = [];
     }
@@ -74,6 +74,10 @@ export class Glow extends AnimationController {
     async setupScene() {
         this.logger.log('Setting up scene', { functionName: 'setupScene' });
         this._createGlows();
+
+        this.logger.log('Scene setup complete', { 
+            functionName: `${this.options.containerName} setupScene` 
+        });
     }
 
     /**

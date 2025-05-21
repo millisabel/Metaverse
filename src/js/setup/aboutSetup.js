@@ -41,12 +41,6 @@ const CONFIG = {
         classRef: Constellation,
         containerName: 'CONSTELLATION',
         zIndex: 2,
-        camera: {
-            fov: 75,
-            far: 1000,
-            position: { x: 0, y: 0, z: 0 },
-            rotation: false,
-        },
     }
 }
 

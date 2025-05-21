@@ -9,10 +9,10 @@ import { createLogger } from '../utils/logger';
  * @returns {Universal3DSection}
  */
 export class Universal3DSection extends BaseSetup {
-    constructor(containerId, objects3DConfig, zIndex = 0) {
+    constructor(containerId, objects3DConfig, zIndex) {
         super(containerId, zIndex);
 
-        this.name = `(Universal3DSection) ⬅ ${this.constructor.name}`;
+        this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
         this.objects3D = objects3DConfig;
@@ -20,57 +20,58 @@ export class Universal3DSection extends BaseSetup {
         this._controllersCreated = false;
         this._3dContainers = {};
 
-        this._initLazyObserver();
-
         this.logger.log({
-            functionName: 'constructor',
+            functionName: '(Universal3DSection) constructor()',
             conditions: ['init'],
             customData: { this: this }
         });
-
-        console.log(this.objects3D);
     }
 
     /**
-     * @description Initialize the lazy observer
+     * @description Setup the scene
      * @returns {void}
      */
-    _initLazyObserver() {
-        this._lazyObserver = new IntersectionObserver(async entries => {
-            for (const entry of entries) {
-                if (entry.isIntersecting) {
-                    await this._onEnterViewport();
-                } else {
-                    this._onExitViewport();
-                }
+    async setupScene() {
+        for (const [key, params] of Object.entries(this.objects3D)) {
+            if (!this._3dContainers[key]) {
+                this._3dContainers[key] = this._getOrCreateContainer(params.containerName || key, params.zIndex || 1);
             }
-        }, { threshold: 0.1, rootMargin: '100px' });
-
-        this._lazyObserver.observe(this.container);
-    }
-
-    /**
-     * @description On enter viewport
-     * @returns {void}
-     */
-    async _onEnterViewport() {
-        if (!this._controllersCreated) {
-            for (const [key, params] of Object.entries(this.objects3D)) {
-                if (!this._3dContainers[key]) {
-                    this._3dContainers[key] = this._getOrCreateContainer(params.containerName || key, params.zIndex || 1);
-                }
-                if (!this.controllers[key]) {
-                    this.controllers[key] = new params.classRef(this._3dContainers[key], {
-                        ...params,
-                        camera: params.camera
-                    });
-                }
+            if (!this.controllers[key]) {
+                console.log('params', params);
+                console.log('this._3dContainers[key]', this._3dContainers[key]);
+                this.controllers[key] = new params.classRef(this._3dContainers[key], {
+                    ...params,
+                });
             }
-            this._controllersCreated = true;
-            // await this.setupScene();
-        } else {
-            // await this.setupScene();
         }
+        this._controllersCreated = true;
+
+        await this._initControllers();
+
+        this.logger.log({
+            type: 'success',
+            functionName: '(Universal3DSection) setupScene()',
+            conditions: ['initializing-scene'],
+        });
+    }
+
+    /**
+     * @description Initialize the controllers
+     * @returns {void}
+     */
+    async _initControllers() {
+        for (const controller of Object.values(this.controllers)) {
+            if (controller && typeof controller.init === 'function') {
+                await controller.init();
+                console.log('controller', controller);
+            }
+        }
+
+        this.logger.log({
+            type: 'success',
+            functionName: '(Universal3DSection) _initControllers',
+            conditions: ['initializing-controllers'],
+        });
     }
 
     /**
@@ -87,48 +88,6 @@ export class Universal3DSection extends BaseSetup {
         }
 
         return container;
-    }
-
-    /**
-     * @description Setup the scene
-     * @returns {void}
-     */
-    async setupScene() {
-        this.logger.log({
-            functionName: 'setupScene',
-            conditions: ['init'],
-            customData: { this: this }
-        });
-
-        this._applyBaseContainerStyles(this.objects3D);
-        await this._initControllers();
-    }
-
-    /**
-     * @description Initialize the controllers
-     * @returns {void}
-     */
-    async _initControllers() {
-        for (const controller of Object.values(this.controllers)) {
-            if (controller && typeof controller.init === 'function') {
-                await controller.init();
-            }
-        }
-    }
-
-    /**
-     * @description On exit viewport
-     * @returns {void}
-     */
-    _onExitViewport() {
-        if (this._controllersCreated) {
-            for (const [key, controller] of Object.entries(this.controllers)) {
-                if (controller && typeof controller.cleanup === 'function') {
-                    controller.cleanup();
-                    delete this.controllers[key];
-                }
-            }
-        }
     }
 
     /**
@@ -150,13 +109,6 @@ export class Universal3DSection extends BaseSetup {
             ...params,
             camera: params.camera
         });
-    }
-
-    _applyBaseContainerStyles(objects3DConfig) {
-        this.container.style.position = 'relative'; 
-        if (objects3DConfig.backgroundZIndex !== undefined) {
-            this.container.style.zIndex = objects3DConfig.backgroundZIndex;
-        }
     }
 
     /**
@@ -192,17 +144,36 @@ export class Universal3DSection extends BaseSetup {
     }
 
     /**
+     * @description On exit viewport
+     * @returns {void}
+     */
+    onExitViewport() {
+
+        if (this._controllersCreated) {
+            for (const [key, controller] of Object.entries(this.controllers)) {
+                if (controller && typeof controller.cleanup === 'function') {
+                    controller.cleanup();
+                    delete this.controllers[key];
+                }
+            }
+        }
+    }
+
+    /**
      * @description Cleanup the controllers
      * @returns {void}
      */
     cleanup() {
-        for (const controller of Object.values(this.controllers)) {
-            let logMessage = `starting cleanup in ${this.constructor.name}\n`;
+        let logMessage = `starting cleanup in ${this.name}\n`;
 
-        if (controller && typeof controller.cleanup === 'function') {
-            logMessage += `controller: ${this.controllers}\n`;
-            controller.cleanup(logMessage);
+        for (const [key, controller] of Object.entries(this.controllers)) {
+            if (controller && typeof controller.cleanup === 'function') {
+                controller.cleanup();
+                delete this.controllers[key];
+                logMessage += `controller ${key} cleaned up\n`;
             }
         }
+
+        super.cleanup(logMessage);
     }
   }

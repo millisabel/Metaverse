@@ -238,7 +238,7 @@ export class Logger {
         success: {
             icon: '✅',
             style: {
-                background: '#08c108',
+                background: 'rgba(38, 138, 15, 0.5)',
                 color: '#08c108',
             },
         },
@@ -321,20 +321,6 @@ export class Logger {
                 color: '#666666',
             },
         },
-        'animation-frame': {
-            icon: '🎞️',
-            style: {
-                background: 'rgba(100,149,237,0)',
-                color: '#4169E1'
-            }
-        },
-        'animation-frame-cleanup': {
-            icon: '🗑️',
-            style: {
-                background: 'rgba(255,69,0,0)',
-                color: '#FF4500'
-            }
-        },
         'resize-started': {
             icon: '📏',
             style: {
@@ -366,7 +352,7 @@ export class Logger {
         'cleanup': {
             icon: '🗑️',
             style: {
-                background: 'rgba(255,69,0,0)',
+                background: 'rgba(238, 72, 11, 0.5)',
                 color: '#FF4500'
             }
         },

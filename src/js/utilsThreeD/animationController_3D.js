@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { CameraController } from './cameraController';
-import { rendererManager } from './rendererManager';
+import { RendererManager } from './rendererManager';
 import {createLogger} from "../utils/logger";
 import {createCanvas, updateThreeRendererSize} from "../utilsThreeD/canvasUtils";
 import { addLightsToScene, DEFAULT_LIGHTS } from './lightsUtils';
@@ -27,10 +27,12 @@ export class AnimationController {
      * @param {string} [options.zIndex='2'] - Z-index for the canvas
      */
     constructor(container, options = {}, defaultOptions = {}) {
-        this.name = `(AnimationController) ⬅ ${this.constructor.name}`;
+        this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
         this.container = container;
+        console.log('container', this.container);
+
         if (!this.container.id) {
             this.container.id = `threejs-container-${crypto.randomUUID()}`;
         }
@@ -48,9 +50,9 @@ export class AnimationController {
         this.cameraController = null;
         this.renderer = null;
 
-        this.logger.log('AnimationController initialized', {
+        this.logger.log({
             conditions: ['init'],
-            functionName: 'constructor',
+            functionName: '(AnimationController) constructor',
             customData: {
                 container: this.container,
                 containerName: this.options.containerName,
@@ -60,8 +62,6 @@ export class AnimationController {
                 allOptions: this.options,
             }
         });
-        
-        this.init();
     }
 
     /**
@@ -70,7 +70,7 @@ export class AnimationController {
      */
     async init() {
         this.logger.log({
-            conditions: ['init'],
+            conditions: ['(AnimationController) init()'],
             functionName: 'init'
         });
 
@@ -87,7 +87,7 @@ export class AnimationController {
     async initScene() {
         this.logger.log('Initializing scene', {
             conditions: ['init'],
-            functionName: 'initScene',
+            functionName: '(AnimationController) initScene',
             customData: {
                 options: this.options
             }
@@ -147,7 +147,7 @@ export class AnimationController {
         });
 
         this.cameraController = new CameraController(this.options.camera);
-        this.renderer = rendererManager.getRenderer(this.container.id, this.options.renderer);
+        this.renderer = RendererManager.getInstance().getRenderer(this.container.id, this.options.renderer);
     }
 
     /**
@@ -248,7 +248,7 @@ export class AnimationController {
 
         this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
             event.preventDefault();
-            rendererManager.disposeAll();
+            RendererManager.getInstance().disposeAll();
             this.isContextLost = true;
             this.logger.log('WebGL context lost! Attempting to recover...');
             console.log('WebGL context lost! Attempting to recover...');
@@ -484,7 +484,7 @@ export class AnimationController {
             functionName: 'cleanup'
         });
 
-        rendererManager.removeRenderer(this.container.id);
+        RendererManager.getInstance().removeRenderer(this.container.id);
 
         // if (process.env.NODE_ENV === 'development') {
         //     assertNoDeadCanvas();

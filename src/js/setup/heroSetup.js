@@ -1,5 +1,6 @@
 import { isMobile } from "../utils/utils";
 import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
+import { createLogger } from '../utils/logger';
 
 import { Stars } from "../components/three/stars";
 import { GalacticCloud } from '../components/three/galactic';
@@ -102,7 +103,18 @@ const CONFIG = {
  */
 export class HeroSetup extends Universal3DSection {
     constructor() {
+
       super(SECTION_ID, CONFIG);
+
+      this.name = this.constructor.name;
+      this.logger = createLogger(this.name);
+      
+      this.logger.log({
+        type: 'success',
+        functionName: 'constructor',
+        conditions: ['init'],
+        customData: { this: this }
+      });
     }
   }
 

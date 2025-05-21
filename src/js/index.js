@@ -17,37 +17,16 @@ if(process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
     Logger.disableLoggerFor('AnimationObserverCSS');
 
-    Logger.disableLoggerFor('BaseSetup');
-    Logger.disableLoggerFor('AnimationController');
+    // Logger.disableLoggerFor('BaseSetup');
+    // Logger.disableLoggerFor('Universal3DSection');
+    // Logger.disableLoggerFor('AnimationController');
     Logger.disableLoggerFor('CameraController');
     Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('CanvasUtils');
     Logger.disableLoggerFor('ThreeDContainerManager');
     Logger.disableLoggerFor('RendererManager');
-    Logger.disableLoggerFor('Universal3DSection');
 
-    Logger.disableLoggerFor('(BaseSetup) ⬅ AboutSetup');
-    Logger.disableLoggerFor('(BaseSetup) ⬅ HeroSetup');
-    Logger.disableLoggerFor('(BaseSetup) ⬅ RoadmapSetup');
-    Logger.disableLoggerFor('(BaseSetup) ⬅ DynamicsSetup');
-
-    Logger.disableLoggerFor('(AnimationController) ⬅ Stars');
-    Logger.disableLoggerFor('(AnimationController) ⬅ GalacticCloud');
-    Logger.disableLoggerFor('(AnimationController) ⬅ Constellation');
-    Logger.disableLoggerFor('(AnimationController) ⬅ Glow');
-    Logger.disableLoggerFor('(AnimationController) ⬅ Dynamics3D');
-
-    Logger.disableLoggerFor('(Universal3DSection) ⬅ HeroSetup');
-    Logger.disableLoggerFor('(Universal3DSection) ⬅ AboutSetup');
-    Logger.disableLoggerFor('(Universal3DSection) ⬅ RoadmapSetup');
-    Logger.disableLoggerFor('(Universal3DSection) ⬅ DynamicsSetup');
-
-    Logger.disableLoggerFor('Glow ROADMAP_GLOW');
-    Logger.disableLoggerFor('Glow DYNAMICS_GLOW');
-
-    
-    Logger.disableLoggerFor('NavbarSetup');
-    Logger.disableLoggerFor('HeroSetup');
+    // Logger.disableLoggerFor('HeroSetup');
     Logger.disableLoggerFor('AboutSetup');
     Logger.disableLoggerFor('RoadmapSetup');
     Logger.disableLoggerFor('DynamicsSetup');
@@ -68,6 +47,7 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('METAVERSE_CARD');
     Logger.disableLoggerFor('SANKOPA_CARD');
 
+    Logger.disableLoggerFor('NavbarSetup');
     Logger.disableLoggerFor('Roadmap');
     Logger.disableLoggerFor('Navbar');
     Logger.disableLoggerFor('Slider');

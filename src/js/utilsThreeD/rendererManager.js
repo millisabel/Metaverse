@@ -18,14 +18,26 @@ const DEFAULT_RENDERER_OPTIONS = {
  * 
  * @class RendererManager
  */
-class RendererManager {
+export class RendererManager {
     constructor() {
+        if (RendererManager.instance) {
+            throw new Error('Use RendererManager.getInstance() instead of new.');
+        }
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
+        this.renderers = new Map();
+        RendererManager.instance = this;
+    }
 
-      if (RendererManager.instance) return RendererManager.instance;
-      this.renderers = new Map();
-      RendererManager.instance = this;
+    /**
+     * Returns the singleton instance of RendererManager.
+     * @returns {RendererManager}
+     */
+    static getInstance() {
+        if (!RendererManager.instance) {
+            RendererManager.instance = new RendererManager();
+        }
+        return RendererManager.instance;
     }
   
     /**
@@ -107,5 +119,4 @@ class RendererManager {
       });
     }
 }
-  
-export const rendererManager = new RendererManager();
+RendererManager.instance = null;
