@@ -13,7 +13,6 @@ export class SectionObserver {
         this.logger = createLogger(this.name);
 
         this.container = this._getContainer(containerId);
-        this._applyBaseContainerStyles(this.container, zIndex);
 
         this.initialized = false;
         this.isVisible = false;
@@ -53,17 +52,6 @@ export class SectionObserver {
             throw new Error(`Container with id ${containerId} not found`);
         }
         return container;
-    }
-
-    /**
-     * @description Apply base container styles
-     * @param {HTMLElement} container - The container element
-     * @param {number} zIndex - Z-index of the section
-     * @returns {void}
-     */
-    _applyBaseContainerStyles(container, zIndex) {
-        container.style.position = 'relative';
-        container.style.zIndex = zIndex;
     }
 
     /**

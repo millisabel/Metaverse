@@ -25,8 +25,8 @@ export class RendererManager {
         }
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);
-        this.renderers = new Map();
-        RendererManager.instance = this;
+      this.renderers = new Map();
+      RendererManager.instance = this;
     }
 
     /**
