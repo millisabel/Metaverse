@@ -1,9 +1,9 @@
-import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { SectionObserver } from '../controllers/SectionObserver';
 import { SocialCard } from '../components/three/socialCards';
 import { Glow } from "../components/three/glow";
 import { isMobile } from '../utils/utils';
 
-export class SocialSetup extends BaseSetup {
+export class SocialSetup extends SectionObserver {
     constructor() {
         super('social', 'SocialSetup', {
             camera: {

@@ -1,4 +1,4 @@
-import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { SectionObserver } from '../controllers/SectionObserver';
 import { createLogger } from '../utils/logger';
 
 /**
@@ -8,7 +8,7 @@ import { createLogger } from '../utils/logger';
  * @param {Object} objects3DConfig - The configuration for the 3D objects
  * @returns {Universal3DSection}
  */
-export class Universal3DSection extends BaseSetup {
+export class Universal3DSection extends SectionObserver {
     constructor(containerId, objects3DConfig, zIndex) {
         super(containerId, zIndex);
 

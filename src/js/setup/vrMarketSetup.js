@@ -1,9 +1,9 @@
-import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { SectionObserver } from '../controllers/SectionObserver';
 import { Glow } from '../components/three/glow';
 import { CharacterFloatingBadge } from '../components/ui/CharacterFloatingBadge';
 import { isMobile } from '../utils/utils';
 
-export class VRMarketSetup extends BaseSetup {
+export class VRMarketSetup extends SectionObserver {
     constructor() {
         super('vr-market', 'VRMarketSetup', {
             camera: {

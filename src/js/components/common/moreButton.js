@@ -1,4 +1,4 @@
-import { typeText, getClassSelector,  mergeOptionsWithObjectConfig, eraseText} from '../utils/utils';	
+import { typeText, getClassSelector,  mergeOptionsWithObjectConfig, eraseText} from '../../utils/utils';	
 
 const DEFAULT_OPTIONS = {
     classes: {

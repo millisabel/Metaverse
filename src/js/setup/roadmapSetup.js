@@ -1,6 +1,6 @@
 import { Glow } from "../components/three/glow";
 import { Roadmap } from "../components/ui/roadmap";
-import { MoreButton } from "../controllers/moreButton";
+import { MoreButton } from "../components/common/moreButton";
 import { isMobile } from "../utils/utils";
 import { Universal3DSection } from '../utilsThreeD/Universal3DSection';
 

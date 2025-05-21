@@ -1,5 +1,5 @@
 import { createLogger } from '../utils/logger';
-import { ThreeDContainerManager } from './ThreeDContainerManager';
+import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
 
 /**
  * @description Base class for setting up and managing 3D scenes in sections
@@ -7,7 +7,7 @@ import { ThreeDContainerManager } from './ThreeDContainerManager';
  * @param {string} containerId - ID of the container element
  * @returns {BaseSetup}
  */
-export class BaseSetup {
+export class SectionObserver {
     /**
      * Creates an instance of BaseSetup
      * @param {string} containerId - ID of the container element

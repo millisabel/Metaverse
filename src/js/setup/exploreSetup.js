@@ -1,10 +1,10 @@
-import { BaseSetup } from '../utilsThreeD/baseSetup';
+import { SectionObserver } from '../controllers/SectionObserver';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
 import { projectToBack } from '../utilsThreeD/utilsThreeD';
 import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
-export class ExploreSetup extends BaseSetup {
+export class ExploreSetup extends SectionObserver {
     constructor() {
         super('explore-3d', 'ExploreSetup', {
             camera: {

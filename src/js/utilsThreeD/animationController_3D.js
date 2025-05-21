@@ -172,10 +172,10 @@ export class AnimationController {
                     });
 
                     if (!this.isInitialized) {
-                        this.initScene();
+                        // this.initScene();
                     }
                     if (!this.isResizing) {
-                        this.animate();
+                        // this.animate();
                     }
                 } else {
                     this.isVisible = false;
@@ -183,8 +183,8 @@ export class AnimationController {
                         conditions: ['hidden'],
                         functionName: 'initVisibilityObserver'
                     });
-                    this.stopAnimation();
-                    this.cleanup();
+                    // this.stopAnimation();
+                    // this.cleanup();
                 }
             });
         }, {
