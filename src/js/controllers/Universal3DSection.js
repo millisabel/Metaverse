@@ -1,5 +1,6 @@
 import { SectionObserver } from './SectionObserver';
 import { createLogger } from '../utils/logger';
+import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
 
 /**
  * @description Universal 3D Section
@@ -15,44 +16,73 @@ export class Universal3DSection extends SectionObserver {
         this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
-        this.objects3D = objects3DConfig;
+        this.parentContainer = document.getElementById(containerId);
+        this.parentZIndex = zIndex;
+
+        this.objects3DConfig = objects3DConfig;
         this.controllers = {};
         this._controllersCreated = false;
         this._3dContainers = {};
-
-        this.logger.log({
-            functionName: '(Universal3DSection) constructor()',
-            conditions: ['init'],
-            customData: { this: this }
-        });
     }
 
     /**
      * @description Setup the scene
      * @returns {void}
      */
-    async setupScene() {
-        for (const [key, params] of Object.entries(this.objects3D)) {
-            if (!this._3dContainers[key]) {
-                this._3dContainers[key] = this._getOrCreateContainer(params.containerName || key, params.zIndex || 1);
+    async setupControllers() {
+        this.logger.log({
+            functionName: '(Universal3DSection) setupControllers()',
+        });
+
+        await this._setupContainers();
+        await this._createControllers();
+        await this._initControllers();
+    }
+
+    /**
+     * @description Setup the containers
+     * @returns {void}
+     */
+    async _setupContainers() {
+        this.logger.log({
+            functionName: '(Universal3DSection) _setupContainers()',
+        });
+
+        for (const [key, params] of Object.entries(this.objects3DConfig)) {
+
+            const CONTAINER_CONFIG = {
+                parent: this.parentContainer,
+                parentZIndex: this.parentZIndex,
+                name_3D_Container: params.containerName || key,
+                zIndex_3D_Container: params.zIndex || 1,
+            };
+
+            if (!this._3dContainers[CONTAINER_CONFIG.name_3D_Container]) {
+                this._3dContainers[CONTAINER_CONFIG.name_3D_Container] = new ThreeDContainerManager(CONTAINER_CONFIG).init();
             }
+        }
+    }
+
+    /**
+     * @description Create the controllers
+     * @returns {void}
+     */
+    async _createControllers() {
+        this.logger.log({
+            functionName: '(Universal3DSection) _createControllers()',
+            conditions: ['initializing-controllers'],
+        });
+
+        for (const [key, params] of Object.entries(this.objects3DConfig)) {
+            const containerName = params.containerName || key;
+
             if (!this.controllers[key]) {
-                console.log('params', params);
-                console.log('this._3dContainers[key]', this._3dContainers[key]);
-                this.controllers[key] = new params.classRef(this._3dContainers[key], {
+                this.controllers[key] = new params.classRef(this._3dContainers[containerName], {
                     ...params,
                 });
             }
         }
         this._controllersCreated = true;
-
-        await this._initControllers();
-
-        this.logger.log({
-            type: 'success',
-            functionName: '(Universal3DSection) setupScene()',
-            conditions: ['initializing-scene'],
-        });
     }
 
     /**
@@ -63,7 +93,6 @@ export class Universal3DSection extends SectionObserver {
         for (const controller of Object.values(this.controllers)) {
             if (controller && typeof controller.init === 'function') {
                 await controller.init();
-                console.log('controller', controller);
             }
         }
 
@@ -75,40 +104,13 @@ export class Universal3DSection extends SectionObserver {
     }
 
     /**
-     * @description Get or create a container
-     * @param {string} containerName - The name of the container
-     * @param {number} zIndex - The z-index of the container
-     * @returns {HTMLElement}
+     * @description Cleans up a specific container type
+     * @param {string} type - Container type from CONTAINER_TYPES
+     * @returns {void}
      */
-    _getOrCreateContainer(containerName, zIndex) {
-        let container = document.getElementById(containerName);
-        
-        if (!container) {
-            container = this.createContainer(containerName, zIndex);
-        }
-
-        return container;
-    }
-
-    /**
-     * @description Create a 3D controller
-     * @param {string} type - The type of the 3D object
-     * @param {Object} params - The parameters for the 3D object
-     * @returns {Object}
-     */
-    create3DController(type, params) {
-        const key = params.containerName || type;
-        const container = this._3dContainers[key];
-        if (!container) {
-            throw new Error(`Container for 3D object "${type}" not found. Make sure to call _onEnterViewport first.`);
-        }
-        if (!params.classRef) {
-            throw new Error(`classRef is not specified for 3D object "${type}"`);
-        }
-        return new params.classRef(container, {
-            ...params,
-            camera: params.camera
-        });
+    deleteContainer_3D_Object(type) {
+        const manager = new ThreeDContainerManager(this.container);
+        manager.delete();
     }
 
     /**
@@ -138,22 +140,10 @@ export class Universal3DSection extends SectionObserver {
     update() {
         for (const controller of Object.values(this.controllers)) {
             if (controller && typeof controller.update === 'function') {
-                controller.update();
-            }
-        }
-    }
-
-    /**
-     * @description On exit viewport
-     * @returns {void}
-     */
-    onExitViewport() {
-
-        if (this._controllersCreated) {
-            for (const [key, controller] of Object.entries(this.controllers)) {
-                if (controller && typeof controller.cleanup === 'function') {
-                    controller.cleanup();
-                    delete this.controllers[key];
+                try {
+                    controller.update();
+                } catch (e) {
+                    console.warn('update error:', e);
                 }
             }
         }
