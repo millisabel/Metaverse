@@ -1,6 +1,6 @@
 import { SectionObserver } from './SectionObserver';
 import { createLogger } from '../utils/logger';
-import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
+import { ThreeDContainerController } from './ThreeDContainerController';
 
 /**
  * @description Universal 3D Section
@@ -37,80 +37,6 @@ export class Universal3DSection extends SectionObserver {
         await this._setupContainers();
         await this._createControllers();
         await this._initControllers();
-    }
-
-    /**
-     * @description Setup the containers
-     * @returns {void}
-     */
-    async _setupContainers() {
-        this.logger.log({
-            functionName: '(Universal3DSection) _setupContainers()',
-        });
-
-        for (const [key, params] of Object.entries(this.objects3DConfig)) {
-
-            const CONTAINER_CONFIG = {
-                parent: this.parentContainer,
-                parentZIndex: this.parentZIndex,
-                name_3D_Container: params.containerName || key,
-                zIndex_3D_Container: params.zIndex || 1,
-            };
-
-            if (!this._3dContainers[CONTAINER_CONFIG.name_3D_Container]) {
-                this._3dContainers[CONTAINER_CONFIG.name_3D_Container] = new ThreeDContainerManager(CONTAINER_CONFIG).init();
-            }
-        }
-    }
-
-    /**
-     * @description Create the controllers
-     * @returns {void}
-     */
-    async _createControllers() {
-        this.logger.log({
-            functionName: '(Universal3DSection) _createControllers()',
-            conditions: ['initializing-controllers'],
-        });
-
-        for (const [key, params] of Object.entries(this.objects3DConfig)) {
-            const containerName = params.containerName || key;
-
-            if (!this.controllers[key]) {
-                this.controllers[key] = new params.classRef(this._3dContainers[containerName], {
-                    ...params,
-                });
-            }
-        }
-        this._controllersCreated = true;
-    }
-
-    /**
-     * @description Initialize the controllers
-     * @returns {void}
-     */
-    async _initControllers() {
-        for (const controller of Object.values(this.controllers)) {
-            if (controller && typeof controller.init === 'function') {
-                await controller.init();
-            }
-        }
-
-        this.logger.log({
-            type: 'success',
-            functionName: '(Universal3DSection) _initControllers',
-            conditions: ['initializing-controllers'],
-        });
-    }
-
-    /**
-     * @description Cleans up a specific container type
-     * @param {string} type - Container type from CONTAINER_TYPES
-     * @returns {void}
-     */
-    deleteContainer_3D_Object(type) {
-        const manager = new ThreeDContainerManager(this.container);
-        manager.delete();
     }
 
     /**
@@ -165,5 +91,79 @@ export class Universal3DSection extends SectionObserver {
         }
 
         super.cleanup(logMessage);
+    }
+
+    /**
+     * @description Cleans up a specific container type
+     * @param {string} type - Container type from CONTAINER_TYPES
+     * @returns {void}
+     */
+    deleteContainer_3D_Object() {
+        const manager = new ThreeDContainerController(this.container);
+        manager.delete();
+    }
+
+    /**
+     * @description Setup the containers
+     * @returns {void}
+     */
+    async _setupContainers() {
+        this.logger.log({
+            functionName: '(Universal3DSection) _setupContainers()',
+        });
+
+        for (const [key, params] of Object.entries(this.objects3DConfig)) {
+
+            const CONTAINER_CONFIG = {
+                parent: this.parentContainer,
+                parentZIndex: this.parentZIndex,
+                name_3D_Container: params.containerName || key,
+                zIndex_3D_Container: params.zIndex || 1,
+            };
+
+            if (!this._3dContainers[CONTAINER_CONFIG.name_3D_Container]) {
+                this._3dContainers[CONTAINER_CONFIG.name_3D_Container] = new ThreeDContainerController(CONTAINER_CONFIG).init();
+            }
+        }
+    }
+
+    /**
+     * @description Create the controllers
+     * @returns {void}
+     */
+    async _createControllers() {
+        this.logger.log({
+            functionName: '(Universal3DSection) _createControllers()',
+            conditions: ['initializing-controllers'],
+        });
+
+        for (const [key, params] of Object.entries(this.objects3DConfig)) {
+            const containerName = params.containerName || key;
+
+            if (!this.controllers[key]) {
+                this.controllers[key] = new params.classRef(this._3dContainers[containerName], {
+                    ...params,
+                });
+            }
+        }
+        this._controllersCreated = true;
+    }
+
+    /**
+     * @description Initialize the controllers
+     * @returns {void}
+     */
+    async _initControllers() {
+        for (const controller of Object.values(this.controllers)) {
+            if (controller && typeof controller.init === 'function') {
+                await controller.init();
+            }
+        }
+
+        this.logger.log({
+            type: 'success',
+            functionName: '(Universal3DSection) _initControllers',
+            conditions: ['initializing-controllers'],
+        });
     }
   }

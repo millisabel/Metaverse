@@ -15,14 +15,14 @@ const STYLES_3D_CONTAINER = {
  * Manages 3D scene containers with proper positioning and z-index.
  * Responsible only for DOM container creation and cleanup.
  * 
- * @class ThreeDContainerManager
+ * @class ThreeDContainerController
  * @param {Object} options - Container options.
  * @param {HTMLElement} options.parent - Parent container for the 3D scene.
  * @param {number} options.parentZIndex - z-index value for the parent container.
  * @param {string} options.name_3D_Container - Container name/type (required, used for data attributes and debugging).
  * @param {string} [options.zIndex_3D_Container] - z-index value for the container.
  */
-export class ThreeDContainerManager {
+export class ThreeDContainerController {
     constructor(options = {}) {
         this.name = this.constructor.name;
         this.logger = createLogger(this.name);

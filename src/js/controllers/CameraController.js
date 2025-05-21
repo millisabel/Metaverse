@@ -250,11 +250,11 @@ export class CameraController {
      */
     _applyCameraSettings() {
         if (this.options.position) {
-            this._setPosition(this.options.position);
+            this.setPosition(this.options.position);
         }
     
         if (this.options.lookAt) {
-            this._setLookAt(this.options.lookAt);
+            this.setLookAt(this.options.lookAt);
         }
     }
 
@@ -275,11 +275,12 @@ export class CameraController {
     /**
      * @description Sets camera position.
      * @param {Object} position - Position coordinates {x, y, z}.
-     * @private
+     * @public
      * @returns {void}
      */
-    _setPosition(position) {
+    setPosition(position) {
         if (!this.camera) return;
+
         Object.entries(position).forEach(([axis, value]) => {
             this.camera.position[axis] = value;
         });
@@ -291,7 +292,7 @@ export class CameraController {
      * @private
      * @returns {void}
      */
-    _setLookAt(lookAt) {
+    setLookAt(lookAt) {
         if (!this.camera) return;
         this.camera.lookAt(lookAt.x, lookAt.y, lookAt.z);
     }
@@ -314,8 +315,8 @@ export class CameraController {
      * @returns {void}
      */
     resetCamera() {
-        this._setPosition(this.options.position);
-        this._setLookAt(this.options.lookAt);
+        this.setPosition(this.options.position);
+        this.setLookAt(this.options.lookAt);
         this._setZoom(this.options.zoom);
     }
 
