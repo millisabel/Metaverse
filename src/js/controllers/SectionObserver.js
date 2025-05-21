@@ -1,35 +1,27 @@
 import { createLogger } from '../utils/logger';
-import { ThreeDContainerManager } from '../utilsThreeD/ThreeDContainerManager';
 
 /**
  * @description Base class for setting up and managing 3D scenes in sections
  * @extends {BaseSetup}
  * @param {string} containerId - ID of the container element
+ * @param {number} zIndex - Z-index of the section
  * @returns {BaseSetup}
  */
 export class SectionObserver {
-    /**
-     * Creates an instance of BaseSetup
-     * @param {string} containerId - ID of the container element
-     */
     constructor(containerId, zIndex) {
         this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
 
-        this.container = document.getElementById(containerId);
-        this.sectionZIndex = zIndex || 0;
-        
-        // State
+        this.container = this._getContainer(containerId);
+        this._applyBaseContainerStyles(this.container, zIndex);
+
         this.initialized = false;
         this.isVisible = false;
         this.isResizing = false;
-        
-        // Animation
-        this.animationFrameId = null;
+    
         this.resizeTimeout = null;
         this.observer = null;
 
-        this._createdContainers = {};
         this.init();
     }
 
@@ -39,133 +31,54 @@ export class SectionObserver {
      */
     init() {
         this.logger.log({
-            functionName: '(BaseSetup) init',
-            conditions: ['init'],
-            customData: {
-                name: this.name,
-                this: this
-            }
-        });
-        
-        this._applyBaseContainerStyles(this.objects3D);
-        this.initVisibilityObserver();
-        this.initResizeHandler();
-        
-        this.logger.log({
-            functionName: '(BaseSetup) init',
-            type: 'success',
+            functionName: '(SectionObserver) init()',
             conditions: ['init'],
             customData: {
                 this: this
             }
         });
-    }
-
-    /**
-     * @description Initialize visibility observer to handle element visibility changes
-     * @returns {void}
-     */
-    initVisibilityObserver() {
-        this.observer = new IntersectionObserver(async (entries) => {
-            entries.forEach(async (entry) => {
-                this.isVisible = entry.isIntersecting;
-                
-                if (this.isVisible) {
-                    if (!this.initialized) {
-                        await this.initScene();
-                    }
-                    if (!this.isResizing) {
-                        this.animate();
-                    }
-                } else {
-                    this.stopAnimation();
-                    this.cleanup();
-                }
-
-                this.logger.log({
-                    conditions: this.isVisible ? ['visible'] : ['hidden'],
-                    functionName: 'initVisibilityObserver'
-                });
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        this.observer.observe(this.container);
-
-        this.logger.log({
-            functionName: '(BaseSetup) initVisibilityObserver',
-            conditions: ['init'],
-        });
-    }
-
-    /**
-     * @description Initialize Three.js scene with camera
-     * @returns {Promise<void>}
-     */
-    async initScene() {
-        if (this.initialized) return;
-        await this.setupScene();
         
-        this.initialized = true;
-
-        this.logger.log({
-            functionName: '(BaseSetup) initScene',
-            conditions: ['init'],
-        });
+        this._initResizeHandler();
+        this._initVisibilityObserver();
     }
 
     /**
-     * @description Setup the scene with additional elements
-     * @returns {Promise<void>}
+     * @description Get the container element
+     * @param {string} containerId - ID of the container element
+     * @returns {HTMLElement}
      */
-    async setupScene() {
-        throw new Error('setupScene must be implemented by subclass');
+    _getContainer(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            throw new Error(`Container with id ${containerId} not found`);
+        }
+        return container;
     }
 
     /**
-     * @description Animation loop
+     * @description Apply base container styles
+     * @param {HTMLElement} container - The container element
+     * @param {number} zIndex - Z-index of the section
      * @returns {void}
      */
-    animate() {
-        if (!this.canAnimate()) {
-            this.stopAnimation();
-            return;
-        }
-
-        this.update();
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
-    }
-
-    /**
-     * @description Check if animation can proceed
-     * @returns {boolean} Whether animation should continue
-     */
-    canAnimate() {
-        return this.isVisible && !this.isResizing && this.initialized;
-    }
-
-    /**
-     * @description Stop animation loop
-     * @returns {void}
-     */
-    stopAnimation() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-        }
+    _applyBaseContainerStyles(container, zIndex) {
+        container.style.position = 'relative';
+        container.style.zIndex = zIndex;
     }
 
     /**
      * @description Initialize resize handler to manage window resize events
      * @returns {void}
      */
-    initResizeHandler() {
+    _initResizeHandler() {
+        this.logger.log({
+            functionName: '(SectionObserver) _initResizeHandler()',
+            conditions: ['init'],
+        });
+
         window.addEventListener('resize', () => {
             if (!this.isResizing) {
                 this.isResizing = true;
-                this.stopAnimation();
             }
 
             clearTimeout(this.resizeTimeout);
@@ -175,11 +88,9 @@ export class SectionObserver {
                     this.onResize();
                     setTimeout(() => {
                         if (!this.isResizing) {
-                            this.animate();
-
                             this.logger.log({
                                 conditions: ['resize'],
-                                functionName: 'initResizeHandler'
+                                functionName: '(SectionObserver) _initResizeHandler()'
                             });
                         }
                     }, 200);
@@ -189,56 +100,60 @@ export class SectionObserver {
     }
 
     /**
-     * @description Apply base container styles
+     * @description Initialize visibility observer to handle element visibility changes
      * @returns {void}
      */
-    _applyBaseContainerStyles() {
-        this.container.style.position = 'relative';
-        this.container.style.zIndex = this.sectionZIndex;
-    }
-
-    /**
-     * @description Cleans up a specific container type
-     * @param {string} type - Container type from CONTAINER_TYPES
-     * @returns {void}
-     */
-    cleanupContainer(type) {
-        const manager = new ThreeDContainerManager(this.container, { type });
-        manager.cleanup();
-    }
-
-    /**
-     * @description Create a 3D container with specified type and z-index
-     * @param {string} name - Name of the container
-     * @param {number} zIndex - Z-index of the container
-     * @returns {HTMLElement} Created container
-     */
-    createContainer(name, zIndex) {
-        if (this._createdContainers[name]) {
-            return this._createdContainers[name];
-        }
-
+    _initVisibilityObserver() {
         this.logger.log({
-            functionName: 'createContainer',
-            conditions: ['creating-container'],
-            customData: {
-                name: this.name,
-                zIndex: zIndex,
-            }
+            functionName: '(SectionObserver) _initVisibilityObserver()',
+            conditions: ['init'],
         });
 
-        const manager = new ThreeDContainerManager(this.container, { 
-            name: name,
-            zIndex: zIndex
+        this.observer = new IntersectionObserver(async (entries) => {
+            entries.forEach(async (entry) => {
+                this.isVisible = entry.isIntersecting;
+                
+                if (!this.isVisible) {
+                    this.cleanup();
+                } else {
+                    if (!this.initialized) {
+                        await this._initSection();
+                    }
+                    if (!this.isResizing) {
+                        this.update();
+                    }
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
         });
-        const container = manager.create();
+
+        this.observer.observe(this.container);
+    }
+
+    /**
+     * @description initialize section with 3d objects
+     * @returns {Promise<void>}
+     */
+    async _initSection() {
+        this.logger.log({
+            functionName: '(SectionObserver) _initSection()',
+            conditions: ['init'],
+        });
         
-        if (name) {
-            container.dataset.containerName = name;
-        }
+        if (this.initialized) return;
+        await this.setupControllers();
         
-        this._createdContainers[name] = container;
-        return container;
+        this.initialized = true;
+    }
+
+    /**
+     * @description setup controllers
+     * @returns {Promise<void>}
+     */
+    async setupControllers() {
+        throw new Error('setupScene must be implemented by subclass');
     }
 
     /**
@@ -259,17 +174,12 @@ export class SectionObserver {
 
     /**
      * @description Clean up all resources
+     * @param {string} logMessage - Message to log
      * @returns {void}
      */
     cleanup(logMessage) {
         if (!logMessage) {
             logMessage = `starting cleanup in ${this.constructor.name}\n`;
-        }
-
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-            logMessage += `AnimationFrameId disposed: ${this.animationFrameId}\n`;
         }
 
         if (this.resizeTimeout) {
@@ -279,23 +189,18 @@ export class SectionObserver {
         }
 
         this.initialized = false;
-        logMessage += `Initialized ${this.initialized}\n`;
         this.isVisible = false;
-        logMessage += `isVisible ${this.isVisible}\n`;
         this.isResizing = false;
-        logMessage += `isResizing ${this.isResizing}\n`;
-        this.animationFrameId = null;
-        logMessage += `animationFrameId ${this._createdContainers}\n`;
 
-        logMessage += `Completed cleanup in ${this.constructor.name}\n`;
+        logMessage += 
+            `isResizing ${this.isResizing}\n` + 
+            `isVisible ${this.isVisible}\n` + 
+            `initialized ${this.initialized}\n`;
 
         this.logger.log({
             message: logMessage,
-            functionName: '(BaseSetup) cleanup',
+            functionName: '(SectionObserver) cleanup',
             conditions: ['cleanup'],
-            styles: {
-                headerBackground: '#af274b'
-            }
         });
     }
 } 
