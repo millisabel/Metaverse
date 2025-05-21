@@ -107,16 +107,15 @@ export class CameraController {
                 functionName: 'CameraController: init()',
                 customData: {
                     camera: this.camera,
-                    options: this.options
+                    options: this.options,
+                    aspect: this.aspect
                 }
             });
-
         } catch (error) {
-            this.logger.log('Error getting aspect ratio', {
-                functionName: 'init',
-                error: error
-            });
+            throw new Error('Camera initialization failed');
         }
+
+        return this.camera;
     }
 
     /**
@@ -182,7 +181,11 @@ export class CameraController {
      * @returns {void}
      */
     _initCameraByType() {
-        const { type } = this.options;
+        let { type } = this.options;
+
+        if (!type) {
+            type = 'perspective';
+        }
     
         switch (type) {
             case 'orthographic':
@@ -230,7 +233,7 @@ export class CameraController {
         const near = this.options.near !== undefined ? this.options.near : -1000;
         const far = this.options.far !== undefined ? this.options.far : 1000;
         this.camera = new THREE.OrthographicCamera(0, 0, 0, 0, near, far);
-        this._setOrthoBounds(rect);
+        this._setOrthoBounds();
 
         this.logger.log('Orthographic camera initialized', {
             functionName: 'CameraController: _initOrthoCamera()',
