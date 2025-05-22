@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const repoName = 'Metaverse'; // Имя вашего репозитория
@@ -53,6 +54,19 @@ module.exports = {
         use: 'raw-loader'
       }
     ]
+  },
+  optimization: {
+    minimize: !isDevelopment,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            pure_funcs: ['console.log', 'console.info'],
+          },
+        },
+        extractComments: false,
+      }),
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
