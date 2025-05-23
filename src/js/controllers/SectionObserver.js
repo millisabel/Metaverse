@@ -1,25 +1,24 @@
 import { createLogger } from '../utils/logger';
 
 /**
- * @description Base class for setting up and managing 3D scenes in sections
- * @extends {BaseSetup}
- * @param {string} containerId - ID of the container element
- * @param {number} zIndex - Z-index of the section
- * @returns {BaseSetup}
+ * @description SectionObserver class
+ * @param {string} containerId - The ID of the container element
+ * @returns {SectionObserver}
  */
 export class SectionObserver {
     constructor(containerId) {
         this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
+        this.logMessage += `${this.constructor.name} (SectionObserver): constructor()\n`;
 
         this.container = this._getContainer(containerId);
 
         this.initialized = false;
         this.isVisible = false;
         this.isResizing = false;
-    
         this.resizeTimeout = null;
         this.observer = null;
+
 
         this.init();
     }
@@ -29,29 +28,13 @@ export class SectionObserver {
      * @returns {void}
      */
     init() {
-        this.logger.log({
-            functionName: '(SectionObserver) init()',
-            conditions: ['init'],
-            customData: {
-                this: this
-            }
-        });
+        this.logMessage = `${this.constructor.name} (SectionObserver): init()\n` +
+        `----------------------------------------------------------\n`;
         
         this._initResizeHandler();
         this._initVisibilityObserver();
-    }
 
-    /**
-     * @description Get the container element
-     * @param {string} containerId - ID of the container element
-     * @returns {HTMLElement}
-     */
-    _getContainer(containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            throw new Error(`Container with id ${containerId} not found`);
-        }
-        return container;
+        this.logMessage += `${this.constructor.name} (SectionObserver): init(): ${this.constructor.name} success \n `;
     }
 
     /**
@@ -59,10 +42,7 @@ export class SectionObserver {
      * @returns {void}
      */
     _initResizeHandler() {
-        this.logger.log({
-            functionName: '(SectionObserver) _initResizeHandler()',
-            conditions: ['init'],
-        });
+        this.logMessage += `${this.constructor.name} (SectionObserver): _initResizeHandler()\n`;
 
         window.addEventListener('resize', () => {
             if (!this.isResizing) {
@@ -85,6 +65,8 @@ export class SectionObserver {
                 }
             }, 300);
         });
+
+        this.logMessage += `${this.constructor.name} (SectionObserver): _initResizeHandler()  success\n`;
     }
 
     /**
@@ -92,25 +74,47 @@ export class SectionObserver {
      * @returns {void}
      */
     _initVisibilityObserver() {
-        this.logger.log({
-            functionName: '(SectionObserver) _initVisibilityObserver()',
-            conditions: ['init'],
-        });
+        this.logMessage += `${this.constructor.name} (SectionObserver): _initVisibilityObserver()\n`;
 
         this.observer = new IntersectionObserver(async (entries) => {
             entries.forEach(async (entry) => {
                 this.isVisible = entry.isIntersecting;
-                
+
                 if (!this.isVisible) {
+                    this.logMessage += 
+                    `----------------------------------------------------------\n` + 
+                    `isVisible: ${this.isVisible}\n` +
+                    `----------------------------------------------------------\n`;
+
                     this.cleanup();
+
                 } else {
                     if (!this.initialized) {
-                        await this._initSection();
+                        this.logMessage += 
+                        `----------------------------------------------------------\n` + 
+                        `isVisible: ${this.isVisible}\n` +
+                        `----------------------------------------------------------\n` + 
+                        `initialized: ${this.initialized}\n` +
+                        `----------------------------------------------------------\n`;
+
+                        await this.initSection();
                     }
                     if (!this.isResizing) {
+                        this.logMessage += 
+                        `----------------------------------------------------------\n` + 
+                        `isResizing: ${this.isResizing}\n` +
+                        `----------------------------------------------------------\n`;
+
                         this.update();
                     }
                 }
+
+                this.logger.log({
+                    message: this.logMessage,
+                    functionName: '(SectionObserver) _initVisibilityObserver()',
+                });
+
+                this.logMessage  =  '';
             });
         }, {
             threshold: 0.1,
@@ -118,30 +122,16 @@ export class SectionObserver {
         });
 
         this.observer.observe(this.container);
-    }
 
-    /**
-     * @description initialize section with 3d objects
-     * @returns {Promise<void>}
-     */
-    async _initSection() {
+        this.logMessage += 
+        `${this.constructor.name} (SectionObserver): _initVisibilityObserver() observer: ${this.observer}\n` +
+        `${this.constructor.name} (SectionObserver): _initVisibilityObserver() success\n ` +
+        `----------------------------------------------------------\n`;
+
         this.logger.log({
-            functionName: '(SectionObserver) _initSection()',
-            conditions: ['init'],
+            message: this.logMessage,
+            functionName: '(SectionObserver) _initVisibilityObserver()',
         });
-        
-        if (this.initialized) return;
-        await this.setupControllers();
-        
-        this.initialized = true;
-    }
-
-    /**
-     * @description setup controllers
-     * @returns {Promise<void>}
-     */
-    async setupControllers() {
-        throw new Error('setupScene must be implemented by subclass');
     }
 
     /**
@@ -165,30 +155,25 @@ export class SectionObserver {
      * @param {string} logMessage - Message to log
      * @returns {void}
      */
-    cleanup(logMessage) {
-        if (!logMessage) {
-            logMessage = `starting cleanup in ${this.constructor.name}\n`;
-        }
+    cleanup() {
+        this.logMessage += `----------------------------------------------------------\n` +
+            `Starting cleanup in ${this.constructor.name} (SectionObserver)\n` +
+            `----------------------------------------------------------\n`;
 
         if (this.resizeTimeout) {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = null;
-            logMessage += `ResizeTimeout disposed: ${this.resizeTimeout}\n`;
         }
 
         this.initialized = false;
         this.isVisible = false;
         this.isResizing = false;
 
-        logMessage += 
-            `isResizing ${this.isResizing}\n` + 
-            `isVisible ${this.isVisible}\n` + 
-            `initialized ${this.initialized}\n`;
-
-        this.logger.log({
-            message: logMessage,
-            functionName: '(SectionObserver) cleanup',
-            conditions: ['cleanup'],
-        });
+        this.logMessage += 
+            `ResizeTimeout: ${this.resizeTimeout}\n` + 
+            `isResizing: ${this.isResizing}\n` + 
+            `isVisible: ${this.isVisible}\n` + 
+            `initialized: ${this.initialized}\n` +
+             `${this.constructor.name} cleanup() success (SectionObserver)\n`;
     }
 } 

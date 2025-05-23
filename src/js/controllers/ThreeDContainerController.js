@@ -1,5 +1,3 @@
-import { createLogger } from '../utils/logger';
-
 const STYLES_3D_CONTAINER = {
     position: 'absolute',
     top: '0',
@@ -24,9 +22,6 @@ const STYLES_3D_CONTAINER = {
  */
 export class ThreeDContainerController {
     constructor(options = {}) {
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
-
         this.parentContainer = options.parent;
         this.parentZIndex = options.parentZIndex || '0';
         this.container_3D_Name = options.name_3D_Container;
@@ -41,16 +36,6 @@ export class ThreeDContainerController {
      * @returns {HTMLElement}
      */
     init() {
-        this.logger.log({
-            functionName: 'init',
-            customData: {
-                parentContainer: this.parentContainer,
-                container_3D_Name: this.container_3D_Name,
-                container_3D_zIndex: this.container_3D_zIndex,
-                container: this.container
-            }
-        });
-
         if (!this.parentContainer) {
             throw new Error(`Parent container not found`);
         }
@@ -67,16 +52,6 @@ export class ThreeDContainerController {
 
         if (!this.container) {
             throw new Error(`Container with name "${key}" not found und kann nicht erstellt werden.`);
-        }
-
-        if(this.container){
-            this.logger.log({
-                functionName: 'setup',
-                type: 'success',
-                customData: {
-                    container: this.container
-                }
-            });
         }
 
         return this.container;
@@ -108,15 +83,6 @@ export class ThreeDContainerController {
         if (!this.container) {
             return;
         }
-
-        this.logger.log({
-            functionName: '(Universal3DSection) _getContainer()',
-            conditions: ['getting-container'],
-            customData: {
-                container_3D_Name: container_3D_Name,
-                container: container
-            }
-        });
     }
 
     /**
@@ -125,17 +91,12 @@ export class ThreeDContainerController {
      */
     _createContainer() {
         if (!this.parentContainer) {
-            this.logger.log('Parent container not found', {
-                type: 'error',
-                functionName: '_createContainer()',
-            });
+            console.error('Parent container not found');
             return null;
         }
         
         if (this.container) {
-            this.logger.log('Container already exists, skipping creation.', {
-                functionName: '_createContainer()'
-            });
+            console.error('Container already exists, skipping creation.');
             return this.container;
         }
 
@@ -158,11 +119,6 @@ export class ThreeDContainerController {
     delete() {
         if (this.container && this.container.parentNode) {
             this.container.parentNode.removeChild(this.container);
-            this.logger.log({
-                conditions: ['removed-container'],
-                functionName: 'cleanup',
-                customData: { container: this.container }
-            });
             this.container = null;
         }
     }
