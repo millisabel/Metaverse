@@ -55,11 +55,26 @@ export class Object_3D_Controller {
     async init() {
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): init()\n`;
 
+        if (this.container && !this._isElementVisible(this.container)) {
+            this.cleanup();
+            return;
+        }
+
         this._initDependencies();
         this._initResizeHandler();
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): init() success\n` + 
         `----------------------------------------------------------\n`;
+    }
+    
+    _isElementVisible(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top < window.innerHeight &&
+            rect.bottom > 0 &&
+            rect.left < window.innerWidth &&
+            rect.right > 0
+        );
     }
 
     /**
@@ -100,11 +115,9 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     animate() {
-        if (this.animationFrameId) return; 
-        if (!this.canAnimate()) {
-            if (this.animationFrameId) {
-                this.stopAnimation();
-            }
+        // if (this.animationFrameId) return;
+        if (this.animationFrameId && !this.canAnimate()) {
+            this.stopAnimation();
             return;
         }
 
