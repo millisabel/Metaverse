@@ -1,6 +1,94 @@
 // COMMON UTILS ===============================================
 
 /**
+ * Deep merges user options with default options
+ * @param {Object} defaultOptions - Default configuration object
+ * @param {Object} userOptions - User provided configuration object
+ * @returns {Object} Merged configuration object
+ */
+function deepMergeOptions(defaultOptions, userOptions) {
+    // Guard against invalid inputs
+
+    if(!defaultOptions && !userOptions) {
+        return {};
+    }
+    if (!defaultOptions || typeof defaultOptions !== 'object') {
+        return userOptions || {};
+    }
+    if (!userOptions || typeof userOptions !== 'object') {
+        return defaultOptions;
+    }
+
+    // Create a new object to store the merged result
+    const result = {};
+
+    // Get all unique keys from both objects
+    const allKeys = new Set([
+        ...Object.keys(defaultOptions),
+        ...Object.keys(userOptions)
+    ]);
+
+    // Process each key
+    for (const key of allKeys) {
+        const defaultValue = defaultOptions[key];
+        const userValue = userOptions[key];
+
+        // If user value is undefined, use default
+        if (userValue === undefined) {
+            result[key] = defaultValue;
+            continue;
+        }
+
+        // If default value is undefined, use user value
+        if (defaultValue === undefined) {
+            result[key] = userValue;
+            continue;
+        }
+
+        // Handle arrays
+        if (Array.isArray(defaultValue) && Array.isArray(userValue)) {
+            result[key] = userValue;
+            continue;
+        }
+
+        // Handle nested objects
+        if (
+            typeof defaultValue === 'object' && 
+            defaultValue !== null &&
+            typeof userValue === 'object' && 
+            userValue !== null
+        ) {
+            result[key] = deepMergeOptions(defaultValue, userValue);
+            continue;
+        }
+
+        // For all other cases, use user value
+        result[key] = userValue;
+    }
+
+    return result;
+}
+
+/**
+ * Merges user options with default options for 3D object configuration
+ * @param {Object} defaultConfig - Default configuration object
+ * @param {Object} userConfig - User provided configuration object
+ * @returns {Object} Merged configuration object
+ */
+export function mergeDefaultAndCustomOptions(defaultConfig, userConfig) {
+    // Validate inputs
+    if (!defaultConfig || typeof defaultConfig !== 'object') {
+        console.warn('Invalid default configuration provided');
+        return userConfig || {};
+    }
+
+    // Deep merge the configurations
+    const mergedConfig = deepMergeOptions(defaultConfig, userConfig);
+
+    return mergedConfig;
+}
+
+/**
  * @description Checks if device is mobile
  * @param {number} size - The size of the device
  * @returns {boolean} True if device is mobile
@@ -9,21 +97,21 @@ export function isMobile(size = 768) {
     return window.innerWidth <= size;
 }
 
+export function getSizeContainer(container) {
+    const rect = container.getBoundingClientRect();
+    return {
+        width: rect.width,
+        height: rect.height
+    };
+}
 /**
- * @description Creates a container with specified options
- * @param {HTMLElement} parent - Parent element
- * @param {Object} options - Container options
- * @param {string} options.zIndex - Z-index value
- * @returns {HTMLElement} Created container
+ * @description Gets the aspect ratio of a container
+ * @param {HTMLElement} container - The container element
+ * @returns {number} The aspect ratio
  */
-export function createContainer(parent, options = {}) {
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.width = '100%';
-    container.style.height = '100%';
-    container.style.zIndex = options.zIndex || '0';
-    parent.appendChild(container);
-    return container;
+export function getAspectRatio(container) {
+    const { width, height } = getSizeContainer(container);
+    return width / height;
 }
 
 /**
@@ -69,6 +157,59 @@ export function typeText(element, text, speed = 20) {
         type();
     });
 }
+
+/**
+ * @description Erase text by one letter from right to left
+ * @param {HTMLElement} element - element, text of which is erased
+ * @param {number} speed - delay between erasing letters (ms)
+ * @returns {Promise}
+ */
+export function eraseText(element, speed = 20) {
+    return new Promise(resolve => {
+        let text = element.textContent;
+        function erase() {
+            if (text.length > 0) {
+                text = text.slice(0, -1);
+                element.textContent = text;
+                setTimeout(erase, speed);
+            } else {
+                resolve();
+            }
+        }
+        erase();
+    });
+}
+
+/**
+ * @description Updates the copyright year
+ * @param {string} selector - Selector for the copyright year element
+ * @returns {void}
+ */
+export function updateCopyrightYear(selector) {
+    const currentYear = new Date().getFullYear();
+    const copyrightYearElement = document.querySelectorAll(selector);
+    copyrightYearElement.forEach(element => {
+        element.textContent = currentYear;
+    });
+}
+
+/**
+ * @description Generates a class selector from a string or array of class names
+ * @param {string|Array} classNames - The class names to generate a selector from
+ * @returns {string} The generated class selector
+ */
+export function getClassSelector(classNames) {
+    if (!classNames) return '';
+    if (Array.isArray(classNames)) {
+      return '.' + classNames.map(c => c.trim()).join('.');
+    }
+    return '.' + classNames.trim().replace(/\s+/g, '.');
+}
+
+
+
+
+
 
 /**
  * @description Get colors from element
@@ -132,18 +273,6 @@ export function getRandomValue(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-/**
- * @description Updates the copyright year
- * @param {string} selector - Selector for the copyright year element
- * @returns {void}
- */
-export function updateCopyrightYear(selector) {
-    const currentYear = new Date().getFullYear();
-    const copyrightYearElement = document.querySelectorAll(selector);
-    copyrightYearElement.forEach(element => {
-        element.textContent = currentYear;
-    });
-}
 
 /**
  * @description Shuffles an array
@@ -159,18 +288,6 @@ export function shuffleArray(array) {
     return arr;
 }
 
-/**
- * @description Generates a class selector from a string or array of class names
- * @param {string|Array} classNames - The class names to generate a selector from
- * @returns {string} The generated class selector
- */
-export function getClassSelector(classNames) {
-    if (!classNames) return '';
-    if (Array.isArray(classNames)) {
-      return '.' + classNames.map(c => c.trim()).join('.');
-    }
-    return '.' + classNames.trim().replace(/\s+/g, '.');
-  }
 
 /**
  * @description Merges default options, options, and objectConfig into a single options object.
@@ -235,27 +352,6 @@ export function deepClone(value) {
     return cloned;
 }
 
-/**
- * @description Erase text by one letter from right to left
- * @param {HTMLElement} element - element, text of which is erased
- * @param {number} speed - delay between erasing letters (ms)
- * @returns {Promise}
- */
-export function eraseText(element, speed = 20) {
-    return new Promise(resolve => {
-        let text = element.textContent;
-        function erase() {
-            if (text.length > 0) {
-                text = text.slice(0, -1);
-                element.textContent = text;
-                setTimeout(erase, speed);
-            } else {
-                resolve();
-            }
-        }
-        erase();
-    });
-}
 
 /**
  * @description Extracts RGB values from a color string
