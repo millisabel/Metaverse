@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { createLogger } from '../utils/logger';
 
 /**
  * Default options for Three.js WebGLRenderer.
@@ -42,8 +41,7 @@ export class RendererController {
         if (RendererController.instance) {
             throw new Error('Use RendererController.getInstance() instead of new.');
         }
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
+        
       this.renderers = new Map();
       RendererController.instance = this;
     }
@@ -76,16 +74,7 @@ export class RendererController {
         ...options
     });
     
-      this.renderers.set(containerId, renderer);
-
-      this.logger.log({
-        conditions: ['renderer-created'],
-        functionName: 'getRenderer',
-        customData: {
-          containerId: containerId,
-          rendererOptions: { ...DEFAULT_RENDERER_OPTIONS, ...options }
-        }
-      });  
+      this.renderers.set(containerId, renderer);  
 
       return renderer; 
     }
@@ -99,12 +88,6 @@ export class RendererController {
       if (renderer) {
         renderer.dispose();
         this.renderers.delete(containerId);
-
-        this.logger.log('Renderer removed', {
-          conditions: ['renderer-remove'],
-          functionName: 'removeRenderer',
-          customData: { containerId }
-        });
       }
     }
 
@@ -239,12 +222,6 @@ export class RendererController {
       this.renderers.forEach(renderer => {
         renderer.setSize(width, height);
       });
-
-      this.logger.log({
-        conditions: ['resize-all'],
-        functionName: 'resizeAll',
-        customData: { width, height }
-      });
     }
 
     /**
@@ -253,11 +230,6 @@ export class RendererController {
     disposeAll() {
       this.renderers.forEach(renderer => renderer.dispose());
       this.renderers.clear();
-
-      this.logger.log({
-        conditions: ['dispose-all'],
-        functionName: 'disposeAll'
-      });
     }
 
     /**
@@ -276,22 +248,11 @@ export class RendererController {
 
       const handleLost = (event) => {
         event.preventDefault();
-        if (typeof onLost === 'function') onLost(event);
-        this.logger.log({
-          conditions: ['webglcontextlost'],
-          functionName: '_initWebGLContextHandlers',
-          customData: { canvas }
-        });
-      };
+        if (typeof onLost === 'function') onLost(event);};
 
       const handleRestored = (event) => {
-        if (typeof onRestored === 'function') onRestored(event);
-        this.logger.log({
-          conditions: ['webglcontextrestored'],
-          functionName: '_initWebGLContextHandlers',
-          customData: { canvas }
-        });
-      };
+        if (typeof onRestored === 'function') onRestored(event);};
+
       canvas.addEventListener('webglcontextlost', handleLost, false);
       canvas.addEventListener('webglcontextrestored', handleRestored, false);
       canvas._webglHandlers.lost = handleLost;

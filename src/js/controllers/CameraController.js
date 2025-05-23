@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { createLogger } from '../utils/logger';
 import { mergeDefaultAndCustomOptions, getAspectRatio } from '../utils/utils';
 
 const CAMERA_CONTROLS = {
@@ -68,9 +67,6 @@ const DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS = {
  */
 export class CameraController {
     constructor(customOptions = {}) {
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
-
         this.options = mergeDefaultAndCustomOptions(CAMERA_CONTROLS, customOptions);
 
         this.camera = null;
@@ -85,9 +81,6 @@ export class CameraController {
      */
     init(container) {
         if (this.isInitialized) {
-            this.logger.log('Camera already initialized', {
-                functionName: 'init'
-            });
             return;
         }
 
@@ -101,16 +94,6 @@ export class CameraController {
             this._applyCameraSettings();
 
             this.isInitialized = true;
-
-            this.logger.log('Camera initialized', {
-                conditions: ['camera-initialized'],
-                functionName: 'CameraController: init()',
-                customData: {
-                    camera: this.camera,
-                    options: this.options,
-                    aspect: this.aspect
-                }
-            });
         } catch (error) {
             throw new Error('Camera initialization failed');
         }
@@ -148,12 +131,6 @@ export class CameraController {
         }
 
         this.camera.updateProjectionMatrix();
-
-        this.logger.log('Camera resized', {
-            conditions: ['resized'],
-            functionName: 'CameraController: onResize',
-            aspect: this.aspect
-        });
     }
 
     /**
@@ -215,13 +192,6 @@ export class CameraController {
             near,
             far
         );
-
-        this.logger.log('Perspective camera initialized', {
-            functionName: 'CameraController: _initPerspectiveCamera()',
-            customData: {
-                camera: this.camera
-            }
-        });
     }
 
     /**
@@ -234,13 +204,6 @@ export class CameraController {
         const far = this.options.far !== undefined ? this.options.far : 1000;
         this.camera = new THREE.OrthographicCamera(0, 0, 0, 0, near, far);
         this._setOrthoBounds();
-
-        this.logger.log('Orthographic camera initialized', {
-            functionName: 'CameraController: _initOrthoCamera()',
-            customData: {
-                camera: this.camera
-            }
-        });
     }   
 
     /**
