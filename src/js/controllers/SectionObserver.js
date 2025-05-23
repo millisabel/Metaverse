@@ -131,6 +131,9 @@ export class SectionObserver {
         this.logger.log({
             message: this.logMessage,
             functionName: '(SectionObserver) _initVisibilityObserver()',
+            customData: {
+                this: this,
+            },
         });
     }
 
