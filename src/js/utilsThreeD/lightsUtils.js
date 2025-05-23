@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { mergeOptionsWithObjectConfig } from '../utils/utils';
+
 /**
  * DEFAULT_LIGHTS
  * @description The default lights for the scene
@@ -22,13 +24,14 @@ export const DEFAULT_LIGHTS = {
  * @param {Object} config - The config
  * @returns {Object} - The lights
  */
-export function addLightsToScene(scene, config) {
-    const lights = {};
-    lights.ambient = addAmbientLight(scene, config);
-    lights.point = addPointLight(scene, config);
-    lights.directional = addDirectionalLight(scene, config);
-    lights.spot = addSpotLight(scene, config);
-    lights.hemisphere = addHemisphereLight(scene, config);
+export function addLightsToScene(scene, config = {}) {
+    const lights = mergeOptionsWithObjectConfig(DEFAULT_LIGHTS, config);
+    console.log('lights', lights);
+    lights.ambient = addAmbientLight(scene, lights);
+    lights.point = addPointLight(scene, lights);
+    lights.directional = addDirectionalLight(scene, lights);
+    lights.spot = addSpotLight(scene, lights);
+    lights.hemisphere = addHemisphereLight(scene, lights);
     return lights;
 }
 
