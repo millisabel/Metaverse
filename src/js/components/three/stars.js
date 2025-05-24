@@ -4,7 +4,7 @@ import { createLogger } from "../../utils/logger";
 import { isMobile, getRandomValue } from '../../utils/utils';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 
@@ -35,11 +35,11 @@ const defaultOptions = {
         enabled: true,
         probability: 0.15,
         speed: 0.003,
-        amplitude: { x: 0.05, y: 0.05, z: 0.02 }
+        amplitude: { x: 0.1, y: 0.05, z: 0.02 }
     },
     flicker: {
         fast: {
-            probability: 0.3,
+            probability: 0.15,
             speed: { min: 0.05, max: 0.15 },
             amplitude: { min: 0.5, max: 1.0 }
         },
@@ -55,7 +55,7 @@ const defaultOptions = {
     },
 };
 
-export class Stars extends AnimationController {
+export class Stars extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options, defaultOptions);
 
@@ -76,12 +76,59 @@ export class Stars extends AnimationController {
      * @returns {Promise<void>}
      */
     async setupScene() {
-        this.logger.log('Setting up stars scene', {
-            conditions: ['initializing-scene'],
-            functionName: 'setupScene'
-        });
+        this.logMessage += `${this.constructor.name} (Stars): setupScene()\n`;
 
         this._createStars();
+        this.setupLights();
+
+        this.logMessage += `${this.constructor.name} (Stars): setupScene() success\n`;
+    }
+
+    // onResize() {
+        
+    // }
+
+    /**
+     * @description Update the stars position, size, and color
+     * @returns {Promise<void>}
+     */
+    update() {
+        if (!this.stars) return;
+        this._updateStarAttributes();
+        super.update();
+    }
+
+    /**
+     * @description Cleanup the stars
+     * @returns {Promise<void>}
+     */
+    cleanup() {
+        let logMessage = 
+            `----------------------------------------------------------\n` + 
+            `${this.constructor.name}: starting cleanup\n` +
+            `----------------------------------------------------------\n`;
+
+        if (this.stars) {
+            this.stars.geometry?.dispose();
+            this.stars.material?.dispose();
+            this.stars = null;
+            logMessage += `${this.constructor.name} disposed: ${this.stars}\n`;
+        }
+        
+        this.phases = null;
+        this.isMoving = null;
+        this.movePhases = null;
+        this.flickerSpeeds = null;
+        this.flickerAmplitudes = null;
+
+        logMessage += `${this.constructor.name} phases: ${this.phases}\n` +
+                       `${this.constructor.name} isMoving: ${this.isMoving}\n` +
+                       `${this.constructor.name} movePhases: ${this.movePhases}\n` +
+                       `${this.constructor.name} flickerSpeeds: ${this.flickerSpeeds}\n` +
+                       `${this.constructor.name} flickerAmplitudes: ${this.flickerAmplitudes}\n` +
+                       `-----------------------------------\n`;
+
+        super.cleanup(logMessage);
     }
 
     /**
@@ -222,47 +269,5 @@ export class Stars extends AnimationController {
 
         this.stars.geometry.attributes.position.needsUpdate = true;
         this.stars.geometry.attributes.size.needsUpdate = true;
-    }
-
-    /**
-     * @description Update the stars position, size, and color
-     * @returns {Promise<void>}
-     */
-    update() {
-        if (!this.canAnimate() || !this.stars || !this.phases || !this.flickerSpeeds || !this.flickerAmplitudes) {
-            this.logAnimationState('paused');
-            return;
-        }
-
-        if (!this.animationFrameId) {
-            this.logAnimationState('running');
-        }
-
-        this._updateStarAttributes();
-        this.updateCamera();
-        this.renderScene();
-    }
-
-    /**
-     * @description Cleanup the stars
-     * @returns {Promise<void>}
-     */
-    cleanup() {
-        let logMessage = `starting cleanup in ${this.constructor.name}\n`;
-
-        if (this.stars) {
-            this.stars.geometry?.dispose();
-            this.stars.material?.dispose();
-            this.stars = null;
-            logMessage += `${this.constructor.name} disposed: ${this.stars}\n`;
-        }
-
-        super.cleanup(logMessage);
-        
-        this.phases = null;
-        this.isMoving = null;
-        this.movePhases = null;
-        this.flickerSpeeds = null;
-        this.flickerAmplitudes = null;
     }
 }

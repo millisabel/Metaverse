@@ -2,12 +2,12 @@ import { Logger } from './utils/logger';
 import { AnimationObserverCSS } from './utils/animationObserver_CSS';
 // Setup
 import { HeroSetup } from './setup/heroSetup';
-import { AboutSetup } from './setup/aboutSetup';
-import { RoadmapSetup } from './setup/roadmapSetup';
-import { DynamicsSetup } from './setup/dynamicsSetup';
-import { initVRMarket } from './setup/vrMarketSetup';
-import { initExplore } from './setup/exploreSetup';
-import { initSocial } from './setup/socialSetup';
+// import { AboutSetup } from './setup/aboutSetup';
+// import { RoadmapSetup } from './setup/roadmapSetup';
+// import { DynamicsSetup } from './setup/dynamicsSetup';
+// import { initVRMarket } from './setup/vrMarketSetup';
+// import { initExplore } from './setup/exploreSetup';
+// import { initSocial } from './setup/socialSetup';
 // Common components
 import { initNavbar } from './setup/NavbarSetup';
 import initModal from './components/common/modal';
@@ -17,13 +17,10 @@ if(process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
     Logger.disableLoggerFor('AnimationObserverCSS');
 
-    // Logger.disableLoggerFor('BaseSetup');
     // Logger.disableLoggerFor('Universal3DSection');
     // Logger.disableLoggerFor('AnimationController');
-    Logger.disableLoggerFor('CameraController');
-    // Logger.disableLoggerFor('ThreeDContainerManager');
-    Logger.disableLoggerFor('CanvasUtils');
-    Logger.disableLoggerFor('RendererManager');
+    // Logger.disableLoggerFor('CameraController');
+    // Logger.disableLoggerFor('RendererManager');
 
     // Logger.disableLoggerFor('HeroSetup');
     Logger.disableLoggerFor('AboutSetup');
@@ -34,7 +31,7 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('ExploreScene');
     Logger.disableLoggerFor('SocialSetup');
 
-    Logger.disableLoggerFor('Stars');
+    // Logger.disableLoggerFor('Stars');
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
@@ -62,9 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initNavbar();
     new HeroSetup();
-    new AboutSetup();
-    new RoadmapSetup();
-    new DynamicsSetup();
+    // new AboutSetup();
+    // new RoadmapSetup();
+    // new DynamicsSetup();
     // initDynamics();
     // initVRMarket();
     // initExplore();

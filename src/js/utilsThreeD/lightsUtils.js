@@ -26,7 +26,6 @@ export const DEFAULT_LIGHTS = {
  */
 export function addLightsToScene(scene, config = {}) {
     const lights = mergeOptionsWithObjectConfig(DEFAULT_LIGHTS, config);
-    console.log('lights', lights);
     lights.ambient = addAmbientLight(scene, lights);
     lights.point = addPointLight(scene, lights);
     lights.directional = addDirectionalLight(scene, lights);

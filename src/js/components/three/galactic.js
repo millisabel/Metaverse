@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 
 import vertexShader from '../../shaders/galacticCore.vert';
 import fragmentShader from '../../shaders/galacticCore.frag';
@@ -58,7 +58,7 @@ const DEFAULT_OPTIONS = {
  * @property {Object} core - The core of the galactic cloud
  * @property {Object} plane - The plane of the galactic cloud
  */
-export class GalacticCloud extends AnimationController {
+export class GalacticCloud extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options, DEFAULT_OPTIONS);
 
@@ -93,7 +93,7 @@ export class GalacticCloud extends AnimationController {
         this._createGalaxyCore();
         await this._galaxyPlane();
         this._setupPostProcessing();
-        this.setupLights();
+        // this.setupLights();
     }
 
     /**
@@ -258,7 +258,6 @@ export class GalacticCloud extends AnimationController {
         const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
         const orbitSpeed = this.options.camera?.orbitSpeed ?? (mobile ? 0.15 : 0.2);
         const cameraAngle = -time * orbitSpeed;
-    
         this.cameraController.setPosition({
             x: offsetX + Math.sin(cameraAngle) * currentRadius,
             y: (mobile ? -15 : 5) + Math.sin(time * 0.4) * 0.5,
@@ -273,7 +272,7 @@ export class GalacticCloud extends AnimationController {
      * @returns {Promise<void>}
      */
     update() {
-        if (!this.isVisible || !this.scene || !this.camera || !this.composer) return;
+        if (!this.composer) return;
 
         const time = performance.now() * 0.0001;
 

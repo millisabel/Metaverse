@@ -369,7 +369,7 @@ export class Constellation extends AnimationController {
         }
 
         if (!this.animationFrameId) {
-            this.logAnimationState('running');
+            this.logger.log({conditions: ['running']});
         }
 
         if (this.frame % 2 === 0) {
