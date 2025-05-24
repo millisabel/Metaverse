@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 
 import { createLogger } from "../../utils/logger";
-import { isMobile, getRandomValue } from '../../utils/utils';
+import { getRandomValue } from '../../utils/utils';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
+import vertexShaderSource from '../../shaders/star.vert';
+import fragmentShaderSource from '../../shaders/star.frag';
 
 /**
  * @description Stars component
@@ -19,39 +21,47 @@ import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
  */
 
 const defaultOptions = {
-    count: 4000,
+    count: 3000,
     colors: [0xFFFFFF],
     size: {
-        min: isMobile() ? 2 : 1,
-        max: isMobile() ? 3 : 1.5,
-        attenuation: true,
-        multiplier: isMobile() ? 1.5 : 2
+        min: 3,
+        max: 7,
     },
     depth: {
-        range: isMobile() ? 500 : 1000,
-        z: [-300, -100]
+        range: 1200,
+        z: [200, -500]
     },
     movement: {
         enabled: true,
-        probability: 0.15,
-        speed: 0.003,
+        probability: 0.2,
+        speed: 0.03,
         amplitude: { x: 0.1, y: 0.05, z: 0.02 }
     },
-    flicker: {
-        fast: {
-            probability: 0.15,
-            speed: { min: 0.05, max: 0.15 },
-            amplitude: { min: 0.5, max: 1.0 }
+    shader: {
+        multiplier: 1,
+        attenuation: true,
+        texture: { 
+            size: 64, 
+            color: 0xffffff 
         },
-        slow: {
-            speed: 0.005,
-            amplitude: 0.2
-        }
-    },
-    material: {
         opacity: 1,
         transparent: true,
-        blending: THREE.NormalBlending
+        blending: THREE.AdditiveBlending,
+        flicker: {
+            fast: {
+                probability: 0.002,
+                speed: { min: 0.0001, max: 0.0002 },
+                amplitude: { min: 0.7, max: 1.2 }
+            },
+            slow: {
+                speed: 0.05,
+                amplitude: 0.9
+            }
+        },
+        uniforms: {
+            glowColor: { value: new THREE.Color(0xA109FE) },
+            glowStrength: { value: 1.5 },
+        }
     },
 };
 
@@ -68,6 +78,7 @@ export class Stars extends Object_3D_Observer_Controller {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
+        this.baseSizes = null;
     }
 
     /**
@@ -76,17 +87,12 @@ export class Stars extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     async setupScene() {
-        this.logMessage += `${this.constructor.name} (Stars): setupScene()\n`;
-
         this._createStars();
-        this.setupLights();
-
-        this.logMessage += `${this.constructor.name} (Stars): setupScene() success\n`;
     }
 
-    // onResize() {
-        
-    // }
+    onResize() {
+        super.onResize();
+    }
 
     /**
      * @description Update the stars position, size, and color
@@ -120,6 +126,7 @@ export class Stars extends Object_3D_Observer_Controller {
         this.movePhases = null;
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
+        this.baseSizes = null;
 
         logMessage += `${this.constructor.name} phases: ${this.phases}\n` +
                        `${this.constructor.name} isMoving: ${this.isMoving}\n` +
@@ -129,70 +136,6 @@ export class Stars extends Object_3D_Observer_Controller {
                        `-----------------------------------\n`;
 
         super.cleanup(logMessage);
-    }
-
-    /**
-     * @description Initialize the star attributes
-     * @param {Float32Array} positions - Positions of the stars
-     * @param {Float32Array} colors - Colors of the stars
-     * @param {Float32Array} sizes - Sizes of the stars
-     * @returns {Promise<void>}
-     */
-    _initStarAttributes(positions, colors, sizes) {
-        for (let i = 0; i < this.options.count; i++) {
-            // Positions with gaussian distribution
-            positions[i * 3] = gaussianRandom(0, this.options.depth.range / 3);
-            positions[i * 3 + 1] = gaussianRandom(0, this.options.depth.range / 3);
-            positions[i * 3 + 2] = this.options.depth.z[0] + Math.random() * (this.options.depth.z[1] - this.options.depth.z[0]);
-
-            // Colors
-            const color = this.options.colors[Math.floor(Math.random() * this.options.colors.length)];
-            colors[i * 3] = (color >> 16 & 255) / 255;
-            colors[i * 3 + 1] = (color >> 8 & 255) / 255;
-            colors[i * 3 + 2] = (color & 255) / 255;
-
-            // Sizes
-            sizes[i] = getRandomValue(this.options.size.min, this.options.size.max);
-
-            // Animation parameters
-            this.phases[i] = Math.random() * Math.PI * 2;
-            this.isMoving[i] = this.options.movement.enabled && Math.random() < this.options.movement.probability ? 1 : 0;
-            this.movePhases[i] = Math.random() * Math.PI * 2;
-
-            if (Math.random() < this.options.flicker.fast.probability) {
-                this.flickerSpeeds[i] = getRandomValue(
-                    this.options.flicker.fast.speed.min,
-                    this.options.flicker.fast.speed.max
-                );
-                this.flickerAmplitudes[i] = getRandomValue(
-                    this.options.flicker.fast.amplitude.min,
-                    this.options.flicker.fast.amplitude.max
-                );
-            } else {
-                this.flickerSpeeds[i] = this.options.flicker.slow.speed;
-                this.flickerAmplitudes[i] = this.options.flicker.slow.amplitude;
-            }
-        }
-    }
-
-    /**
-     * @description Create star points
-     * @param {THREE.BufferGeometry} geometry - Geometry of the stars
-     * @returns {Promise<void>}
-     */
-    _createStarPoints(geometry) {
-        const material = new THREE.PointsMaterial({
-            vertexColors: true,
-            sizeAttenuation: this.options.size?.attenuation ?? true,
-            size: this.options.size?.multiplier ?? 2,
-            transparent: this.options.material?.transparent ?? true,
-            opacity: this.options.material?.opacity ?? 1,
-            blending: this.options.material?.blending ?? THREE.NormalBlending,
-            map: createStarTexture(this.options.texture)
-        });
-
-        this.stars = new THREE.Points(geometry, material);
-        this.scene.add(this.stars);
     }
 
     /**
@@ -206,14 +149,62 @@ export class Stars extends Object_3D_Observer_Controller {
         this.flickerSpeeds = new Float32Array(this.options.count);
         this.flickerAmplitudes = new Float32Array(this.options.count);
 
+        this.baseSizes = this._getBaseSizes();
+
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(this.options.count * 3);
         const colors = new Float32Array(this.options.count * 3);
         const sizes = new Float32Array(this.options.count);
 
-        this._initStarAttributes(positions, colors, sizes);
+        this._initStarAttributes(positions, colors, sizes, this.options.shader.flicker);
         setupGeometry(geometry, positions, colors, sizes);
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
         this._createStarPoints(geometry);
+    }
+
+    /**
+     * @description Initialize the star attributes
+     * @param {Float32Array} positions - Positions of the stars
+     * @param {Float32Array} colors - Colors of the stars
+     * @param {Float32Array} sizes - Sizes of the stars
+     * @param {Object} flicker - Flicker options
+     * @returns {Promise<void>}
+     */
+    _initStarAttributes(positions, colors, sizes, flicker) {
+        for (let i = 0; i < this.options.count; i++) {
+            const starPosition = this._getRandomStarPosition();
+            this._setStarPosition(positions, i, starPosition);
+
+            const color = this._getRandomStarColor();
+            this._setStarColor(colors, i, color);
+
+            sizes[i] = getRandomValue(this.options.size.min, this.options.size.max);
+
+            this._initStarAnimationParams(i, flicker);
+        }
+    }
+
+    /**
+     * @description Create star points
+     * @param {THREE.BufferGeometry} geometry - Geometry of the stars
+     * @returns {Promise<void>}
+     */
+    _createStarPoints(geometry) {
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                pointTexture: { value: createStarTexture(this.options.shader.texture) },
+                ...this.options.shader.uniforms
+            },
+            vertexShader: vertexShaderSource,
+            fragmentShader: fragmentShaderSource,
+            vertexColors: true,
+            transparent: this.options.shader.transparent,
+            depthTest: true,
+            blending: this.options.shader.blending
+        });
+
+        this.stars = new THREE.Points(geometry, material);
+        this.scene.add(this.stars);
     }
 
     /**
@@ -235,27 +226,9 @@ export class Stars extends Object_3D_Observer_Controller {
         const end = Math.min(start + batchSize, this.options.count);
 
         for (let index = start; index < end; index++) {
-            const i = index * 3;
-    
-            this.phases[index] += this.flickerSpeeds[index];
-            const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
-            sizes[index] = brightness * getRandomValue(this.options.size.min, this.options.size.max);
-    
-            if (this.isMoving[index] === 1) {
-                this.movePhases[index] += this.options.movement.speed;
-                const amplitude = this.options.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
-    
-                positions[i] += Math.sin(this.movePhases[index]) * amplitude.x;
-                positions[i + 1] += Math.cos(this.movePhases[index]) * amplitude.y;
-                positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * amplitude.z;
-            }
-    
-            if (positions[i] < -depthRange) positions[i] = depthRange;
-            if (positions[i] > depthRange) positions[i] = -depthRange;
-            if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
-            if (positions[i + 1] > depthRange) positions[i + 1] = -depthRange;
-            if (positions[i + 2] < this.options.depth.z[0]) positions[i + 2] = this.options.depth.z[1];
-            if (positions[i + 2] > this.options.depth.z[1]) positions[i + 2] = this.options.depth.z[0];
+            this._updateStarFlickerAndSize(index, sizes);
+            this._updateStarMovement(index, positions);
+            this._handleStarBounds(index, positions, depthRange);
         }
     
         this._starBatchIndex++;
@@ -269,5 +242,140 @@ export class Stars extends Object_3D_Observer_Controller {
 
         this.stars.geometry.attributes.position.needsUpdate = true;
         this.stars.geometry.attributes.size.needsUpdate = true;
+    }
+
+    /**
+     * @description Get the base sizes of the stars
+     * @returns {Float32Array} - Base sizes of the stars
+     */
+    _getBaseSizes() {
+        this.baseSizes = new Float32Array(this.options.count);
+
+        for (let i = 0; i < this.options.count; i++) {
+            this.baseSizes[i] = getRandomValue(this.options.size.min, this.options.size.max);
+        }
+
+        return this.baseSizes;
+    }
+
+    /**
+     * @description Get a random star position
+     * @returns {Array} - Random star position
+     */
+    _getRandomStarPosition() {
+        const x = gaussianRandom(0, this.options.depth.range / 3);
+        const y = gaussianRandom(0, this.options.depth.range / 3);
+        const z = this.options.depth.z[0] + Math.random() * (this.options.depth.z[1] - this.options.depth.z[0]);
+        return [x, y, z];
+    }
+
+    /**
+     * @description Set the star position
+     * @param {Float32Array} positions - Positions of the stars
+     * @param {number} index - Index of the star
+     * @param {Array} starPosition - Position of the star
+     * @returns {Promise<void>}
+     */
+    _setStarPosition(positions, index, starPosition) {
+        const i = index * 3;
+        const [x, y, z] = starPosition;
+
+        positions[i] = x;
+        positions[i + 1] = y;
+        positions[i + 2] = z;
+    }
+
+    /**
+     * @description Get a random star color
+     * @returns {number} - Random star color
+     */ 
+    _getRandomStarColor() {
+        return this.options.colors[Math.floor(Math.random() * this.options.colors.length)];
+    }
+
+    /**
+     * @description Set the star color
+     * @param {Float32Array} colors - Colors of the stars
+     * @param {number} index - Index of the star
+     * @param {number} color - Color of the star
+     * @returns {Promise<void>}
+     */
+    _setStarColor(colors, index, color) {
+        const i = index * 3;
+        colors[i] = (color >> 16 & 255) / 255;
+        colors[i + 1] = (color >> 8 & 255) / 255;
+        colors[i + 2] = (color & 255) / 255;
+    }
+
+    /**
+     * @description Initialize the star animation parameters
+     * @param {number} i - Index of the star
+     * @param {Object} flicker - Flicker options
+     * @returns {Promise<void>}
+     */
+    _initStarAnimationParams(i, flicker) {
+        this.phases[i] = Math.random() * Math.PI * 2;
+        this.isMoving[i] = this.options.movement.enabled && Math.random() < this.options.movement.probability ? 1 : 0;
+        this.movePhases[i] = Math.random() * Math.PI * 2;
+    
+        if (Math.random() < flicker.fast.probability) {
+            this.flickerSpeeds[i] = getRandomValue(
+                flicker.fast.speed.min,
+                flicker.fast.speed.max
+            );
+            this.flickerAmplitudes[i] = getRandomValue(
+                flicker.fast.amplitude.min,
+                flicker.fast.amplitude.max
+            );
+        } else {
+            this.flickerSpeeds[i] = flicker.slow.speed;
+            this.flickerAmplitudes[i] = flicker.slow.amplitude;
+        }
+    }
+
+    /**
+     * @description Update the star flicker and size
+     * @param {number} index - Index of the star
+     * @param {Float32Array} sizes - Sizes of the stars
+     * @returns {Promise<void>}
+     */ 
+    _updateStarFlickerAndSize(index, sizes) {
+        this.phases[index] += this.flickerSpeeds[index];
+        const brightness = Math.sin(this.phases[index]) * this.flickerAmplitudes[index] + (1 - this.flickerAmplitudes[index] / 2);
+        sizes[index] = brightness * this.baseSizes[index];
+    }
+
+    /**
+     * @description Update the star movement
+     * @param {number} index - Index of the star
+     * @param {Float32Array} positions - Positions of the stars
+     * @returns {Promise<void>}
+     */
+    _updateStarMovement(index, positions) {
+        if (this.isMoving[index] === 1) {
+            this.movePhases[index] += this.options.movement.speed || this._moveProgressStep;
+            const amplitude = this.options.movement.amplitude || { x: 0.05, y: 0.05, z: 0.02 };
+            const i = index * 3;
+            positions[i] += Math.sin(this.movePhases[index]) * amplitude.x;
+            positions[i + 1] += Math.cos(this.movePhases[index]) * amplitude.y;
+            positions[i + 2] += Math.sin(this.movePhases[index] * 0.5) * amplitude.z;
+        }
+    }
+
+    /**
+     * @description Handle the star bounds
+     * @param {number} index - Index of the star
+     * @param {Float32Array} positions - Positions of the stars
+     * @param {number} depthRange - Depth range of the stars
+     * @returns {Promise<void>}
+     */
+    _handleStarBounds(index, positions, depthRange) {
+        const i = index * 3;
+        if (positions[i] < -depthRange) positions[i] = depthRange;
+        if (positions[i] > depthRange) positions[i] = -depthRange;
+        if (positions[i + 1] < -depthRange) positions[i + 1] = depthRange;
+        if (positions[i + 1] > depthRange) positions[i + 1] = -depthRange;
+        if (positions[i + 2] < this.options.depth.z[0]) positions[i + 2] = this.options.depth.z[1];
+        if (positions[i + 2] > this.options.depth.z[1]) positions[i + 2] = this.options.depth.z[0];
     }
 }

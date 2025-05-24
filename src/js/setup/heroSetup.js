@@ -47,32 +47,11 @@ const CONFIG = {
         containerName: NAME_3D_OBJECTS.STARS,
         zIndex: Z_INDEX.STARS, 
         camera: {
-            rotation: true, 
-            speed: { x: 0.000002, y: 0.000002 },
+            rotation: false, 
         },
         objectConfig: {
-            count: isMobile() ? 2000 : 6000,
-            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0xFFFFFF],
-            size: {
-                min: 0.2,
-                max: 0.5,
-                attenuation: true,
-                multiplier: isMobile() ? 2 : 2, 
-            },
-            depth: {
-                range: isMobile() ? 300 : 800, 
-                z: [300, -500] 
-            },
-            movement: {
-                enabled: true,
-                probability: 0.5,
-                speed: 0.015,
-                amplitude: {
-                    x: 0.05,
-                    y: 0.05,
-                    z: 0.05
-                    }
-                },
+            count: isMobile() ? 2000 : 5000,
+            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0x4642f4, 0xFFFFFF],
             },
         },
     // GALACTIC: {
