@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { mergeDefaultAndCustomOptions, getAspectRatio } from '../utils/utils';
+import { deepMergeOptions, getAspectRatio } from '../utils/utils';
 
 const CAMERA_CONTROLS = {
     enableDamping: false,    
@@ -67,7 +67,7 @@ const DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS = {
  */
 export class CameraController {
     constructor(customOptions = {}) {
-        this.options = mergeDefaultAndCustomOptions(CAMERA_CONTROLS, customOptions);
+        this.options = deepMergeOptions(CAMERA_CONTROLS, customOptions);
 
         this.camera = null;
         this.aspect = null;
@@ -166,11 +166,11 @@ export class CameraController {
     
         switch (type) {
             case 'orthographic':
-                this.options = mergeDefaultAndCustomOptions(DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS, this.options);
+                this.options = deepMergeOptions(DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS, this.options);
                 this._initOrthoCamera();
                 break;
             case 'perspective':
-                this.options = mergeDefaultAndCustomOptions(DEFAULT_PERSPECTIVE_CAMERA_OPTIONS, this.options);
+                this.options = deepMergeOptions(DEFAULT_PERSPECTIVE_CAMERA_OPTIONS, this.options);
                 this._initPerspectiveCamera();
                 break;
             default:

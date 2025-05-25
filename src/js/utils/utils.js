@@ -6,7 +6,7 @@
  * @param {Object} userOptions - User provided configuration object
  * @returns {Object} Merged configuration object
  */
-function deepMergeOptions(defaultOptions, userOptions) {
+export function deepMergeOptions(defaultOptions, userOptions) {
     // Guard against invalid inputs
 
     if(!defaultOptions && !userOptions) {
@@ -70,25 +70,6 @@ function deepMergeOptions(defaultOptions, userOptions) {
 }
 
 /**
- * Merges user options with default options for 3D object configuration
- * @param {Object} defaultConfig - Default configuration object
- * @param {Object} userConfig - User provided configuration object
- * @returns {Object} Merged configuration object
- */
-export function mergeDefaultAndCustomOptions(defaultConfig, userConfig) {
-    // Validate inputs
-    if (!defaultConfig || typeof defaultConfig !== 'object') {
-        console.warn('Invalid default configuration provided');
-        return userConfig || {};
-    }
-
-    // Deep merge the configurations
-    const mergedConfig = deepMergeOptions(defaultConfig, userConfig);
-
-    return mergedConfig;
-}
-
-/**
  * @description Checks if device is mobile
  * @param {number} size - The size of the device
  * @returns {boolean} True if device is mobile
@@ -96,6 +77,12 @@ export function mergeDefaultAndCustomOptions(defaultConfig, userConfig) {
 export function isMobile(size = 768) {
     return window.innerWidth <= size;
 }
+
+
+
+
+
+
 
 export function getSizeContainer(container) {
     const rect = container.getBoundingClientRect();
@@ -290,70 +277,6 @@ export function shuffleArray(array) {
 
 
 /**
- * @description Merges default options, options, and objectConfig into a single options object.
- * @param {Object} defaultOptions - Default options.
- * @param {Object} options - User options.
- * @param {Object} [objectConfig] - Additional object config.
- * @returns {Object} - Merged options.
- */
-export function mergeOptionsWithObjectConfig(defaultOptions, options = {}, objectConfig = {}) {
-    const { objectConfig: _ignored, ...restOptions } = options;
-    const mergedOptions = {
-        ...restOptions,
-        ...(objectConfig || {})
-    };
-    return mergeOptions(defaultOptions, mergedOptions);
-}
-
-/**
- * @description Deeply merges two objects (used for options).
- * @param {Object} defaults - Default options.
- * @param {Object} options - User options.
- * @returns {Object} - Deeply merged object.
- */
-export function mergeOptions(defaults, options) {
-    const merged = deepClone(defaults);
-    function assign(target, source) {
-        for (const key in source) {
-            if (
-                source[key] &&
-                typeof source[key] === 'object' &&
-                !Array.isArray(source[key])
-            ) {
-                if (!target[key]) target[key] = {};
-                assign(target[key], source[key]);
-            } else {
-                target[key] = deepClone(source[key]);
-            }
-        }
-    }
-    assign(merged, options);
-    return merged;
-}
-
-/**
- * @description Deeply clones an object or array.
- * @param {any} value - The value to clone.
- * @returns {any} - Deeply cloned value.
- */
-export function deepClone(value) {
-    if (value === null || typeof value !== 'object') {
-        return value;
-    }
-    if (Array.isArray(value)) {
-        return value.map(deepClone);
-    }
-    const cloned = {};
-    for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key)) {
-            cloned[key] = deepClone(value[key]);
-        }
-    }
-    return cloned;
-}
-
-
-/**
  * @description Extracts RGB values from a color string
  * @param {string} colorStr - The color string to extract RGB values from
  * @returns {string} The extracted RGB values
@@ -379,3 +302,86 @@ export function getQuarterColorFromVar(quarter) {
     }
     return null;
 }
+
+/**
+ * @description Merges default options, options, and objectConfig into a single options object.
+ * @param {Object} defaultOptions - Default options.
+ * @param {Object} options - User options.
+ * @param {Object} [objectConfig] - Additional object config.
+ * @returns {Object} - Merged options.
+ */
+// export function mergeOptionsWithObjectConfig(defaultOptions, options = {}, objectConfig = {}) {
+//     const { objectConfig: _ignored, ...restOptions } = options;
+//     const mergedOptions = {
+//         ...restOptions,
+//         ...(objectConfig || {})
+//     };
+//     return mergeOptions(defaultOptions, mergedOptions);
+// }
+
+/**
+ * @description Deeply merges two objects (used for options).
+ * @param {Object} defaults - Default options.
+ * @param {Object} options - User options.
+ * @returns {Object} - Deeply merged object.
+ */
+// export function mergeOptions(defaults, options) {
+//     const merged = deepClone(defaults);
+//     function assign(target, source) {
+//         for (const key in source) {
+//             if (
+//                 source[key] &&
+//                 typeof source[key] === 'object' &&
+//                 !Array.isArray(source[key])
+//             ) {
+//                 if (!target[key]) target[key] = {};
+//                 assign(target[key], source[key]);
+//             } else {
+//                 target[key] = deepClone(source[key]);
+//             }
+//         }
+//     }
+//     assign(merged, options);
+//     return merged;
+// }
+
+/**
+ * @description Deeply clones an object or array.
+ * @param {any} value - The value to clone.
+ * @returns {any} - Deeply cloned value.
+ */
+// export function deepClone(value) {
+//     if (value === null || typeof value !== 'object') {
+//         return value;
+//     }
+//     if (Array.isArray(value)) {
+//         return value.map(deepClone);
+//     }
+//     const cloned = {};
+//     for (const key in value) {
+//         if (Object.prototype.hasOwnProperty.call(value, key)) {
+//             cloned[key] = deepClone(value[key]);
+//         }
+//     }
+//     return cloned;
+// }
+
+/**
+ * Merges user options with default options for 3D object configuration
+ * @param {Object} defaultConfig - Default configuration object
+ * @param {Object} userConfig - User provided configuration object
+ * @returns {Object} Merged configuration object
+ */
+// export function mergeDefaultAndCustomOptions(defaultConfig, userConfig) {
+//     // Validate inputs
+//     if (!defaultConfig || typeof defaultConfig !== 'object') {
+//         console.warn('Invalid default configuration provided');
+//         return userConfig || {};
+//     }
+
+//     // Deep merge the configurations
+//     const mergedConfig = deepMergeOptions(defaultConfig, userConfig);
+
+//     return mergedConfig;
+// }
+

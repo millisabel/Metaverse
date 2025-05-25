@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { mergeOptionsWithObjectConfig } from '../utils/utils';
+import { deepMergeOptions } from '../utils/utils';
 
 /**
  * DEFAULT_LIGHTS
@@ -25,7 +25,7 @@ export const DEFAULT_LIGHTS = {
  * @returns {Object} - The lights
  */
 export function addLightsToScene(scene, config = {}) {
-    const lights = mergeOptionsWithObjectConfig(DEFAULT_LIGHTS, config);
+    const lights = deepMergeOptions(DEFAULT_LIGHTS, config);
     lights.ambient = addAmbientLight(scene, lights);
     lights.point = addPointLight(scene, lights);
     lights.directional = addDirectionalLight(scene, lights);

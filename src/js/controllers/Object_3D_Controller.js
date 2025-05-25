@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { createLogger } from '../utils/logger';
-import { mergeDefaultAndCustomOptions, isMobile } from '../utils/utils';
+import { deepMergeOptions, isMobile } from '../utils/utils';
 
 import { RendererController } from './RendererController';
 import { CameraController } from './CameraController';
@@ -17,7 +17,7 @@ export class Object_3D_Controller {
         this.container = container;
         this.containerZIndex = customOptions.zIndex;
 
-        this.options = mergeDefaultAndCustomOptions(defaultOptions, customOptions.objectConfig);
+        this.options = deepMergeOptions(defaultOptions, customOptions.objectConfig);
         this.cameraOptions = customOptions.camera;
         this.lightsOptions = customOptions.lights;
 
