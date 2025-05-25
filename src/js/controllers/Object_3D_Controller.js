@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { createLogger } from '../utils/logger';
-import { mergeOptionsWithObjectConfig } from '../utils/utils';
+import { mergeDefaultAndCustomOptions, isMobile } from '../utils/utils';
 
 import { RendererController } from './RendererController';
 import { CameraController } from './CameraController';
@@ -17,7 +17,7 @@ export class Object_3D_Controller {
         this.container = container;
         this.containerZIndex = customOptions.zIndex;
 
-        this.options = mergeOptionsWithObjectConfig(defaultOptions, customOptions.objectConfig);
+        this.options = mergeDefaultAndCustomOptions(defaultOptions, customOptions.objectConfig);
         this.cameraOptions = customOptions.camera;
         this.lightsOptions = customOptions.lights;
 
@@ -26,6 +26,7 @@ export class Object_3D_Controller {
         this.cameraController = null;
         this.animationFrameId = null;
         this.resizeTimeout = null;
+
     }
 
     _logMessage() {
@@ -54,12 +55,12 @@ export class Object_3D_Controller {
      */
     async init() {
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): init()\n`;
-
+        console.log(this.options);
         if (this.container && !this._isElementVisible(this.container)) {
             this.cleanup();
             return;
         }
-
+        this._applyResponsiveOptions();
         this._initDependencies();
         this._initResizeHandler();
 
@@ -189,11 +190,37 @@ export class Object_3D_Controller {
         this.logMessage += `${this.constructor.name} Object_3D_Controller: renderScene() success\n`;
     }
 
+    _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {
+        if (!responsive) return;
+        for (const key in responsive) {
+            const value = responsive[key];
+            if (typeof value === 'string') {
+                target[key] = (new Function('isMobile', `return ${value}`))(isMobile);
+            } else if (typeof value === 'object' && value !== null) {
+                if (!target[key] || typeof target[key] !== 'object') {
+                    target[key] = {};
+                }
+                this._applyResponsiveOptions(value, target[key]);
+            }
+        }
+    }
+
     /**
      * @description Handles the resize event
      * @returns {void}
      */
     onResize() {
+        const prevSnapshot = JSON.stringify(this.options);
+        this._applyResponsiveOptions();
+        const newSnapshot = JSON.stringify(this.options);
+        if (newSnapshot !== prevSnapshot) {
+            this.softCleanup();
+            this.initScene();
+            if (this.canAnimate && this.canAnimate()) {
+                this.animate();
+            }
+        }
+
         if (this.cameraController) {
             this.cameraController.onResize(this.container);
         }
@@ -201,6 +228,8 @@ export class Object_3D_Controller {
             const rect = this.container.getBoundingClientRect();
             this.renderer.setSize(rect.width, rect.height);
         }
+
+        console.log(this);
     }
 
     /**
@@ -212,6 +241,26 @@ export class Object_3D_Controller {
             this.cameraController.update();
         }
         this.renderScene();
+    }
+
+    softCleanup() {
+        this.logMessage +=
+            `----------------------------------------------------------\n` + 
+            `starting soft cleanup in Universal3DController\n` +
+            `----------------------------------------------------------\n`;
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                if (object.geometry) object.geometry.dispose();
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+            this.scene = null;
+        }       
     }
 
     /**

@@ -10,6 +10,8 @@ import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 import vertexShaderSource from '../../shaders/star.vert';
 import fragmentShaderSource from '../../shaders/star.frag';
 import { ShaderController } from '../../controllers/ShaderController';
+
+
 /**
  * @description Stars component
  * @extends AnimationController
@@ -24,18 +26,18 @@ const defaultOptions = {
     count: 3000,
     colors: [0xFFFFFF],
     size: {
-        min: 3,
-        max: 8,
+        min: 2,
+        max: 7,
     },
     depth: {
-        range: 1200,
+        range: 500,
         z: [200, -500]
     },
     movement: {
         enabled: true,
         probability: 0.2,
         speed: 0.03,
-        amplitude: { x: 0.1, y: 0.05, z: 0.02 }
+        amplitude: { x: 0.1, y: 0.05, z: 0.2 }
     },
     shader: {
         multiplier: 1,
@@ -91,15 +93,6 @@ export class Stars extends Object_3D_Observer_Controller {
      */
     async setupScene() {
         this._createStars();
-    }
-
-    /**
-     * @description Responsive-опции для звёзд
-     */
-    getResponsiveOptions() {
-        return {
-            count: window.innerWidth < 768 ? 2000 : 5000
-        };
     }
 
     onResize() {
