@@ -20,19 +20,21 @@ const galacticTexture = './assets/images/galaxy-texture.png';
  */
 
 const DEFAULT_OPTIONS = {
-    camera: {
-        orbitSpeed: 0.2,
-        zoomPrimaryFreq: 0.3,
-        zoomSecondaryFreq: 0.1,
-        zoomMicroFreq: 0.8,
-    },
     core: {
-        size: 2,
-        segments: 2,
-        minScale: 0.8,
-        pulse: 2,
-        opacity: 1,
-        pulseFreq: 2.0
+        size: 2,                // JS: geometry size
+        segments: 64,           // JS: geometry segments
+        scale: {                // JS: scale limits for animation
+            min: 1.8,
+            max: 3.0
+        },
+        pulse: 2,               // JS: pulse amplitude
+        pulseFreq: 2.0,         // JS: pulse frequency
+        shader: {               // GLSL uniforms only
+            opacity: 1.0,
+            coreColor: [0.8, 0.4, 1.0],
+            glowColor: [0.4, 0.0, 0.6],
+            glowStrength: 0.3
+        }
     },
     plane: {
         size: isMobile() ? 4 : 8,
@@ -46,9 +48,9 @@ const DEFAULT_OPTIONS = {
         }
     },
     bloom: {
-        strength: 0.5, 
-        radius: 2, 
-        threshold: 0.2, 
+        strength: 1, 
+        radius: 3, 
+        threshold: 1.5, 
     },
 };
 
@@ -91,9 +93,26 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         });
         
         this._createGalaxyCore();
-        await this._galaxyPlane();
+        // await this._galaxyPlane();
         this._setupPostProcessing();
         // this.setupLights();
+    }
+
+    /**
+     * @public
+     * @description Updates the scene (animation, rendering)
+     * @returns {Promise<void>}
+     */
+    update() {
+        if (!this.composer) return;
+
+        const time = performance.now() * 0.0001;
+
+        this._updateGalaxyCorePulse(time);
+        // this._updateGalaxyPlanePulse(time);
+        this._updateCameraOrbit(time);
+        
+        this.composer.render();
     }
 
     /**
@@ -102,18 +121,21 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @protected
      */     
     _createGalaxyCore() {
-
+        const { size, segments, shader } = this.options.core;
         const coreGeometry = new THREE.PlaneGeometry(
-            this.options.core.size, 
-            this.options.core.size, 
-            this.options.core.segments, 
-            this.options.core.segments,
+            size, 
+            size, 
+            segments, 
+            segments,
         );
         const coreMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-                opacity: { value: this.options.core.opacity }
+                opacity: { value: shader.opacity },
+                coreColor: { value: new THREE.Vector3(...shader.coreColor) },
+                glowColor: { value: new THREE.Vector3(...shader.glowColor) },
+                glowStrength: { value: shader.glowStrength }
             },
             vertexShader,
             fragmentShader,
@@ -122,7 +144,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             depthWrite: false,
             side: THREE.DoubleSide
         });
-
         this.galaxyCore = new THREE.Mesh(coreGeometry, coreMaterial);
         this.galaxyCore.rotation.x = -Math.PI / 2;
         this.scene.add(this.galaxyCore);
@@ -199,32 +220,19 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
     }
 
     /**
-     * @description Gets the pulse factor
-     * @param {number} time - The time
-     * @returns {number}
-     * @protected
-     */
-    _getPulseFactor(time) {
-        const { pulsePrimary, pulseSecondary, pulseMicro } = this.options.plane.animation;
-        const baseScale = this.options.plane.animation.baseScale;
-        const primaryWave = Math.sin(time * pulsePrimary.freq) * pulsePrimary.amp;
-        const secondaryWave = Math.sin(time * pulseSecondary.freq) * pulseSecondary.amp;
-        const microWave = Math.sin(time * pulseMicro.freq) * pulseMicro.amp;
-        return baseScale + primaryWave + secondaryWave + microWave;
-    }
-
-    /**
      * @description Updates the galaxy core pulse
      * @param {number} time - The time
      * @protected
      */
     _updateGalaxyCorePulse(time){
-        const animationCore = this.options.core.pulse;
+        const { pulse, pulseFreq, scale } = this.options.core;
+
         if (this.galaxyCore) {
-            const minScale = this.options.core.minScale;
+            const minScale = scale.min;
+            const maxScale = scale.max;
             this.galaxyCore.material.uniforms.time.value = time;
-            let corePulse = 1 + Math.sin(time * this.options.core.pulseFreq) * animationCore;
-            corePulse = Math.max(corePulse, minScale); 
+            let corePulse = 1 + Math.sin(time * pulseFreq) * pulse;
+            corePulse = Math.max(minScale, Math.min(corePulse, maxScale)); 
             this.galaxyCore.scale.set(corePulse, corePulse, corePulse);
         }
     }
@@ -239,6 +247,21 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         if (!this.galaxyPlane) return;
         const pulseFactor = this._getPulseFactor(time);
         this.galaxyPlane.scale.set(pulseFactor, pulseFactor, pulseFactor);
+    }
+
+    /**
+     * @description Gets the pulse factor
+     * @param {number} time - The time
+     * @returns {number}
+     * @protected
+     */
+    _getPulseFactor(time) {
+        const { pulsePrimary, pulseSecondary, pulseMicro } = this.options.plane.animation;
+        const baseScale = this.options.plane.animation.baseScale;
+        const primaryWave = Math.sin(time * pulsePrimary.freq) * pulsePrimary.amp;
+        const secondaryWave = Math.sin(time * pulseSecondary.freq) * pulseSecondary.amp;
+        const microWave = Math.sin(time * pulseMicro.freq) * pulseMicro.amp;
+        return baseScale + primaryWave + secondaryWave + microWave;
     }
 
     /**
@@ -264,23 +287,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             z: Math.cos(cameraAngle) * currentRadius
         });
         this.cameraController.setLookAt({ x: offsetX, y: 0, z: 0 });
-    }
-
-    /**
-     * @public
-     * @description Updates the scene (animation, rendering)
-     * @returns {Promise<void>}
-     */
-    update() {
-        if (!this.composer) return;
-
-        const time = performance.now() * 0.0001;
-
-        this._updateGalaxyCorePulse(time);
-        // this._updateGalaxyPlanePulse(time);
-        this._updateCameraOrbit(time);
-        
-        this.composer.render();
     }
 
     /**
