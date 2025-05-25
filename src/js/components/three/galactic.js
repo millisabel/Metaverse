@@ -181,7 +181,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         }
         this.composer = new EffectComposer(this.renderer);
         
-        const renderPass = new RenderPass(this.scene, this.camera);
+        const renderPass = new RenderPass(this.scene, this.cameraController.camera);
         this.composer.addPass(renderPass);
 
         const bloomPass = new UnrealBloomPass(
@@ -277,7 +277,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         const time = performance.now() * 0.0001;
 
         this._updateGalaxyCorePulse(time);
-        this._updateGalaxyPlanePulse(time);
+        // this._updateGalaxyPlanePulse(time);
         this._updateCameraOrbit(time);
         
         this.composer.render();
