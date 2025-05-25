@@ -9,7 +9,7 @@ import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Obser
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 import vertexShaderSource from '../../shaders/star.vert';
 import fragmentShaderSource from '../../shaders/star.frag';
-
+import { ShaderController } from '../../controllers/ShaderController';
 /**
  * @description Stars component
  * @extends AnimationController
@@ -25,7 +25,7 @@ const defaultOptions = {
     colors: [0xFFFFFF],
     size: {
         min: 3,
-        max: 7,
+        max: 8,
     },
     depth: {
         range: 1200,
@@ -79,6 +79,9 @@ export class Stars extends Object_3D_Observer_Controller {
         this.flickerSpeeds = null;
         this.flickerAmplitudes = null;
         this.baseSizes = null;
+        this.shaderController = null;
+
+        console.log(this.options);
     }
 
     /**
@@ -90,8 +93,17 @@ export class Stars extends Object_3D_Observer_Controller {
         this._createStars();
     }
 
+    /**
+     * @description Responsive-опции для звёзд
+     */
+    getResponsiveOptions() {
+        return {
+            count: window.innerWidth < 768 ? 2000 : 5000
+        };
+    }
+
     onResize() {
-        super.onResize();
+        if (super.onResize) super.onResize();
     }
 
     /**
@@ -190,19 +202,21 @@ export class Stars extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     _createStarPoints(geometry) {
-        const material = new THREE.ShaderMaterial({
+        this.shaderController = new ShaderController({
+            vertexShader: vertexShaderSource,
+            fragmentShader: fragmentShaderSource,
             uniforms: {
                 pointTexture: { value: createStarTexture(this.options.shader.texture) },
                 ...this.options.shader.uniforms
             },
-            vertexShader: vertexShaderSource,
-            fragmentShader: fragmentShaderSource,
-            vertexColors: true,
-            transparent: this.options.shader.transparent,
-            depthTest: true,
-            blending: this.options.shader.blending
+            options: {
+                vertexColors: true,
+                transparent: this.options.shader.transparent,
+                depthTest: true,
+                blending: this.options.shader.blending
+            }
         });
-
+        const material = this.shaderController.getMaterial();
         this.stars = new THREE.Points(geometry, material);
         this.scene.add(this.stars);
     }
