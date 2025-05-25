@@ -55,7 +55,7 @@ export class Object_3D_Controller {
      */
     async init() {
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): init()\n`;
-        console.log(this.options);
+        
         if (this.container && !this._isElementVisible(this.container)) {
             this.cleanup();
             return;
@@ -66,16 +66,6 @@ export class Object_3D_Controller {
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): init() success\n` + 
         `----------------------------------------------------------\n`;
-    }
-    
-    _isElementVisible(element) {
-        const rect = element.getBoundingClientRect();
-        return (
-            rect.top < window.innerHeight &&
-            rect.bottom > 0 &&
-            rect.left < window.innerWidth &&
-            rect.right > 0
-        );
     }
 
     /**
@@ -116,14 +106,19 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     animate() {
-        // if (this.animationFrameId) return;
-        if (this.animationFrameId && !this.canAnimate()) {
-            this.stopAnimation();
-            return;
-        }
+        if (this.animationFrameId !== null) return;
+        if (!this.canAnimate()) return;
 
-        this.update();
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
+        const loop = () => {
+            if (!this.canAnimate()) {
+                this.stopAnimation();
+                return;
+            }
+            this.update();
+            this.animationFrameId = requestAnimationFrame(loop);
+        };
+
+        this.animationFrameId = requestAnimationFrame(loop);
     }
 
     /**
@@ -132,31 +127,29 @@ export class Object_3D_Controller {
      */
     canAnimate() {
         if (!this.isVisible) {
+            this.logMessage += 'canAnimate: isVisible is false\n';
             return false;
         }
-
         if (this.isResizing) {
+            this.logMessage += 'canAnimate: isResizing is true\n';
             return false;
         }
-
         if (!this.initialized) {
+            this.logMessage += 'canAnimate: initialized is false\n';
             return false;
         }
-
         if (!this.scene) {
+            this.logMessage += 'canAnimate: scene is null\n';
             return false;
         }
-
         if (!this.cameraController) {
+            this.logMessage += 'canAnimate: cameraController is null\n';
             return false;
         }
-
         if (!this.renderer) {
+            this.logMessage += 'canAnimate: renderer i   s null\n';
             return false;
         }
-
-        this.logMessage += `${this.constructor.name} Object_3D_Controller: canAnimate() success\n`;
-
         return true;
     }
 
@@ -168,47 +161,12 @@ export class Object_3D_Controller {
     stopAnimation() {
         this.logMessage += `${this.constructor.name} Object_3D_Controller: stopAnimation()\n`;
 
-        if (this.animationFrameId) {
+        if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
         }
 
         this.logMessage += `${this.constructor.name} Object_3D_Controller: this.animationFrameId: ${this.animationFrameId}\n`;
-    }
-
-    /**
-     * @description Renders the scene
-     * @returns {void}
-     */
-    renderScene() {
-        this.logMessage += `${this.constructor.name} Object_3D_Controller: renderScene()\n`;
-
-        if (this.canAnimate()) {
-            this.renderer.render(this.scene, this.cameraController.camera);
-        }
-
-        this.logMessage += `${this.constructor.name} Object_3D_Controller: renderScene() success\n`;
-    }
-
-    /**
-     * @description Applies responsive options to the target object
-     * @param {Object} responsive - Responsive options
-     * @param {Object} target - Target object
-     * @returns {void}
-     */
-    _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {
-        if (!responsive) return;
-        for (const key in responsive) {
-            const value = responsive[key];
-            if (typeof value === 'string') {
-                target[key] = (new Function('isMobile', `return ${value}`))(isMobile);
-            } else if (typeof value === 'object' && value !== null) {
-                if (!target[key] || typeof target[key] !== 'object') {
-                    target[key] = {};
-                }
-                this._applyResponsiveOptions(value, target[key]);
-            }
-        }
     }
 
     /**
@@ -234,8 +192,6 @@ export class Object_3D_Controller {
             const rect = this.container.getBoundingClientRect();
             this.renderer.setSize(rect.width, rect.height);
         }
-
-        console.log(this);
     }
 
     /**
@@ -246,27 +202,7 @@ export class Object_3D_Controller {
         if (this.cameraController) {
             this.cameraController.update();
         }
-        this.renderScene();
-    }
-
-    softCleanup() {
-        this.logMessage +=
-            `----------------------------------------------------------\n` + 
-            `starting soft cleanup in Universal3DController\n` +
-            `----------------------------------------------------------\n`;
-        if (this.scene) {
-            this.scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
-            this.scene = null;
-        }       
+        this._renderScene();
     }
 
     /**
@@ -274,13 +210,14 @@ export class Object_3D_Controller {
      * @param {string} [message] - Message to log
      * @returns {void}
      */
-    cleanup() {
-        this.logMessage +=
+    cleanup(logMessage) {
+        this.logMessage += logMessage +
             `----------------------------------------------------------\n` + 
             `starting cleanup in Universal3DController\n` +
             `----------------------------------------------------------\n`;
 
         this.stopAnimation();
+        this._softCleanup();
 
         if (this.renderer) {
             this.renderer.dispose();
@@ -290,20 +227,6 @@ export class Object_3D_Controller {
             RendererController.getInstance().removeRenderer(this.container.id);
             this.renderer = null;
         }
-
-        if (this.scene) {
-            this.scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
-            this.scene = null;
-        }     
 
         if (this.cameraController) {
             this.cameraController.cleanup();
@@ -328,13 +251,10 @@ export class Object_3D_Controller {
             `observer: ${this.observer}\n` +
             `Completed cleanup in Universal3DController\n`;
 
-            this.logger.log({
-                message: this.logMessage,
-                functionName: '(Object_3D_Controller) cleanup()',
-                customData: {
-                    this: this,
-                },
-            });
+        this.logger.log({
+            message: this.logMessage,
+            functionName: '(Object_3D_Controller) cleanup()',
+        });
     }
     
     /**
@@ -346,6 +266,21 @@ export class Object_3D_Controller {
         if (!this.scene) return;
         const config = mergeOptionsWithObjectConfig(this.lightsOptions, options);
         this.lights = addLightsToScene(this.scene, config);
+    }
+    
+    /**
+     * @description Checks if the element is visible
+     * @param {Element} element - The element to check
+     * @returns {boolean} Whether the element is visible
+     */
+    _isElementVisible(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top < window.innerHeight &&
+            rect.bottom > 0 &&
+            rect.left < window.innerWidth &&
+            rect.right > 0
+        );
     }
 
     /**
@@ -400,6 +335,38 @@ export class Object_3D_Controller {
         });
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initResizeHandler() success\n`;
+    }
+
+    /**
+     * @description Renders the scene
+     * @returns {void}
+     */
+    _renderScene() {
+
+        if (this.canAnimate()) {
+            this.renderer.render(this.scene, this.cameraController.camera);
+        }
+    }
+
+    /**
+     * @description Applies responsive options to the target object
+     * @param {Object} responsive - Responsive options
+     * @param {Object} target - Target object
+     * @returns {void}
+     */
+    _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {
+        if (!responsive) return;
+        for (const key in responsive) {
+            const value = responsive[key];
+            if (typeof value === 'string') {
+                target[key] = (new Function('isMobile', `return ${value}`))(isMobile);
+            } else if (typeof value === 'object' && value !== null) {
+                if (!target[key] || typeof target[key] !== 'object') {
+                    target[key] = {};
+                }
+                this._applyResponsiveOptions(value, target[key]);
+            }
+        }
     }
 
     /**
@@ -470,6 +437,31 @@ export class Object_3D_Controller {
         }
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextRestored() success\n`;
+    }
+
+    /**
+     * @private
+     * @description Soft cleans up the controller
+     * @returns {void}
+     */
+    _softCleanup() {
+        this.logMessage +=
+            `----------------------------------------------------------\n` + 
+            `starting soft cleanup in Universal3DController\n` +
+            `----------------------------------------------------------\n`;
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                if (object.geometry) object.geometry.dispose();
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+            this.scene = null;
+        }       
     }
 }
 

@@ -67,12 +67,12 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
     cleanup(logMessage) {
         if (!this.initialized) return;
 
-        this.logMessage += logMessage + 
+        super.cleanup(logMessage);
+
+        this.logMessage += logMessage +
             `----------------------------------------------------------\n` + 
             `starting cleanup in Object_3D_Observer_Controller\n` +
             `----------------------------------------------------------\n`;
-
-        this.stopAnimation();
 
         this.initialized = false;
         this.isVisible = false;
@@ -86,8 +86,6 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
                        `resizeTimeout: ${this.resizeTimeout}\n` +
                        `isContextLost: ${this.isContextLost}\n` +
                        `-----------------------------------\n`;
-
-        super.cleanup();
     }
 
     /**
@@ -123,14 +121,6 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
 
                             this.logMessage += 
                             `${this.constructor.name} (Object_3D_Observer_Controller): this.initialized: ${this.initialized} success\n`;
-
-                            this.logger.log({
-                                message: this.logMessage,
-                                functionName: '(Object_3D_Controller) cleanup()',
-                                customData: {
-                                    this: this,
-                                },
-                            });
                         }
                         if (!this.isResizing && this.canAnimate()) {
                             this.logMessage += this._logMessage();

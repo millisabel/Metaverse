@@ -80,8 +80,6 @@ export class Stars extends Object_3D_Observer_Controller {
         this.flickerAmplitudes = null;
         this.baseSizes = null;
         this.shaderController = null;
-
-        console.log(this.options);
     }
 
     /**
