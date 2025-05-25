@@ -2,15 +2,14 @@ import * as THREE from 'three';
 
 import { createLogger } from "../../utils/logger";
 import { getRandomValue } from '../../utils/utils';
+import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
-
-import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
-import vertexShaderSource from '../../shaders/star.vert';
-import fragmentShaderSource from '../../shaders/star.frag';
 import { ShaderController } from '../../controllers/ShaderController';
 
+import vertexShaderSource from '../../shaders/star.vert';
+import fragmentShaderSource from '../../shaders/star.frag';
 
 /**
  * @description Stars component
@@ -37,34 +36,33 @@ const defaultOptions = {
         enabled: true,
         probability: 0.2,
         speed: 0.03,
-        amplitude: { x: 0.1, y: 0.05, z: 0.2 }
+        amplitude: { x: 0.1, y: 0.05, z: 20 }
+    },
+    flicker: {
+        fast: {
+            probability: 0.05,
+            speed: { min: 0.05, max: 0.1 },
+            amplitude: { min: 0.5, max: 5.5 }
+        },
+        slow: {
+            probability: 0.5,
+            speed: { min: 0.01, max: 0.09 },
+            amplitude: { min: 1.5, max: 1.5 }
+        }
     },
     shader: {
-        multiplier: 1,
-        attenuation: true,
         texture: { 
             size: 64, 
-            color: 0xffffff 
+            color: 0xffffff, 
         },
         opacity: 1,
         transparent: true,
-        blending: THREE.AdditiveBlending,
-        flicker: {
-            fast: {
-                probability: 0.002,
-                speed: { min: 0.0001, max: 0.0002 },
-                amplitude: { min: 0.7, max: 1.2 }
-            },
-            slow: {
-                speed: 0.05,
-                amplitude: 0.9
-            }
-        },
         uniforms: {
-            glowColor: { value: new THREE.Color(0xA109FE) },
-            glowStrength: { value: 1.5 },
+            glowColor: 0xFFFFFF,
+            glowStrength: 5,
         }
     },
+    responsive: {}
 };
 
 export class Stars extends Object_3D_Observer_Controller {
@@ -161,7 +159,7 @@ export class Stars extends Object_3D_Observer_Controller {
         const colors = new Float32Array(this.options.count * 3);
         const sizes = new Float32Array(this.options.count);
 
-        this._initStarAttributes(positions, colors, sizes, this.options.shader.flicker);
+        this._initStarAttributes(positions, colors, sizes, this.options.flicker);
         setupGeometry(geometry, positions, colors, sizes);
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
         this._createStarPoints(geometry);
@@ -199,14 +197,16 @@ export class Stars extends Object_3D_Observer_Controller {
             vertexShader: vertexShaderSource,
             fragmentShader: fragmentShaderSource,
             uniforms: {
-                pointTexture: { value: createStarTexture(this.options.shader.texture) },
-                ...this.options.shader.uniforms
+                pointTexture: { value: createStarTexture(this.options.shader.texture) },    
+                glowColor: { value: new THREE.Color(this.options.shader.uniforms.glowColor) },
+                glowStrength: { value: this.options.shader.uniforms.glowStrength },
+                opacity: { value: this.options.shader.opacity },
             },
             options: {
                 vertexColors: true,
                 transparent: this.options.shader.transparent,
                 depthTest: true,
-                blending: this.options.shader.blending
+                blending: THREE.AdditiveBlending,
             }
         });
         const material = this.shaderController.getMaterial();
@@ -334,9 +334,12 @@ export class Stars extends Object_3D_Observer_Controller {
                 flicker.fast.amplitude.min,
                 flicker.fast.amplitude.max
             );
+        } else if (Math.random() < flicker.slow.probability) {
+            this.flickerSpeeds[i] = getRandomValue(flicker.slow.speed.min, flicker.slow.speed.max);
+            this.flickerAmplitudes[i] = getRandomValue(flicker.slow.amplitude.min, flicker.slow.amplitude.max);
         } else {
-            this.flickerSpeeds[i] = flicker.slow.speed;
-            this.flickerAmplitudes[i] = flicker.slow.amplitude;
+            this.flickerSpeeds[i] = 0.005;
+            this.flickerAmplitudes[i] = 2;
         }
     }
 
