@@ -2,7 +2,7 @@ import { Logger } from './utils/logger';
 import { AnimationObserverCSS } from './utils/animationObserver_CSS';
 // Setup
 import { HeroSetup } from './setup/heroSetup';
-// import { AboutSetup } from './setup/aboutSetup';
+import { AboutSetup } from './setup/aboutSetup';
 // import { RoadmapSetup } from './setup/roadmapSetup';
 // import { DynamicsSetup } from './setup/dynamicsSetup';
 // import { initVRMarket } from './setup/vrMarketSetup';
@@ -57,9 +57,16 @@ else {
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    AOS.init({
+        duration: 800,
+        once: false,
+        mirror: true,
+        offset: 100
+    });
+
     initNavbar();
     new HeroSetup();
-    // new AboutSetup();
+    new AboutSetup();
     // new RoadmapSetup();
     // new DynamicsSetup();
     // initDynamics();
@@ -70,13 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize UI components
     initModal();
     updateCopyrightYear('[data-year="currentYear"]');
-
-    AOS.init({
-        duration: 800,
-        once: false,
-        mirror: true,
-        offset: 100
-    });
 
     new AnimationObserverCSS(
         ['.star', '.roadmap-quarter', '.game-character--badge']

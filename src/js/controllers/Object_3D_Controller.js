@@ -190,6 +190,12 @@ export class Object_3D_Controller {
         this.logMessage += `${this.constructor.name} Object_3D_Controller: renderScene() success\n`;
     }
 
+    /**
+     * @description Applies responsive options to the target object
+     * @param {Object} responsive - Responsive options
+     * @param {Object} target - Target object
+     * @returns {void}
+     */
     _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {
         if (!responsive) return;
         for (const key in responsive) {

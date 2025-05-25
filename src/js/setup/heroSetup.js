@@ -50,21 +50,15 @@ const CONFIG = {
             rotation: false, 
         },
         objectConfig: {
-            count: isMobile() ? 2000 : 2000,
-            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0x4642f4, 0xFFFFFF],
+            count: isMobile() ? 1000 : 2000,
+            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0x4642f4],
             depth: {
-                range: isMobile() ? 500 : 1000,
-            },
-            movement: {
-                enabled: false,
-                probability: 0.2,
-                speed: 0.03,
-                amplitude: { x: 0.1, y: 0.05, z: 0.2 }
+                range: isMobile() ? 400 : 800,
             },
             responsive: {
                 count: 'isMobile() ? 2000 : 5000',
                 depth: {
-                    range: 'isMobile() ? 500 : 1000',
+                    range: 'isMobile() ? 400 : 800',
                 },
             }
         },

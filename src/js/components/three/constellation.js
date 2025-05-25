@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import constellationsData from '../../data/constellations.json';
 
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
 
@@ -315,7 +315,7 @@ class ConstellationGroup {
  * @param {Object} options
  * @param {Object} options.countConstellations - count of constellations
  */
-export class Constellation extends AnimationController {
+export class Constellation extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options, DEFAULT_OPTIONS);
 
