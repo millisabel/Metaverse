@@ -26,7 +26,7 @@ const defaultOptions = {
     colors: [0xFFFFFF],
     size: {
         min: 2,
-        max: 7,
+        max: 6,
     },
     depth: {
         range: 500,

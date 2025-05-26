@@ -32,7 +32,7 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('SocialSetup');
 
     // Logger.disableLoggerFor('Stars');
-    Logger.disableLoggerFor('GalacticCloud');
+    // Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
     Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Dynamics3D');
