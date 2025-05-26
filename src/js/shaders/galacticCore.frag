@@ -5,6 +5,13 @@ uniform vec3 coreColor;
 uniform vec3 edgeColor;  
 uniform vec3 glowColor;
 uniform float glowStrength;
+uniform float pulseFreqs[3];
+uniform float pulseAmps[3];
+uniform float pulsePhases[3];
+uniform float pulseNoiseScale;
+uniform float pulseNoiseSpeed;
+uniform float coreGlowStrength;
+uniform float coreGlowRadius;
 varying vec2 vUv;
 
 // Простая функция шума (GLSL)
@@ -22,36 +29,44 @@ void main() {
     vec2 center = vec2(0.5);
     float dist = length(vUv - center);
 
-    // 1. Градиент: белый (центр) -> розовый (середина)
+    // 1. Gradient
     float edgeMix = smoothstep(0.0, 0.1, dist);
     vec3 color = mix(coreColor, edgeColor, edgeMix);
 
-    // 2. Glow: розовый (ядро) -> glowColor (край)
+    // 2. Glow: pink (core) -> glowColor (edge)
     float glowMix = smoothstep(0.7, 1.0, dist);
     color = mix(color, glowColor, glowMix * glowStrength);
 
-    // Несколько волн
+    // --- Core Glow (extra glow) ---
+    float coreGlow = pow(smoothstep(coreGlowRadius, 0.0, dist), 2.0) * coreGlowStrength;
+    color = mix(color, coreColor, coreGlow);
+
+    // --- Outer Glow  ---
+    float outerGlow = pow(smoothstep(0.5, 1.0, dist), 2.0) * glowStrength * 0.7;
+    color = mix(color, glowColor, outerGlow);
+
+    // ooth sum of pulsation waves
     float t = time * 2.0;
-    float pulse1 = sin(t) * 0.5 + 0.5;
-    float pulse2 = sin(t * 0.37 + 1.7) * 0.3 + 0.3;
-    float pulse3 = sin(t * 1.31 - 2.0) * 0.2 + 0.2;
+    float pulse = 0.0;
+    float totalAmp = 0.0;
+    for (int i = 0; i < 3; i++) {
+        pulse += sin(t * pulseFreqs[i] + pulsePhases[i]) * pulseAmps[i];
+        totalAmp += pulseAmps[i];
+    }
+    pulse = 0.7 + 0.3 * (pulse / totalAmp);
 
-    // Суммарная пульсация
-    float pulse = 0.7 + 0.3 * (pulse1 + pulse2 + pulse3);
+    // Let's add some noise to liven things up.
+    float n = noise(vUv * 10.0 + time * pulseNoiseSpeed);
+    pulse += pulseNoiseScale * n;
 
-    // Добавим шум для "живости"
-    float n = noise(vUv * 10.0 + time * 0.5);
-    pulse += 0.08 * n;
-
-    // Используем pulse для управления coreAlpha
+    // Using pulse to control coreAlpha
     float coreAlpha = smoothstep(0.35 * pulse, 0.0, dist);
 
-    // Альфа: ядро + мягкое свечение
-    float glowAlpha = pow(smoothstep(0.7, 1.0, dist), glowStrength); // экспоненциальное усиление свечения
-    
+    // lpha: core + soft glow + coreGlow + outerGlow
+    float glowAlpha = pow(smoothstep(0.7, 1.0, dist), glowStrength); 
     float flicker = 0.97 + 0.03 * n;
 
-    float alpha = 0.7 * coreAlpha + 0.5 * glowAlpha;
+    float alpha = 0.7 * coreAlpha + 0.5 * glowAlpha + 0.6 * coreGlow + 0.4 * outerGlow;
     alpha = clamp(alpha, 0.0, 1.0);
     alpha *= opacity;
 

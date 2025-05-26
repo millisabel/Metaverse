@@ -6,6 +6,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
+import { ShaderController } from '../../controllers/ShaderController';
 
 import vertexShader from '../../shaders/galacticCore.vert';
 import fragmentShader from '../../shaders/galacticCore.frag';
@@ -23,18 +24,33 @@ const DEFAULT_OPTIONS = {
     core: {
         size: 3,               
         segments: 16,           
-        scale: {                
-            min: 2.8,
-            max: 3.0
+        scale: {
+            min: 1.8,
+            max: 5.0,
+            waves: [
+                { freq: 0.5, amp: 1.08, phase: 0.0 },
+                { freq: 0.13, amp: 0.4, phase: 1.3 },
+                { freq: 0.23, amp: 3.03, phase: -2.1 }
+            ]
         },
-        pulse: 5,               
-        pulseFreq: 2.0,         
         shader: {               
             opacity: 1.0,
-            coreColor: [1.0, 1.0, 1.0], 
-            edgeColor:  [0.8, 0.4, 1.0], 
-            glowColor: [0.4, 0.0, 0.6],
-            glowStrength: 50.0
+            color: {
+                core: [1.0, 1.0, 1.0],
+                edge: [0.8, 0.4, 1.0],
+            },
+            glow: {
+                color: [0.4, 0.0, 0.6],
+                strength: 10.0,
+                coreStrength: 0.5,
+                coreRadius: 0.35,
+            },
+            pulseWaves: [
+                { freq: 1.0, amp: 0.5, phase: 0.0 },
+                { freq: 0.37, amp: 0.3, phase: 1.7 },
+                { freq: 1.31, amp: 0.2, phase: -2.0 }
+            ],
+            pulseNoise: { scale: 0.05, speed: 0.5 },
         }
     },
     plane: {
@@ -66,6 +82,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this.galaxyCore = null;
         this.galaxyPlane = null;
         this.composer = null;
+        this.shaderController = null;
 
         this.logger.log('Controller initialization', {
             conditions: ['init'],
@@ -89,7 +106,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         });
         
         this._createGalaxyCore();
-        await this._galaxyPlane();
+        // await this._galaxyPlane();
         this._setupPostProcessing();
         // this.setupLights();
     }
@@ -105,7 +122,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         const time = performance.now() * 0.0001;
 
         this._updateGalaxyCorePulse(time);
-        this._updateGalaxyPlanePulse(time);
+        // this._updateGalaxyPlanePulse(time);
         this._updateCameraOrbit(time);
         // super.update();
         this.composer.render();
@@ -123,24 +140,33 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             size, 
             segments, 
         );
-        const coreMaterial = new THREE.ShaderMaterial({
+        this.shaderController = new ShaderController({
+            vertexShader,
+            fragmentShader,
             uniforms: {
                 time: { value: 0 },
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
                 opacity: { value: shader.opacity },
-                coreColor: { value: new THREE.Vector3(...shader.coreColor) },
-                edgeColor: { value: new THREE.Vector3(...shader.edgeColor) },
-                glowColor: { value: new THREE.Vector3(...shader.glowColor), opacity: 0.5 },
-                glowStrength: { value: shader.glowStrength }
+                coreColor: { value: new THREE.Vector3(...shader.color.core) },
+                edgeColor: { value: new THREE.Vector3(...shader.color.edge) },
+                glowColor: { value: new THREE.Vector3(...shader.glow.color) },
+                glowStrength: { value: shader.glow.strength },
+                coreGlowStrength: { value: shader.glow.coreStrength },
+                coreGlowRadius: { value: shader.glow.coreRadius },
+                pulseFreqs: { value: new Float32Array(shader.pulseWaves.map(w => w.freq)) },
+                pulseAmps: { value: new Float32Array(shader.pulseWaves.map(w => w.amp)) },
+                pulsePhases: { value: new Float32Array(shader.pulseWaves.map(w => w.phase)) },
+                pulseNoiseScale: { value: shader.pulseNoise.scale },
+                pulseNoiseSpeed: { value: shader.pulseNoise.speed }
             },
-            vertexShader,
-            fragmentShader,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-            side: THREE.DoubleSide
+            options: {
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                side: THREE.DoubleSide
+            }
         });
-        this.galaxyCore = new THREE.Mesh(coreGeometry, coreMaterial);
+        this.galaxyCore = new THREE.Mesh(coreGeometry, this.shaderController.getMaterial());
         this.galaxyCore.rotation.x = -Math.PI / 2;
         this.scene.add(this.galaxyCore);
     }
@@ -202,17 +228,23 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @param {number} time - The time
      * @protected
      */
-    _updateGalaxyCorePulse(time){
-        const { pulse, pulseFreq, scale } = this.options.core;
-        
+    _updateGalaxyCorePulse(time) {
+        const { scale } = this.options.core;
+        let scalePulse = 0;
+        for (let i = 0; i < scale.waves.length; i++) {
+            const w = scale.waves[i];
+            scalePulse += Math.sin(time * w.freq * Math.PI * 2 + w.phase) * w.amp;
+        }
+        let finalScale = 1 + scalePulse;
+        finalScale = Math.max(scale.min, Math.min(scale.max, finalScale));
 
-        if (this.galaxyCore) {
-            const minScale = scale.min;
-            const maxScale = scale.max;
-            this.galaxyCore.material.uniforms.time.value = time;
-            let corePulse = 1 + Math.sin(time * pulseFreq) * pulse;
-            corePulse = Math.max(minScale, Math.min(corePulse, maxScale)); 
-            this.galaxyCore.scale.set(corePulse, corePulse, corePulse);
+        if (!this._lastScale) this._lastScale = finalScale;
+        const smoothScale = this._lastScale + (finalScale - this._lastScale) * 0.1;
+        this._lastScale = smoothScale;
+
+        if (this.galaxyCore && this.shaderController) {
+            this.shaderController.setUniform('time', time);
+            this.galaxyCore.scale.set(smoothScale, smoothScale, smoothScale);
         }
     }
 
