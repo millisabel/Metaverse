@@ -1,7 +1,4 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import { createLogger } from "../../utils/logger";
 import { isMobile } from '../../utils/utils';
@@ -81,7 +78,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
 
         this.galaxyCore = null;
         this.galaxyPlane = null;
-        this.composer = null;
         this.shaderController = null;
 
         this.logger.log('Controller initialization', {
@@ -107,7 +103,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         
         this._createGalaxyCore();
         // await this._galaxyPlane();
-        this._setupPostProcessing();
         // this.setupLights();
     }
 
@@ -117,16 +112,13 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     update() {
-        if (!this.composer) return;
-
         const time = performance.now() * 0.0001;
 
         this._updateGalaxyCorePulse(time);
         // this._updateGalaxyPlanePulse(time);
         this._updateCameraOrbit(time);
-        // super.update();
-        this.composer.render();
-        return;
+
+        super.update();
     }
 
     /**
@@ -210,20 +202,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
     }
 
     /**
-     * @description Sets up the post-processing effects
-     * @returns {Promise<void>}
-     * @protected
-     */
-    _setupPostProcessing() {
-        if (!this.renderer) { return; }
-
-        this.composer = new EffectComposer(this.renderer);
-        
-        const renderPass = new RenderPass(this.scene, this.cameraController.camera);
-        this.composer.addPass(renderPass);
-    }
-
-    /**
      * @description Updates the galaxy core pulse
      * @param {number} time - The time
      * @protected
@@ -243,8 +221,10 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this._lastScale = smoothScale;
 
         if (this.galaxyCore && this.shaderController) {
+
             this.shaderController.setUniform('time', time);
             this.galaxyCore.scale.set(smoothScale, smoothScale, smoothScale);
+
         }
     }
 
@@ -292,12 +272,18 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
         const orbitSpeed = this.options.camera?.orbitSpeed ?? (mobile ? 0.15 : 0.2);
         const cameraAngle = -time * orbitSpeed;
-        this.cameraController.setPosition({
+
+        this.cameraController.options.position = {
             x: offsetX + Math.sin(cameraAngle) * currentRadius,
             y: (mobile ? -15 : 5) + Math.sin(time * 0.4) * 0.5,
             z: Math.cos(cameraAngle) * currentRadius
-        });
-        this.cameraController.setLookAt({ x: offsetX, y: 0, z: 0 });
+        };
+
+        this.cameraController.options.lookAt = {
+            x: offsetX,
+            y: 0,
+            z: 0
+        };
     }
 
     /**
@@ -328,12 +314,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      */
     cleanup() {
         let message = `starting cleanup in ${this.constructor.name}\n`;
-        
-        if (this.composer) {
-            this.composer.dispose();
-            this.composer = null;
-            message += 'Composer disposed\n';
-        }
 
         super.cleanup(message);
     }
