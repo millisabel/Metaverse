@@ -2,63 +2,23 @@ import * as THREE from 'three';
 
 import { deepMergeOptions, getAspectRatio } from '../utils/utils';
 
-const CAMERA_CONTROLS = {
-    enableDamping: false,    
-    dampingFactor: 0.05,    
-    
-    enableZoom: true,      
-    enablePan: true,        
-    enableRotate: true,     
-    
-    rotateSpeed: 1.0,        
-    zoomSpeed: 1.0,        
-    panSpeed: 1.0,          
-    
-    targetOffset: {       
-        x: 0,
-        y: 0,
-        z: 0
-    }
-}
-
-const DEFAULT_PERSPECTIVE_CAMERA_OPTIONS = {
+const DEFAULT_CAMERA_OPTIONS = {
     type: 'perspective',
-
     fov: 45,
     near: 0.1,
     far: 2000,
-    aspect: null, 
-
-    zoom: 1, 
-
+    aspect: null,
+    zoom: 1,
     position: { x: 0, y: 0, z: 5 },
     lookAt: { x: 0, y: 0, z: 0 },
-
     rotation: false,
-    speed: { x: 0.00002, y: 0.00002 }, 
-    
-    minDistance: 0,          // Минимальное расстояние до цели
-    maxDistance: Infinity,   // Максимальное расстояние до цели
-    minPolarAngle: 0,        // Минимальный угол наклона
-    maxPolarAngle: Math.PI,  // Максимальный угол наклона
-    minAzimuthAngle: -Infinity, // Минимальный угол азимута
-    maxAzimuthAngle: Infinity,  // Максимальный угол азимута
-}
-
-const DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS = {
-    type: 'orthographic',
-
-    orthoSize: 10,      
-    left: -1,           
-    right: 1,          
-    top: 1,            
-    bottom: -1,   
-
-    minZoom: 0.1,            
-    maxZoom: 10,             
-    minPan: { x: -100, y: -100 },
-    maxPan: { x: 100, y: 100 },   
-}
+    speed: { x: 0, y: 0, z: 0 },
+    orthoSize: 10,
+    left: -5,
+    right: 5,
+    top: 5,
+    bottom: -5,
+};
 
 /**
  * @description Camera controller
@@ -66,238 +26,188 @@ const DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS = {
  * @returns {void}
  */
 export class CameraController {
+    /**
+     * @param {Object} customOptions - Custom camera options
+     */
     constructor(customOptions = {}) {
-        this.options = deepMergeOptions(CAMERA_CONTROLS, customOptions);
-
+        this.options = deepMergeOptions(DEFAULT_CAMERA_OPTIONS, customOptions);
         this.camera = null;
         this.aspect = null;
+        this._updaters = {
+            position: this._updatePosition.bind(this),
+            lookAt: this._updateLookAt.bind(this),
+            zoom: this._updateZoom.bind(this),
+            fov: this._updateFov.bind(this),
+            near: this._updateNear.bind(this),
+            far: this._updateFar.bind(this),
+            rotation: this._updateRotation.bind(this),
+            left: this._updateOrthoBounds.bind(this),
+            right: this._updateOrthoBounds.bind(this),
+            top: this._updateOrthoBounds.bind(this),
+            bottom: this._updateOrthoBounds.bind(this),
+            orthoSize: this._updateOrthoBounds.bind(this),
+        };
     }
 
     /**
-     * @description Initializes the camera with container dimensions.
-     * Creates a new THREE.PerspectiveCamera or THREE.OrthographicCamera and sets initial position and orientation.
-     * @param {HTMLElement} container - Container element for calculating aspect ratio.
-     * @public
+     * Initializes the camera with container dimensions.
+     * @param {HTMLElement} container
+     * @returns {THREE.Camera}
      */
     init(container) {
-        if (this.isInitialized) {
-            return;
-        }
-
+        if (this.isInitialized) return;
         if (!container || !(container instanceof HTMLElement)) {
             throw new Error('Valid container element is required for camera initialization');
         }
-
-        try {   
+        try {
             this.aspect = getAspectRatio(container);
             this._initCameraByType();
             this._applyCameraSettings();
-
             this.isInitialized = true;
         } catch (error) {
             throw new Error('Camera initialization failed');
         }
+
         return this.camera;
     }
 
     /**
-     * @description Updates camera rotation based on speed settings.
+     * Универсальное обновление камеры по всем опциям
      * @public
-     * @returns {void}
      */
     update() {
         if (!this.camera) return;
-
-        if (this.options.position) {
-            this.setPosition(this.options.position);
-        }
-
-        if (this.options.rotation) {
-            this._updateRotation();
-        }
-
-        if (this.options.orbit) {
-            this._updateOrbit(time);
-        }
-
-        if (this.options.zoom) {
-            this._setZoom(this.options.zoom);
-        }
-
-        if (this.options.lookAt) {
-            this.setLookAt(this.options.lookAt);
+        
+        for (const [key, value] of Object.entries(this.options)) {
+            if (this._updaters[key]) {
+                this._updaters[key](value);
+            }
         }
     }
 
     /**
-     * @description Handles container resize.
-     * @param {HTMLElement} container - Container element for calculating new aspect ratio.
-     * @public
-     * @returns {void}
+     * @param {HTMLElement} container
      */
     onResize(container) {
         if (!this.camera) return;
         this.aspect = getAspectRatio(container);
-
         if (this.camera.isPerspectiveCamera) {
             this.camera.aspect = this.aspect;
         } else if (this.camera.isOrthographicCamera) {
-            this._setOrthoBounds();
+            this.options.aspect = this.aspect;
+            this._updateOrthoBounds();
         }
-
         this.camera.updateProjectionMatrix();
     }
 
-    /**
-     * Cleans up camera resources.
-     * Resets camera instance and initialization state.
-     * @public
-     */
     cleanup(message) {
         let logMessage = message || '';
-
         if (this.camera) {
             this.camera = null;
             this.isInitialized = false;
         }
-
-        logMessage += `CameraController: this.camera ${this.camera}\n + 
-        CameraController: this.isInitialized: ${this.isInitialized}\n`;
-
+        logMessage += `CameraController: this.camera ${this.camera}\n + CameraController: this.isInitialized: ${this.isInitialized}\n`;
         return logMessage;
     }
 
-    /**
-     * @description Initializes camera based on its type
-     * @private
-     * @returns {void}
-     */
     _initCameraByType() {
         let { type } = this.options;
-
-        if (!type) {
-            type = 'perspective';
-        }
-    
+        if (!type) type = 'perspective';
         switch (type) {
             case 'orthographic':
-                this.options = deepMergeOptions(DEFAULT_ORTHOGRAPHIC_CAMERA_OPTIONS, this.options);
                 this._initOrthoCamera();
                 break;
             case 'perspective':
-                this.options = deepMergeOptions(DEFAULT_PERSPECTIVE_CAMERA_OPTIONS, this.options);
-                this._initPerspectiveCamera();
-                break;
             default:
-                throw new Error(`Unsupported camera type: ${type}`);
+                this._initPerspectiveCamera();
         }
     }
 
-    /**
-     * @description Initializes perspective camera
-     * @private
-     * @returns {void}
-     */
     _initPerspectiveCamera() {
-        const { fov, near, far } = this.options;
-        
-        this.camera = new THREE.PerspectiveCamera(
-            fov,
-            this.aspect,
-            near,
-            far
-        );
+        const { fov, aspect, near, far } = this.options;
+        this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     }
 
-    /**
-     * @description Initializes orthographic camera
-     * @private
-     * @returns {void}
-     */
     _initOrthoCamera() {
-        const near = this.options.near !== undefined ? this.options.near : -1000;
-        const far = this.options.far !== undefined ? this.options.far : 1000;
-        this.camera = new THREE.OrthographicCamera(0, 0, 0, 0, near, far);
-        this._setOrthoBounds();
-    }   
+        const { orthoSize, aspect, near, far } = this.options;
+        
+        const width = orthoSize * (aspect || 1);
+        const height = orthoSize;
+        const left = -width / 2;
+        const right = width / 2;
+        const top = height / 2;
+        const bottom = -height / 2;
+        this.camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
+    }
 
-    /**
-     * @description Applies camera settings (position, lookAt)
-     * @private
-     * @returns {void}
-     */
     _applyCameraSettings() {
-        if (this.options.position) {
-            this.setPosition(this.options.position);
-        }
-    
-        if (this.options.lookAt) {
-            this.setLookAt(this.options.lookAt);
-        }
+        if (this.options.position) this._updatePosition(this.options.position);
+        if (this.options.lookAt) this._updateLookAt(this.options.lookAt);
+        if (this.options.zoom) this._updateZoom(this.options.zoom);
+        if (this.options.fov && this.camera?.isPerspectiveCamera) this._updateFov(this.options.fov);
+        if (this.options.near) this._updateNear(this.options.near);
+        if (this.options.far) this._updateFar(this.options.far);
+        if (this.options.rotation) this._updateRotation(this.options.rotation);
+        if (this.camera?.isOrthographicCamera) this._updateOrthoBounds();
     }
 
-    /**
-     * @description Sets orthographic camera bounds based on options and container rect
-     * @private
-     * @returns {void}
-     */
-    _setOrthoBounds() {
-        const rect = this.container.getBoundingClientRect();
-
-        this.camera.left = this.options.left !== undefined ? this.options.left : -rect.width / 2;
-        this.camera.right = this.options.right !== undefined ? this.options.right : rect.width / 2;
-        this.camera.top = this.options.top !== undefined ? this.options.top : rect.height / 2;
-        this.camera.bottom = this.options.bottom !== undefined ? this.options.bottom : -rect.height / 2;
-    }
-
-    /**
-     * @description Sets camera position.
-     * @param {Object} position - Position coordinates {x, y, z}.
-     * @public
-     * @returns {void}
-     */
-    setPosition(position) {
+    _updatePosition(position) {
         if (!this.camera) return;
-
         Object.entries(position).forEach(([axis, value]) => {
             this.camera.position[axis] = value;
         });
     }
-
-    /**
-     * @description Sets camera look-at point.
-     * @param {Object} lookAt - Look-at coordinates {x, y, z}.
-     * @private
-     * @returns {void}
-     */
-    setLookAt(lookAt) {
-        if (!this.camera) return;
+    _updateLookAt(lookAt) {
+        if (!this.camera || this.camera.rotation) return;
         this.camera.lookAt(lookAt.x, lookAt.y, lookAt.z);
     }
-
-    /**
-     * @description Sets camera zoom and updates projection matrix.
-     * @param {number} zoom - New zoom value.
-     * @private
-     * @returns {void}
-     */
-    _setZoom(zoom) {
+    _updateZoom(zoom) {
         if (!this.camera) return;
         this.camera.zoom = zoom;
         this.camera.updateProjectionMatrix();
     }
+    _updateFov(fov) {
+        if (!this.camera || !this.camera.isPerspectiveCamera) return;
+        this.camera.fov = fov;
+        this.camera.updateProjectionMatrix();
+    }
+    _updateNear(near) {
+        if (!this.camera) return;
+        this.camera.near = near;
+        this.camera.updateProjectionMatrix();
+    }
+    _updateFar(far) {
+        if (!this.camera) return;
+        this.camera.far = far;
+        this.camera.updateProjectionMatrix();
+    }
+    _updateRotation(rotation) {
+        if (!this.camera) return;
+        if (rotation === true && this.options.speed) {
+            this.camera.rotation.x += this.options.speed.x || 0;
+            this.camera.rotation.y += this.options.speed.y || 0;
+            this.camera.rotation.z += this.options.speed.z || 0;
+        }  
+    }
 
-    /**
-     * @description Updates camera rotation based on speed settings.
-     * Only applies if rotation is enabled in options.
-     * @private
-     * @returns {void}
-     */
-    _updateRotation() {
-        if (!this.camera || !this.options.rotation) return;
+    _updateOrthoBounds() {
+        if (!this.camera || !this.camera.isOrthographicCamera) return;
+        const { orthoSize, aspect, left, right, top, bottom } = this.options;
 
-        this.camera.rotation.x += this.options.speed.x;
-        this.camera.rotation.y += this.options.speed.y;
+        if (typeof left === 'number' && typeof right === 'number' && typeof top === 'number' && typeof bottom === 'number') {
+            this.camera.left = left;
+            this.camera.right = right;
+            this.camera.top = top;
+            this.camera.bottom = bottom;
+        } else {
+            const w = orthoSize * (aspect || 1);
+            const h = orthoSize;
+            this.camera.left = -w / 2;
+            this.camera.right = w / 2;
+            this.camera.top = h / 2;
+            this.camera.bottom = -h / 2;
+        }
+        this.camera.updateProjectionMatrix();
     }
 
     /**
@@ -306,8 +216,8 @@ export class CameraController {
      * @returns {void}
      */
     resetCamera() {
-        this.setPosition(this.options.position);
-        this.setLookAt(this.options.lookAt);
-        this._setZoom(this.options.zoom);
+        this._updatePosition(this.options.position);
+        this._updateLookAt(this.options.lookAt);
+        this._updateZoom(this.options.zoom);
     }
 } 

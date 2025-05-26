@@ -19,29 +19,27 @@ const galacticTexture = './assets/images/galaxy-texture.png';
 
 const DEFAULT_OPTIONS = {
     orbit: {
-        radius: 5,
-        speed: 1,
+        speed: 0.3,
         phase: { 
             x: -Math.PI / 2, 
             y: 0 },
-        verticalOffset: 0,
         amplitude: { 
             x: { min: -3, max: 3 }, 
             y: { min: -1, max: 2 }, 
-            z: { min: 10, max: 20 } 
+            z: { min: 15, max: 20 } 
         },
         rotation: {
-            x: Math.PI / 4,
+            x: Math.PI / 3,
             y: 0,
             z: 0,
         },
     },
     core: {
-        size: 3,               
+        size: 4,               
         segments: 16,           
         scale: {
             min: 1.8,
-            max: 5.0,
+            max: 3.0,
             waves: [
                 { freq: 0.5, amp: 1.08, phase: 0.0 },
                 { freq: 0.13, amp: 0.4, phase: 1.3 },
@@ -54,7 +52,7 @@ const DEFAULT_OPTIONS = {
             z: 0,
         },
         shader: {               
-            opacity: 1.0,
+            opacity: 0.5,
             color: {
                 core: [1.0, 1.0, 1.0],
                 edge: [0.8, 0.4, 1.0],
@@ -74,15 +72,16 @@ const DEFAULT_OPTIONS = {
         }
     },
     plane: {
-        size: isMobile() ? 4 : 8,
+        size: isMobile() ? 4 : 6,
         opacity: 1,
         transparent: false,
         animation: {
             baseScale: 1.0,
-            pulsePrimary: { freq: 0.5, amp: 0.15 },
-            pulseSecondary: { freq: 0.2, amp: 0.1 },
-            pulseMicro: { freq: 1.5, amp: 0.05 },
-        }
+            pulsePrimary: { freq: 0.5, amp: 1.5 },
+            pulseSecondary: { freq: 0.2, amp: 0.3 },
+            pulseMicro: { freq: 1.5, amp: 0.1 },
+        },
+        rotationSpeed: 0.0005,
     },
 };
 
@@ -113,7 +112,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      */
     async setupScene() {
         this._createGalaxyCore();
-        // await this._galaxyPlane();
+        await this._createGalaxyPlane();
         // this.setupLights();
     }
 
@@ -126,9 +125,11 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         const time = performance.now() * 0.0001;
 
         this._updateGalaxyCorePulse(time);
-        // this._updateGalaxyPlanePulse(time);
+        this._updateGalaxyPlanePulse(time);
         this._updateCameraOrbit(time);
-
+        if (this.galaxyPlane) {
+            this.galaxyPlane.rotation.z += this.options.plane.rotationSpeed;
+        }
         super.update();
     }
 
@@ -202,19 +203,20 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             }
         });
         this.galaxyCore = new THREE.Mesh(coreGeometry, this.shaderController.getMaterial());
-        this._setGalaxyCoreRotation();
+        this._setOrbitRotation(this.galaxyCore);
         this.scene.add(this.galaxyCore);
     }
 
     /**
-     * @description Sets the galaxy core rotation
+     * @description Sets the rotation of the object based on the orbit options
+     * @param {THREE.Object3D} obj - The object to set the rotation
      * @returns {void}
      * @protected
      */
-    _setGalaxyCoreRotation() {
-        this.galaxyCore.rotation.x = this.options.core.rotation.x;
-        this.galaxyCore.rotation.y = this.options.core.rotation.y;
-        this.galaxyCore.rotation.z = this.options.core.rotation.z;
+    _setOrbitRotation(obj) {
+        obj.rotation.x = this.options.orbit.rotation.x;
+        obj.rotation.y = this.options.orbit.rotation.y;
+        obj.rotation.z = this.options.orbit.rotation.z;
     }
 
     /**
@@ -249,21 +251,17 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      * @protected
      */
-    async _galaxyPlane() {
+    async _createGalaxyPlane() {
         const textureLoader = new THREE.TextureLoader();
         let galaxyTexture = null;
+
         try {
-            galaxyTexture = await textureLoader.loadAsync(galacticTexture);        } catch (error) {
-            this.logger.log('Failed to load galaxy texture', {
-                conditions: ['error'],
-                functionName: 'creategalaxyPlane',
-                customData: { error }
-            });
-            return; 
+            galaxyTexture = await textureLoader.loadAsync(galacticTexture);        
+        } catch (error) {
+            throw new Error('Failed to load galaxy texture');
         }
 
         const planeSize = this.options.plane.size; 
-
         const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
         const planeMaterial = new THREE.MeshBasicMaterial({
             map: galaxyTexture,
@@ -275,7 +273,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         });
 
         const galaxyPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-        galaxyPlane.rotation.x = Math.PI / 2;
+        this._setOrbitRotation(galaxyPlane);
         if (this.scene) {
             this.scene.add(galaxyPlane);
         }
@@ -337,7 +335,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             orbitCenter = { x: 0, y: 0, z: 0 }
         } = orbitOptions;
 
-        // Camera orbits around orbitCenter
         const angleX = time * speed + phase.x;
         const angleY = time * speed * 1.3 + phase.y;
         const x = orbitCenter.x + amplitude.x.min + (amplitude.x.max - amplitude.x.min) * (0.5 + 0.5 * Math.sin(angleX));

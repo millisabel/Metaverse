@@ -47,7 +47,8 @@ const CONFIG = {
         containerName: NAME_3D_OBJECTS.STARS,
         zIndex: Z_INDEX.STARS, 
         camera: {
-            rotation: false, 
+            rotation: true, 
+            speed: { x: 0, y: 0, z: 0.00005 },
         },
         objectConfig: {
             count: isMobile() ? 1000 : 2000,
