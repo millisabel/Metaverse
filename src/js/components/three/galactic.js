@@ -21,19 +21,20 @@ const galacticTexture = './assets/images/galaxy-texture.png';
 
 const DEFAULT_OPTIONS = {
     core: {
-        size: 2,                // JS: geometry size
-        segments: 64,           // JS: geometry segments
-        scale: {                // JS: scale limits for animation
-            min: 1.8,
+        size: 3,               
+        segments: 16,           
+        scale: {                
+            min: 2.8,
             max: 3.0
         },
-        pulse: 2,               // JS: pulse amplitude
-        pulseFreq: 2.0,         // JS: pulse frequency
-        shader: {               // GLSL uniforms only
+        pulse: 5,               
+        pulseFreq: 2.0,         
+        shader: {               
             opacity: 1.0,
-            coreColor: [0.8, 0.4, 1.0],
+            coreColor: [1.0, 1.0, 1.0], 
+            edgeColor:  [0.8, 0.4, 1.0], 
             glowColor: [0.4, 0.0, 0.6],
-            glowStrength: 0.3
+            glowStrength: 50.0
         }
     },
     plane: {
@@ -46,11 +47,6 @@ const DEFAULT_OPTIONS = {
             pulseSecondary: { freq: 0.2, amp: 0.1 },
             pulseMicro: { freq: 1.5, amp: 0.05 },
         }
-    },
-    bloom: {
-        strength: 1, 
-        radius: 3, 
-        threshold: 1.5, 
     },
 };
 
@@ -93,7 +89,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         });
         
         this._createGalaxyCore();
-        // await this._galaxyPlane();
+        await this._galaxyPlane();
         this._setupPostProcessing();
         // this.setupLights();
     }
@@ -109,10 +105,11 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         const time = performance.now() * 0.0001;
 
         this._updateGalaxyCorePulse(time);
-        // this._updateGalaxyPlanePulse(time);
+        this._updateGalaxyPlanePulse(time);
         this._updateCameraOrbit(time);
-        
+        // super.update();
         this.composer.render();
+        return;
     }
 
     /**
@@ -122,11 +119,9 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      */     
     _createGalaxyCore() {
         const { size, segments, shader } = this.options.core;
-        const coreGeometry = new THREE.PlaneGeometry(
-            size, 
+        const coreGeometry = new THREE.CircleGeometry(
             size, 
             segments, 
-            segments,
         );
         const coreMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -134,7 +129,8 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
                 opacity: { value: shader.opacity },
                 coreColor: { value: new THREE.Vector3(...shader.coreColor) },
-                glowColor: { value: new THREE.Vector3(...shader.glowColor) },
+                edgeColor: { value: new THREE.Vector3(...shader.edgeColor) },
+                glowColor: { value: new THREE.Vector3(...shader.glowColor), opacity: 0.5 },
                 glowStrength: { value: shader.glowStrength }
             },
             vertexShader,
@@ -193,30 +189,12 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @protected
      */
     _setupPostProcessing() {
-        if (!this.renderer) {
-            this.logger.log('Renderer is not initialized, skipping postprocessing setup', {
-                conditions: ['error'],
-                functionName: '_setupPostProcessing'
-            });
-            return;
-        }
+        if (!this.renderer) { return; }
+
         this.composer = new EffectComposer(this.renderer);
         
         const renderPass = new RenderPass(this.scene, this.cameraController.camera);
         this.composer.addPass(renderPass);
-
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            this.options.bloom.strength,
-            this.options.bloom.radius,
-            this.options.bloom.threshold,
-        );
-        
-        bloomPass.threshold = this.options.bloom.threshold;
-        bloomPass.strength = this.options.bloom.strength;
-        bloomPass.radius = this.options.bloom.radius;
-        
-        this.composer.addPass(bloomPass);
     }
 
     /**
@@ -226,6 +204,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      */
     _updateGalaxyCorePulse(time){
         const { pulse, pulseFreq, scale } = this.options.core;
+        
 
         if (this.galaxyCore) {
             const minScale = scale.min;
