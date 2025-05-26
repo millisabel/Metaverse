@@ -42,27 +42,27 @@ const Z_INDEX = {
  * @property {Object} GALACTIC - The galactic cloud
  */
 const CONFIG = {
-    // STARS: {
-    //     classRef: Stars,
-    //     containerName: NAME_3D_OBJECTS.STARS,
-    //     zIndex: Z_INDEX.STARS, 
-    //     camera: {
-    //         rotation: false, 
-    //     },
-    //     objectConfig: {
-    //         count: isMobile() ? 1000 : 2000,
-    //         colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0x4642f4, 0xf00afe, 0xffffff],
-    //         depth: {
-    //             range: isMobile() ? 400 : 800,
-    //         },
-    //         responsive: {
-    //             count: 'isMobile() ? 2000 : 5000',
-    //             depth: {
-    //                 range: 'isMobile() ? 400 : 800',
-    //             },
-    //         }
-    //     },
-    // },
+    STARS: {
+        classRef: Stars,
+        containerName: NAME_3D_OBJECTS.STARS,
+        zIndex: Z_INDEX.STARS, 
+        camera: {
+            rotation: false, 
+        },
+        objectConfig: {
+            count: isMobile() ? 1000 : 2000,
+            colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0x4642f4, 0xf00afe, 0xffffff],
+            depth: {
+                range: isMobile() ? 400 : 800,
+            },
+            responsive: {
+                count: 'isMobile() ? 2000 : 5000',
+                depth: {
+                    range: 'isMobile() ? 400 : 800',
+                },
+            }
+        },
+    },
     GALACTIC: {
         classRef: GalacticCloud,
         containerName: NAME_3D_OBJECTS.GALACTIC,

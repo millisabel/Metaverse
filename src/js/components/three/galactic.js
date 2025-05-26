@@ -79,15 +79,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this.galaxyCore = null;
         this.galaxyPlane = null;
         this.shaderController = null;
-
-        this.logger.log('Controller initialization', {
-            conditions: ['init'],
-            functionName: 'constructor',
-            customData: {
-                this: this,
-                options: options
-            }
-        });
     }
 
     /**
@@ -96,11 +87,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     async setupScene() {
-        this.logger.log('Scene initialization', {
-            conditions: ['init'],
-            functionName: 'setupScene'
-        });
-        
         this._createGalaxyCore();
         // await this._galaxyPlane();
         // this.setupLights();
