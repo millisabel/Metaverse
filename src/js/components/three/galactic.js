@@ -18,6 +18,24 @@ const galacticTexture = './assets/images/galaxy-texture.png';
  */
 
 const DEFAULT_OPTIONS = {
+    orbit: {
+        radius: 5,
+        speed: 1,
+        phase: { 
+            x: -Math.PI / 2, 
+            y: 0 },
+        verticalOffset: 0,
+        amplitude: { 
+            x: { min: -3, max: 3 }, 
+            y: { min: -1, max: 2 }, 
+            z: { min: 10, max: 20 } 
+        },
+        rotation: {
+            x: Math.PI / 4,
+            y: 0,
+            z: 0,
+        },
+    },
     core: {
         size: 3,               
         segments: 16,           
@@ -29,6 +47,11 @@ const DEFAULT_OPTIONS = {
                 { freq: 0.13, amp: 0.4, phase: 1.3 },
                 { freq: 0.23, amp: 3.03, phase: -2.1 }
             ]
+        },
+        rotation: {
+            x: Math.PI / 4,
+            y: 0,
+            z: 0,
         },
         shader: {               
             opacity: 1.0,
@@ -79,6 +102,8 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this.galaxyCore = null;
         this.galaxyPlane = null;
         this.shaderController = null;
+        this._initialPositioned = false;
+        this._useInitialOffset = true;
     }
 
     /**
@@ -105,6 +130,38 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this._updateCameraOrbit(time);
 
         super.update();
+    }
+
+    /**
+     * @public
+     * @description Handles window resize
+     * @returns {Promise<void>}
+     */
+    onResize() {
+        if (!this.renderer || !this.camera) return;
+
+        super.onResize();
+        this._updateCameraOrbit(0); 
+
+        if (this.galaxyPlane) {
+            const planeSize = this.options.plane.size;
+            this.galaxyPlane.scale.set(planeSize/8, planeSize/8, planeSize/8);
+        }
+
+        if (this.galaxyCore) {
+            this.galaxyCore.material.uniforms.resolution.value.set(this.container.clientWidth, this.container.clientHeight);
+        }
+    }
+
+    /**
+     * @public
+     * @description Cleans up the galaxy resources and postprocessing
+     * @returns {Promise<void>}
+     */
+    cleanup() {
+        let message = `starting cleanup in ${this.constructor.name}\n`;
+
+        super.cleanup(message);
     }
 
     /**
@@ -145,8 +202,46 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             }
         });
         this.galaxyCore = new THREE.Mesh(coreGeometry, this.shaderController.getMaterial());
-        this.galaxyCore.rotation.x = -Math.PI / 2;
+        this._setGalaxyCoreRotation();
         this.scene.add(this.galaxyCore);
+    }
+
+    /**
+     * @description Sets the galaxy core rotation
+     * @returns {void}
+     * @protected
+     */
+    _setGalaxyCoreRotation() {
+        this.galaxyCore.rotation.x = this.options.core.rotation.x;
+        this.galaxyCore.rotation.y = this.options.core.rotation.y;
+        this.galaxyCore.rotation.z = this.options.core.rotation.z;
+    }
+
+    /**
+     * @description Updates the galaxy core pulse
+     * @param {number} time - The time
+     * @protected
+     */
+    _updateGalaxyCorePulse(time) {
+        const { scale } = this.options.core;
+        let scalePulse = 0;
+        for (let i = 0; i < scale.waves.length; i++) {
+            const w = scale.waves[i];
+            scalePulse += Math.sin(time * w.freq * Math.PI * 2 + w.phase) * w.amp;
+        }
+        let finalScale = 1 + scalePulse;
+        finalScale = Math.max(scale.min, Math.min(scale.max, finalScale));
+
+        if (!this._lastScale) this._lastScale = finalScale;
+        const smoothScale = this._lastScale + (finalScale - this._lastScale) * 0.1;
+        this._lastScale = smoothScale;
+
+        if (this.galaxyCore && this.shaderController) {
+
+            this.shaderController.setUniform('time', time);
+            this.galaxyCore.scale.set(smoothScale, smoothScale, smoothScale);
+
+        }
     }
 
     /**
@@ -188,33 +283,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
     }
 
     /**
-     * @description Updates the galaxy core pulse
-     * @param {number} time - The time
-     * @protected
-     */
-    _updateGalaxyCorePulse(time) {
-        const { scale } = this.options.core;
-        let scalePulse = 0;
-        for (let i = 0; i < scale.waves.length; i++) {
-            const w = scale.waves[i];
-            scalePulse += Math.sin(time * w.freq * Math.PI * 2 + w.phase) * w.amp;
-        }
-        let finalScale = 1 + scalePulse;
-        finalScale = Math.max(scale.min, Math.min(scale.max, finalScale));
-
-        if (!this._lastScale) this._lastScale = finalScale;
-        const smoothScale = this._lastScale + (finalScale - this._lastScale) * 0.1;
-        this._lastScale = smoothScale;
-
-        if (this.galaxyCore && this.shaderController) {
-
-            this.shaderController.setUniform('time', time);
-            this.galaxyCore.scale.set(smoothScale, smoothScale, smoothScale);
-
-        }
-    }
-
-    /**
      * @description Updates the galaxy plane pulse
      * @param {number} time - The time
      * @returns {void}
@@ -248,60 +316,34 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @protected
      */
     _updateCameraOrbit(time) {
-        const mobile = isMobile();
-        const offsetX = mobile ? 0 : -4;
-        const baseRadius = mobile ? 20 : 15;
-        const zoomPrimary = Math.sin(time * (this.options.camera?.zoomPrimaryFreq ?? 0.3)) * 2;
-        const zoomSecondary = Math.sin(time * (this.options.camera?.zoomSecondaryFreq ?? 0.1)) * 1;
-        const zoomMicro = Math.sin(time * (this.options.camera?.zoomMicroFreq ?? 0.8)) * 0.5;
-    
-        const currentRadius = baseRadius + zoomPrimary + zoomSecondary + zoomMicro;
-        const orbitSpeed = this.options.camera?.orbitSpeed ?? (mobile ? 0.15 : 0.2);
-        const cameraAngle = -time * orbitSpeed;
-
-        this.cameraController.options.position = {
-            x: offsetX + Math.sin(cameraAngle) * currentRadius,
-            y: (mobile ? -15 : 5) + Math.sin(time * 0.4) * 0.5,
-            z: Math.cos(cameraAngle) * currentRadius
-        };
-
-        this.cameraController.options.lookAt = {
-            x: offsetX,
-            y: 0,
-            z: 0
-        };
+        const orbitOpts = this.options.orbit;
+        const pos = this._calcScreenOrbitPosition(time, orbitOpts);
+        this.cameraController.options.position = { x: pos.x, y: pos.y, z: pos.z };
+        this.cameraController.options.lookAt = { x: 0, y: 0, z: 0 };
     }
 
     /**
-     * @public
-     * @description Handles window resize
-     * @returns {Promise<void>}
+     * Calculates the orbit position relative to orbitCenter
+     * Amplitude controls the offset and range of movement
+     * @param {number} time
+     * @param {Object} orbitOptions
+     * @returns {Object} { x, y, z }
      */
-    onResize() {
-        if (!this.renderer || !this.camera) return;
+    _calcScreenOrbitPosition(time, orbitOptions) {
+        const {
+            amplitude = { x: { min: 2, max: 8 }, y: { min: 1, max: 5 }, z: { min: 80, max: 120 } },
+            speed = 0.5,
+            phase = { x: 0, y: 0 }, 
+            orbitCenter = { x: 0, y: 0, z: 0 }
+        } = orbitOptions;
 
-        super.onResize();
-        this._updateCameraOrbit(0); 
-
-        if (this.galaxyPlane) {
-            const planeSize = this.options.plane.size;
-            this.galaxyPlane.scale.set(planeSize/8, planeSize/8, planeSize/8);
-        }
-
-        if (this.galaxyCore) {
-            this.galaxyCore.material.uniforms.resolution.value.set(this.container.clientWidth, this.container.clientHeight);
-        }
-    }
-
-    /**
-     * @public
-     * @description Cleans up the galaxy resources and postprocessing
-     * @returns {Promise<void>}
-     */
-    cleanup() {
-        let message = `starting cleanup in ${this.constructor.name}\n`;
-
-        super.cleanup(message);
+        // Camera orbits around orbitCenter
+        const angleX = time * speed + phase.x;
+        const angleY = time * speed * 1.3 + phase.y;
+        const x = orbitCenter.x + amplitude.x.min + (amplitude.x.max - amplitude.x.min) * (0.5 + 0.5 * Math.sin(angleX));
+        const y = orbitCenter.y + amplitude.y.min + (amplitude.y.max - amplitude.y.min) * (0.5 + 0.5 * Math.sin(angleY));
+        const z = orbitCenter.z + amplitude.z.min + (amplitude.z.max - amplitude.z.min) * (0.5 + 0.5 * Math.sin(angleX * 0.7));
+        return { x, y, z };
     }
 }
 
