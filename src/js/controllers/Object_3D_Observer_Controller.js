@@ -66,7 +66,6 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
      */
     cleanup(logMessage) {
         if (!this.initialized) return;
-
         super.cleanup(logMessage);
 
         this.logMessage += logMessage +
@@ -116,7 +115,6 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
                             this.logMessage += 
                             `${this.constructor.name} (Object_3D_Observer_Controller): this.initialized: ${this.initialized}\n` +
                             `----------------------------------------------------------\n`;
-    
                             await this.initScene();
 
                             this.logMessage += 
@@ -128,7 +126,6 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
                             `----------------------------------------------------------\n` + 
                             `isResizing: ${this.isResizing}\n` +
                             `----------------------------------------------------------\n`;
-    
                             this.animate();
                         }
                     }

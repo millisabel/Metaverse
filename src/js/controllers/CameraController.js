@@ -97,7 +97,6 @@ export class CameraController {
         } catch (error) {
             throw new Error('Camera initialization failed');
         }
-
         return this.camera;
     }
 
@@ -109,8 +108,24 @@ export class CameraController {
     update() {
         if (!this.camera) return;
 
+        if (this.options.position) {
+            this.setPosition(this.options.position);
+        }
+
         if (this.options.rotation) {
             this._updateRotation();
+        }
+
+        if (this.options.orbit) {
+            this._updateOrbit(time);
+        }
+
+        if (this.options.zoom) {
+            this._setZoom(this.options.zoom);
+        }
+
+        if (this.options.lookAt) {
+            this.setLookAt(this.options.lookAt);
         }
     }
 
@@ -273,17 +288,6 @@ export class CameraController {
     }
 
     /**
-     * @description Resets camera position, lookAt, and zoom.
-     * @private
-     * @returns {void}
-     */
-    resetCamera() {
-        this.setPosition(this.options.position);
-        this.setLookAt(this.options.lookAt);
-        this._setZoom(this.options.zoom);
-    }
-
-    /**
      * @description Updates camera rotation based on speed settings.
      * Only applies if rotation is enabled in options.
      * @private
@@ -294,5 +298,16 @@ export class CameraController {
 
         this.camera.rotation.x += this.options.speed.x;
         this.camera.rotation.y += this.options.speed.y;
+    }
+
+    /**
+     * @description Resets camera position, lookAt, and zoom.
+     * @private
+     * @returns {void}
+     */
+    resetCamera() {
+        this.setPosition(this.options.position);
+        this.setLookAt(this.options.lookAt);
+        this._setZoom(this.options.zoom);
     }
 } 

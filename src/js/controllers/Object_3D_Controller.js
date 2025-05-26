@@ -80,12 +80,13 @@ export class Object_3D_Controller {
         if (!this.renderer) {
             this._initDependencies(); 
         }
-
         this.scene = new THREE.Scene();
         this.cameraController.init(this.container);
+
         this._setupRenderer();
         this._initWebGLContextHandlers();
         await this.setupScene();
+
         this.initialized = true;
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): initScene() success\n` + 
@@ -125,7 +126,7 @@ export class Object_3D_Controller {
      * @description Check if animation can proceed
      * @returns {boolean} Whether animation should continue
      */
-    canAnimate() {
+    canAnimate() {  
         if (!this.isVisible) {
             this.logMessage += 'canAnimate: isVisible is false\n';
             return false;
@@ -144,6 +145,10 @@ export class Object_3D_Controller {
         }
         if (!this.cameraController) {
             this.logMessage += 'canAnimate: cameraController is null\n';
+            return false;
+        }
+        if(!this.cameraController.camera) {
+            this.logMessage += 'canAnimate: camera is null\n';
             return false;
         }
         if (!this.renderer) {
@@ -178,7 +183,7 @@ export class Object_3D_Controller {
         this._applyResponsiveOptions();
         const newSnapshot = JSON.stringify(this.options);
         if (newSnapshot !== prevSnapshot) {
-            this.softCleanup();
+            this._softCleanup();
             this.initScene();
             if (this.canAnimate && this.canAnimate()) {
                 this.animate();
@@ -334,7 +339,6 @@ export class Object_3D_Controller {
             }, 300);
         });
 
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initResizeHandler() success\n`;
     }
 
     /**
@@ -342,7 +346,6 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     _renderScene() {
-
         if (this.canAnimate()) {
             this.renderer.render(this.scene, this.cameraController.camera);
         }
@@ -354,7 +357,7 @@ export class Object_3D_Controller {
      * @param {Object} target - Target object
      * @returns {void}
      */
-    _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {
+    _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {  
         if (!responsive) return;
         for (const key in responsive) {
             const value = responsive[key];

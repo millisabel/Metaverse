@@ -28,6 +28,7 @@ export class SectionObserver {
      * @returns {void}
      */
     init() {
+
         this.logMessage = `${this.constructor.name} (SectionObserver): init()\n` +
         `----------------------------------------------------------\n`;
         
