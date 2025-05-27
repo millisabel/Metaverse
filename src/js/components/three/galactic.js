@@ -43,25 +43,31 @@ const DEFAULT_OPTIONS = {
             min: 0.8,
             max: 2,
         },
-        speedPulse: 0.05,
+        speedPulse: 0.3,
     },
     core: {
         size: 2.5,               
         segments: 4,           
         shader: {               
-            opacity: 0.3,
+            opacity: 0.5,
             color: {
                 core: [1.0, 1.0, 1.0],
                 edge: [0.8, 0.4, 1.0],
             },
             transitionRadius: 0.3, 
+            pulse: {
+                amplitudeCore: 0.10, 
+                amplitudeEdge: 0.50, 
+                speedCore: 0.5,
+                speedEdge: 1.3,
+            },
         }
     },
     plane: {
         size: isMobile() ? 2 : 3,
         opacity: 1,
         transparent: false,
-        rotationSpeed: 0.0008,
+        rotationSpeed: 0.0005,
     },
 };
 
@@ -114,6 +120,9 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     update() {
+        const time = performance.now() * 0.001;
+
+        this._updateCorePulse(time);
         this._updateOrbitPulse();
         this._updatePlaneRotation();
 
@@ -172,6 +181,11 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
                 edgeColor: { value: new THREE.Vector3(...shader.color.edge) },
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
                 transitionRadius: { value: shader.transitionRadius },
+                pulseAmplitudeCore: { value: shader.pulse.amplitudeCore },
+                pulseAmplitudeEdge: { value: shader.pulse.amplitudeEdge },
+                pulseSpeedCore: { value: shader.pulse.speedCore },
+                pulseSpeedEdge: { value: shader.pulse.speedEdge },
+                pulseTime: { value: 0 },
             },
             options: {
                 transparent: true,
@@ -266,6 +280,12 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
     _updatePlaneRotation() {
         if (this.galaxyPlane) {
             this.galaxyPlane.rotation.z += this.options.plane.rotationSpeed;
+        }
+    }
+
+    _updateCorePulse(time) {
+        if (this.shaderController) {
+            this.shaderController.setUniform('pulseTime', time);
         }
     }
 
