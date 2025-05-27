@@ -29,9 +29,9 @@ const NAME_3D_OBJECTS = {
  * @type {Object}
  */
 const Z_INDEX = {
-    SECTION: 0,
-    STARS: 2,
-    GALACTIC: 1,
+    SECTION: 2,
+    STARS: 1,
+    GALACTIC: 0,
 };
 
 /**

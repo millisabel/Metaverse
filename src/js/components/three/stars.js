@@ -70,7 +70,7 @@ export class Stars extends Object_3D_Observer_Controller {
         super(container, options, defaultOptions);
 
         this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
+        this.logger = createLogger(this.container.dataset.containerName);
         
         this.stars = null;
         this.phases = null;
@@ -110,7 +110,7 @@ export class Stars extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     cleanup() {
-        let logMessage = 
+        this.logMessage += 
             `----------------------------------------------------------\n` + 
             `${this.constructor.name}: starting cleanup\n` +
             `----------------------------------------------------------\n`;
@@ -119,7 +119,7 @@ export class Stars extends Object_3D_Observer_Controller {
             this.stars.geometry?.dispose();
             this.stars.material?.dispose();
             this.stars = null;
-            logMessage += `${this.constructor.name} disposed: ${this.stars}\n`;
+            this.logMessage += `${this.constructor.name} disposed: ${this.stars}\n`;
         }
         
         this.phases = null;
@@ -129,14 +129,16 @@ export class Stars extends Object_3D_Observer_Controller {
         this.flickerAmplitudes = null;
         this.baseSizes = null;
 
-        logMessage += `${this.constructor.name} phases: ${this.phases}\n` +
+        this.logMessage += `${this.constructor.name} phases: ${this.phases}\n` +
                        `${this.constructor.name} isMoving: ${this.isMoving}\n` +
                        `${this.constructor.name} movePhases: ${this.movePhases}\n` +
                        `${this.constructor.name} flickerSpeeds: ${this.flickerSpeeds}\n` +
                        `${this.constructor.name} flickerAmplitudes: ${this.flickerAmplitudes}\n` +
                        `-----------------------------------\n`;
 
-        super.cleanup(logMessage);
+        super.cleanup();
+
+        this.logMessage += `${this.constructor.name} cleanup completed\n`;
     }
 
     /**
