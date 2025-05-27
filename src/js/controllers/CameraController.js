@@ -2,6 +2,25 @@ import * as THREE from 'three';
 
 import { deepMergeOptions, getAspectRatio } from '../utils/utils';
 
+/**
+ * @description Default camera options
+ * @type {Object}
+ * @property {string} type - Camera type (perspective, orthographic)
+ * @property {number} fov - Field of view (45)
+ * @property {number} near - Near (0.1) 
+ * @property {number} far - Far (2000)
+ * @property {number} aspect - Aspect (null)
+ * @property {number} zoom - Zoom (1)
+ * @property {Object} position - Position (x: 0, y: 0, z: 5)
+ * @property {Object} lookAt - LookAt (x: 0, y: 0, z: 0)
+ * @property {Boolean} rotation - Rotation (false)
+ * @property {Object} speed - Speed (x: 0, y: 0, z: 0)
+ * @property {number} orthoSize - Orthographic size (10)
+ * @property {number} left - Left (-5)
+ * @property {number} right - Right (5)
+ * @property {number} top - Top (5)
+ * @property {number} bottom - Bottom (-5)
+ */
 const DEFAULT_CAMERA_OPTIONS = {
     type: 'perspective',
     fov: 45,
@@ -100,6 +119,11 @@ export class CameraController {
         this.camera.updateProjectionMatrix();
     }
 
+    /**
+     * @description Cleans up the camera
+     * @param {string} message - Message
+     * @returns {string}
+     */
     cleanup(message) {
         let logMessage = message || '';
         if (this.camera) {
@@ -110,6 +134,10 @@ export class CameraController {
         return logMessage;
     }
 
+    /**
+     * @description Initializes the camera by type
+     * @returns {void}
+     */
     _initCameraByType() {
         let { type } = this.options;
         if (!type) type = 'perspective';
@@ -123,11 +151,19 @@ export class CameraController {
         }
     }
 
+    /**
+     * @description Initializes the perspective camera
+     * @returns {void}
+     */
     _initPerspectiveCamera() {
         const { fov, aspect, near, far } = this.options;
         this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     }
 
+    /**
+     * @description Initializes the orthographic camera
+     * @returns {void}
+     */
     _initOrthoCamera() {
         const { orthoSize, aspect, near, far } = this.options;
         
@@ -140,6 +176,10 @@ export class CameraController {
         this.camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
     }
 
+    /**
+     * @description Applies the camera settings
+     * @returns {void}
+     */
     _applyCameraSettings() {
         if (this.options.position) this._updatePosition(this.options.position);
         if (this.options.lookAt) this._updateLookAt(this.options.lookAt);
@@ -151,36 +191,77 @@ export class CameraController {
         if (this.camera?.isOrthographicCamera) this._updateOrthoBounds();
     }
 
+    /**
+     * @description Updates the camera position
+     * @param {Object} position - Position
+     * @returns {void}
+     */
     _updatePosition(position) {
         if (!this.camera) return;
         Object.entries(position).forEach(([axis, value]) => {
             this.camera.position[axis] = value;
         });
     }
+
+    /**
+     * @description Updates the camera lookAt
+     * @param {Object} lookAt - LookAt
+     * @returns {void}
+     */ 
     _updateLookAt(lookAt) {
         if (!this.camera || this.camera.rotation) return;
         this.camera.lookAt(lookAt.x, lookAt.y, lookAt.z);
     }
+
+    /**
+     * @description Updates the camera zoom
+     * @param {number} zoom - Zoom
+     * @returns {void}
+     */ 
     _updateZoom(zoom) {
         if (!this.camera) return;
         this.camera.zoom = zoom;
         this.camera.updateProjectionMatrix();
     }
+    
+    /**
+     * @description Updates the camera fov
+     * @param {number} fov - Fov
+     * @returns {void}
+     */ 
     _updateFov(fov) {
         if (!this.camera || !this.camera.isPerspectiveCamera) return;
         this.camera.fov = fov;
         this.camera.updateProjectionMatrix();
     }
+    
+    /**
+     * @description Updates the camera near
+     * @param {number} near - Near
+     * @returns {void}
+     */ 
     _updateNear(near) {
         if (!this.camera) return;
         this.camera.near = near;
         this.camera.updateProjectionMatrix();
     }
+    
+    /**
+     * @description Updates the camera far
+     * @param {number} far - Far
+     * @returns {void}
+     */ 
     _updateFar(far) {
         if (!this.camera) return;
         this.camera.far = far;
         this.camera.updateProjectionMatrix();
     }
+
+    /**
+     * @description Updates the camera rotation
+     * @param {Object} rotation - Rotation
+     * @returns {void}
+     */ 
     _updateRotation(rotation) {
         if (!this.camera) return;
         if (rotation === true && this.options.speed) {
@@ -190,6 +271,10 @@ export class CameraController {
         }  
     }
 
+    /**
+     * @description Updates the orthographic bounds
+     * @returns {void}
+     */ 
     _updateOrthoBounds() {
         if (!this.camera || !this.camera.isOrthographicCamera) return;
         const { orthoSize, aspect, left, right, top, bottom } = this.options;
