@@ -43,7 +43,7 @@ const DEFAULT_OPTIONS = {
             min: 0.8,
             max: 2,
         },
-        speedPulse: 0.3,
+        speedPulse: 0.05,
     },
     core: {
         size: 2.5,               
@@ -89,13 +89,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this.shaderController = null;
 
         this._orbitPhase = this.options.orbit.phase;
-        this._orbitTimeOffset = 0;
-        this._lastOrbitPosition = { ...this.options.orbit.initialOffset };
-        this._wasMoving = false;
-        this._moveElapsed = 0;
-        this._pulseElapsed = 0;
-        this._lastPulseUpdateTime = null;
-        this._prevMoveSpeed = 0;
     }
 
     /**
@@ -120,12 +113,18 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     update() {
-        const time = performance.now() * 0.001;
+        // --- Позиция ---
+        const pos = this.options.orbit.initialOffset;
+        if (this.galaxyCore) {
+            this.galaxyCore.position.set(pos.x, pos.y, pos.z);
+        }
+        if (this.galaxyPlane) {
+            this.galaxyPlane.position.set(pos.x, pos.y, pos.z);
+        }
 
-        this._updateCorePulse(time);
-        this._updateOrbitPulse();
+        this._updateScalePulse();
+        this._updateCorePulse(performance.now() * 0.001);
         this._updatePlaneRotation();
-
         super.update();
     }
 
@@ -196,22 +195,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         });
         this.galaxyCore = new THREE.Mesh(coreGeometry, this.shaderController.getMaterial());
         this.scene.add(this.galaxyCore);
-    }
-
-    /**
-     * @description Updates the galaxy core pulse
-     * @param {number} time - The time
-     * @protected
-     */
-    _updateGalaxyCorePulse(time) {
-        const scaleOptions = this.options.core.scale;
-        if (!this._lastCoreScale) this._lastCoreScale = scaleOptions.baseScale || 1;
-        const smoothScale = calcPulsingScale(time, scaleOptions, this._lastCoreScale);
-        this._lastCoreScale = smoothScale;
-        if (this.galaxyCore && this.shaderController) {
-            this.shaderController.setUniform('scale', smoothScale);
-            this.galaxyCore.scale.set(smoothScale, smoothScale, smoothScale);
-        }
     }
 
     /**
@@ -311,22 +294,15 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         return scale;
     }
 
-    _updateOrbitPulse() {
+    _updateScalePulse() {
         const speedPulse = this.options.orbit.speedPulse || 0;
         const scaleOpts = this.options.orbit.scale;
         const phase = this._orbitPhase;
-        const now = performance.now() * 0.0001;
-        if (this._lastPulseUpdateTime === null) this._lastPulseUpdateTime = now;
-        let pulse;
-        if (speedPulse === 0) {
-            this._pulseElapsed = 0;
-            pulse = 1;
-        } else {
-            const delta = now - this._lastPulseUpdateTime;
-            this._pulseElapsed += delta * speedPulse;
-            pulse = this._calcPulseScale(this._pulseElapsed, phase, scaleOpts);
+        const t = performance.now() * 0.001;
+        let pulse = 1;
+        if (speedPulse > 0) {
+            pulse = this._calcPulseScale(t * speedPulse, phase, scaleOpts);
         }
-        this._lastPulseUpdateTime = now;
         if (this.galaxyCore) {
             this.galaxyCore.scale.set(pulse, pulse, pulse);
         }
