@@ -64,27 +64,35 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
      * @description Cleans up the controller
      * @returns {void}
      */
-    cleanup(logMessage) {
+    cleanup() {   
         if (!this.initialized) return;
-        super.cleanup(logMessage);
 
-        this.logMessage += logMessage +
+        this.logMessage += 
             `----------------------------------------------------------\n` + 
             `starting cleanup in Object_3D_Observer_Controller\n` +
             `----------------------------------------------------------\n`;
 
-        this.initialized = false;
-        this.isVisible = false;
+        super.cleanup();
+
+        this.logMessage += 
+            `----------------------------------------------------------\n` + 
+            `starting cleanup in Object_3D_Observer_Controller after super.cleanup\n` +
+            `----------------------------------------------------------\n`;
+
         this.isResizing = false;
         this.resizeTimeout = null;
         this.isContextLost = false;
+        this.isVisible = false;
+        this.initialized = false;
 
         this.logMessage += `isVisible: ${this.isVisible}\n` +
                        `isInitialized: ${this.initialized}\n` +
                        `isResizing: ${this.isResizing}\n` +
                        `resizeTimeout: ${this.resizeTimeout}\n` +
                        `isContextLost: ${this.isContextLost}\n` +
+                       `cleanup in Object_3D_Observer_Controller completed\n` +
                        `-----------------------------------\n`;
+
     }
 
     /**
@@ -132,7 +140,7 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
     
                     this.logger.log({
                         message: this.logMessage,
-                        functionName: '(SectionObserver) _initVisibilityObserver()',
+                        functionName: '(Object_3D_Observer_Controller) _initVisibilityObserver()',
                     });
     
                     this.logMessage  =  '';

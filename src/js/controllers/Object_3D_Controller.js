@@ -128,31 +128,31 @@ export class Object_3D_Controller {
      */
     canAnimate() {  
         if (!this.isVisible) {
-            this.logMessage += 'canAnimate: isVisible is false\n';
+            this.logMessage += `canAnimate: isVisible is ${this.isVisible}\n`;
             return false;
         }
         if (this.isResizing) {
-            this.logMessage += 'canAnimate: isResizing is true\n';
+            this.logMessage += `canAnimate: isResizing is ${this.isResizing}\n`;
             return false;
         }
         if (!this.initialized) {
-            this.logMessage += 'canAnimate: initialized is false\n';
+            this.logMessage += `canAnimate: initialized is ${this.initialized}\n`;
             return false;
         }
         if (!this.scene) {
-            this.logMessage += 'canAnimate: scene is null\n';
+            this.logMessage += `canAnimate: scene is ${this.scene}\n`;
             return false;
         }
         if (!this.cameraController) {
-            this.logMessage += 'canAnimate: cameraController is null\n';
+            this.logMessage += `canAnimate: cameraController is ${this.cameraController}\n`;
             return false;
         }
         if(!this.cameraController.camera) {
-            this.logMessage += 'canAnimate: camera is null\n';
+            this.logMessage += `canAnimate: camera is ${this.cameraController.camera}\n`;
             return false;
         }
         if (!this.renderer) {
-            this.logMessage += 'canAnimate: renderer i   s null\n';
+            this.logMessage += `canAnimate: renderer is ${this.renderer}\n`;
             return false;
         }
         return true;
@@ -215,22 +215,29 @@ export class Object_3D_Controller {
      * @param {string} [message] - Message to log
      * @returns {void}
      */
-    cleanup(logMessage) {
-        this.logMessage += logMessage +
+    cleanup() {
+        if (!this.initialized) return;
+
+        this.logMessage += 
             `----------------------------------------------------------\n` + 
-            `starting cleanup in Universal3DController\n` +
+            `${this.constructor.name}: starting cleanup in Object_3D_Controller\n` +
             `----------------------------------------------------------\n`;
 
         this.stopAnimation();
-        this._softCleanup();
 
         if (this.renderer) {
             this.renderer.dispose();
+            this.logMessage += `renderer disposed\n`;
             if (this.renderer.domElement && this.container.contains(this.renderer.domElement)) {
                 this.container.removeChild(this.renderer.domElement);
+                this.logMessage += `renderer dom element removed\n`;
             }
             RendererController.getInstance().removeRenderer(this.container.id);
             this.renderer = null;
+        }
+
+        if (this.scene) {
+            this.scene = null;
         }
 
         if (this.cameraController) {
@@ -247,19 +254,15 @@ export class Object_3D_Controller {
             this.observer.disconnect();
             this.observer = null;
         }
-        
-        this.logMessage += 
-            `this.renderer: ${this.renderer}\n` +
-            `Scene: ${this.scene}\n` +
-            `Universal3DController: this.cameraController: ${this.cameraController}\n` +
-            `Resize timeout: ${this.resizeTimeout}\n` +
-            `observer: ${this.observer}\n` +
-            `Completed cleanup in Universal3DController\n`;
 
-        this.logger.log({
-            message: this.logMessage,
-            functionName: '(Object_3D_Controller) cleanup()',
-        });
+        this.logMessage += 
+            `${this.constructor.name}: this.renderer: ${this.renderer}\n` +
+            `${this.constructor.name}: Scene: ${this.scene}\n` +
+            `${this.constructor.name}: this.cameraController: ${this.cameraController}\n` +
+            `${this.constructor.name}: Resize timeout: ${this.resizeTimeout}\n` +
+            `${this.constructor.name}: observer: ${this.observer}\n` +
+            `${this.constructor.name}: Completed cleanup in Object_3D_Controller\n`;
+  
     }
     
     /**
@@ -338,7 +341,6 @@ export class Object_3D_Controller {
                 }
             }, 300);
         });
-
     }
 
     /**
@@ -450,7 +452,7 @@ export class Object_3D_Controller {
     _softCleanup() {
         this.logMessage +=
             `----------------------------------------------------------\n` + 
-            `starting soft cleanup in Universal3DController\n` +
+            `starting soft cleanup\n` +
             `----------------------------------------------------------\n`;
         if (this.scene) {
             this.scene.traverse((object) => {
