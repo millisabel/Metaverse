@@ -113,17 +113,10 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     update() {
-        // --- Позиция ---
-        const pos = this.options.orbit.initialOffset;
-        if (this.galaxyCore) {
-            this.galaxyCore.position.set(pos.x, pos.y, pos.z);
-        }
-        if (this.galaxyPlane) {
-            this.galaxyPlane.position.set(pos.x, pos.y, pos.z);
-        }
+        const time = performance.now() * 0.001;
 
-        this._updateScalePulse();
-        this._updateCorePulse(performance.now() * 0.001);
+        this._updateScalePulse(time);
+        this._updateCorePulse(time);
         this._updatePlaneRotation();
         super.update();
     }
@@ -266,6 +259,12 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         }
     }
 
+    /**
+     * @description Updates the core pulse
+     * @param {number} time
+     * @returns {void}
+     * @protected
+     */
     _updateCorePulse(time) {
         if (this.shaderController) {
             this.shaderController.setUniform('pulseTime', time);
@@ -294,11 +293,16 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         return scale;
     }
 
-    _updateScalePulse() {
+    /**
+     * @description Updates the scale pulse
+     * @param {number} t
+     * @returns {void}
+     * @protected
+     */
+    _updateScalePulse(t) {
         const speedPulse = this.options.orbit.speedPulse || 0;
         const scaleOpts = this.options.orbit.scale;
         const phase = this._orbitPhase;
-        const t = performance.now() * 0.001;
         let pulse = 1;
         if (speedPulse > 0) {
             pulse = this._calcPulseScale(t * speedPulse, phase, scaleOpts);
