@@ -175,13 +175,9 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     _cleanupControllers() {
-        this.logMessage += `${this.constructor.name} (SectionController): _cleanupControllers()\n`;
-
         for (const [key, controller] of Object.entries(this.controllers)) {
             if (controller && typeof controller.cleanup === 'function') {
-                controller.cleanup();
                 delete this.controllers[key];
-                
                 this.logMessage += `controller ${key} cleaned up, state: ${this.controllers[key]}\n`;
             }
         }
