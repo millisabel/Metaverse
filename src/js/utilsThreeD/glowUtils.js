@@ -1,4 +1,4 @@
-import { mergeOptions, shuffleArray } from '../utils/utils';
+import { deepMergeOptions, shuffleArray } from '../utils/utils';
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from '../components/three/singleGlow';
 import { GLOWS_DEFAULT_OPTIONS } from '../components/three/glow';
 
@@ -12,9 +12,9 @@ export function getFinalGlowOptions(individual = {}, localDefaults = {}, userOpt
     // individual — индивидуальные опции для блика (если есть)
 
     // Сначала объединяем глобальные и локальные дефолты
-    const group = mergeOptions(GLOWS_DEFAULT_OPTIONS, localDefaults);
+    const group = deepMergeOptions(GLOWS_DEFAULT_OPTIONS, localDefaults);
     // Затем объединяем с пользовательскими опциями
-    const groupWithUser = mergeOptions(group, userOptions);
+    const groupWithUser = deepMergeOptions(group, userOptions);
     // Очищаем от групповых опций
     const cleanGroup = stripGroupOptions(groupWithUser);
 
@@ -29,7 +29,7 @@ export function getFinalGlowOptions(individual = {}, localDefaults = {}, userOpt
 
 export function getGlowGroupOptions(userOptions = {}) {
     // Глубокий merge дефолтов и пользовательских опций
-    const merged = mergeOptions(GLOWS_DEFAULT_OPTIONS, userOptions);
+    const merged = deepMergeOptions(GLOWS_DEFAULT_OPTIONS, userOptions);
 
     // shuffle colorPalette если нужно
     if (
@@ -54,7 +54,7 @@ export function getGlowGroupOptions(userOptions = {}) {
 export function getSingleGlowOptions(baseOptions, individualOptions = {}, index = 0) {
     const defaultOptions = GLOWS_DEFAULT_OPTIONS;
     // Используем deepMergeOptions для корректного объединения всех вложенных опций
-    const cleanGroup = stripGroupOptions(mergeOptions(defaultOptions, baseOptions));
+    const cleanGroup = stripGroupOptions(deepMergeOptions(defaultOptions, baseOptions));
     const finalOptions = deepMergeOptions(
         Object.keys(SINGLE_GLOW_DEFAULT_OPTIONS),
         individualOptions,

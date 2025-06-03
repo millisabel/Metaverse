@@ -1,4 +1,4 @@
-import { typeText, getClassSelector,  mergeOptionsWithObjectConfig, eraseText} from '../../utils/utils';	
+import { typeText, getClassSelector,  deepMergeOptions, eraseText} from '../../utils/utils';	
 
 const DEFAULT_OPTIONS = {
     classes: {
@@ -27,7 +27,7 @@ export class MoreButton {
         this.container = container;
         this.initialized = false;
         
-        this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, options);
+        this.options = deepMergeOptions(DEFAULT_OPTIONS, options);
 
         this._init();
     }

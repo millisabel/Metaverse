@@ -78,29 +78,6 @@ export function isMobile(size = 768) {
     return window.innerWidth <= size;
 }
 
-
-
-
-
-
-
-export function getSizeContainer(container) {
-    const rect = container.getBoundingClientRect();
-    return {
-        width: rect.width,
-        height: rect.height
-    };
-}
-/**
- * @description Gets the aspect ratio of a container
- * @param {HTMLElement} container - The container element
- * @returns {number} The aspect ratio
- */
-export function getAspectRatio(container) {
-    const { width, height } = getSizeContainer(container);
-    return width / height;
-}
-
 /**
  * @description Creates typing effect with blinking cursor
  * @param {HTMLElement} element 
@@ -109,7 +86,6 @@ export function getAspectRatio(container) {
  * @returns {Promise} 
  */
 export function typeText(element, text, speed = 20) {
-        console.log('typeText');
     return new Promise((resolve) => {
         let i = 0;
         element.textContent = '';
@@ -168,37 +144,6 @@ export function eraseText(element, speed = 20) {
 }
 
 /**
- * @description Updates the copyright year
- * @param {string} selector - Selector for the copyright year element
- * @returns {void}
- */
-export function updateCopyrightYear(selector) {
-    const currentYear = new Date().getFullYear();
-    const copyrightYearElement = document.querySelectorAll(selector);
-    copyrightYearElement.forEach(element => {
-        element.textContent = currentYear;
-    });
-}
-
-/**
- * @description Generates a class selector from a string or array of class names
- * @param {string|Array} classNames - The class names to generate a selector from
- * @returns {string} The generated class selector
- */
-export function getClassSelector(classNames) {
-    if (!classNames) return '';
-    if (Array.isArray(classNames)) {
-      return '.' + classNames.map(c => c.trim()).join('.');
-    }
-    return '.' + classNames.trim().replace(/\s+/g, '.');
-}
-
-
-
-
-
-
-/**
  * @description Get colors from element
  * @param {HTMLElement} container
  * @param {string} selector 
@@ -241,6 +186,60 @@ export function getColors(container, selector, options = {}) {
 
     return colors;
 }
+
+
+
+
+
+
+
+export function getSizeContainer(container) {
+    const rect = container.getBoundingClientRect();
+    return {
+        width: rect.width,
+        height: rect.height
+    };
+}
+/**
+ * @description Gets the aspect ratio of a container
+ * @param {HTMLElement} container - The container element
+ * @returns {number} The aspect ratio
+ */
+export function getAspectRatio(container) {
+    const { width, height } = getSizeContainer(container);
+    return width / height;
+}
+
+/**
+ * @description Updates the copyright year
+ * @param {string} selector - Selector for the copyright year element
+ * @returns {void}
+ */
+export function updateCopyrightYear(selector) {
+    const currentYear = new Date().getFullYear();
+    const copyrightYearElement = document.querySelectorAll(selector);
+    copyrightYearElement.forEach(element => {
+        element.textContent = currentYear;
+    });
+}
+
+/**
+ * @description Generates a class selector from a string or array of class names
+ * @param {string|Array} classNames - The class names to generate a selector from
+ * @returns {string} The generated class selector
+ */
+export function getClassSelector(classNames) {
+    if (!classNames) return '';
+    if (Array.isArray(classNames)) {
+      return '.' + classNames.map(c => c.trim()).join('.');
+    }
+    return '.' + classNames.trim().replace(/\s+/g, '.');
+}
+
+
+
+
+
 
 /**
  * @description Generates a random color

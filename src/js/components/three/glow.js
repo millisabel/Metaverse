@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { SingleGlow } from './singleGlow';
 
 import { createLogger } from "../../utils/logger";
-import { getGlowGroupOptions, getSingleGlowOptions, getAllSingleGlowOptions } from '../../utilsThreeD/glowUtils';
+// import { getGlowGroupOptions, getSingleGlowOptions, getAllSingleGlowOptions } from '../../utilsThreeD/glowUtils';
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from './singleGlow';
 
 export const GLOWS_DEFAULT_OPTIONS = {
@@ -59,7 +59,7 @@ export const GLOWS_DEFAULT_OPTIONS = {
  * @param {HTMLElement} container - The container element
  * @param {Object} options - The options
  */
-export class Glow extends AnimationController {
+export class Glow extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, getGlowGroupOptions(options));
         this.name = this.constructor.name;

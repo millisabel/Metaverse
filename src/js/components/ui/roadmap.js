@@ -1,6 +1,6 @@
 import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
-import { getRandomValue, getColors, mergeOptionsWithObjectConfig, getClassSelector } from '../../utils/utils';
+import { getRandomValue, getColors, deepMergeOptions, getClassSelector } from '../../utils/utils';
 
 /**
  * @description Default options for the roadmap component
@@ -16,12 +16,12 @@ const DEFAULT_OPTIONS = {
         svgContainer: null,
     },
     dots: {
-        count: 10,
+        count: 15,
         minSize: 1,
-        maxSize: 4,
-        minDuration: 3,
-        maxDuration: 5,
-        minOpacity: 0.01,
+        maxSize: 5,
+        minDuration: 2,
+        maxDuration: 6,
+        minOpacity: 0.05,
         maxOpacity: 1,
     },
     animationConfig: {
@@ -42,25 +42,30 @@ export class Roadmap {
         this.logger = createLogger(this.name);
 
         this.container = container;
-        this.observer = null;
         this.initialized = false;
-        this.animationObserver = new AnimationObserverCSS();
 
         this.parentSVG = null;
         this.SVG = null;
         this.quarters = null;
         this.colors = null;
+        this.resizeTimeout = null;
 
-        this.options = mergeOptionsWithObjectConfig(DEFAULT_OPTIONS, options);
+        this.options = deepMergeOptions(DEFAULT_OPTIONS, options);
 
-        this._init();
+        this.animationObserver = new AnimationObserverCSS(
+            [this.container], 
+            null,
+            null
+        );
+
+        this.init();
     }
 
     /**
      * @description Initializes the roadmap component
      * @returns {void}
      */
-    _init() {
+    init() {
         if (!this.container || this.initialized) return;
     
         this.logger.log({
@@ -71,10 +76,48 @@ export class Roadmap {
         this.parentSVG = this.container.querySelector(getClassSelector(this.options.classes.timeline));
         this.SVG = this._createSVG();
         this.quarters = this.container.querySelectorAll(getClassSelector(this.options.classes.quarters));
-        this.colors = this._getQuarterColor();
+        this._getQuarterColor();
 
-        this._initResizeObserver();   
+        // Create initial connection lines
+        this._createConnectionLines();
+        
+        // Add resize handler
+        this._handleResize = this._handleResize.bind(this);
+        window.addEventListener('resize', this._handleResize);
+
+        // Add visibility handler
+        this._handleVisibilityChange = this._handleVisibilityChange.bind(this);
+        this.container.addEventListener('animationend', this._handleVisibilityChange);
+
         this.initialized = true;
+    }
+
+    /**
+     * @description Handle resize event with debounce
+     * @private
+     */
+    _handleResize() {
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+        }
+
+        this.resizeTimeout = setTimeout(() => {
+            if (this.initialized) {
+                this._createConnectionLines();
+            }
+            this.resizeTimeout = null;
+        }, this.options.animationConfig.resizeDelay);
+    }
+
+    /**
+     * @description Handle visibility changes
+     * @param {Event} event - Animation end event
+     * @private
+     */
+    _handleVisibilityChange(event) {
+        if (this.initialized && event.target === this.container) {
+            this._createConnectionLines();
+        }
     }
 
     /**
@@ -82,27 +125,11 @@ export class Roadmap {
      * @returns {void}
      */
     _getQuarterColor() {
-        this.colors = getColors(this.container, '.roadmap-quarter');
+        this.colors = getColors(this.container, getClassSelector(this.options.classes.quarters));
+        
         if (!this.colors.length) {
             this.colors = this.options.colors;
         }
-    }
-
-    /**
-     * @description Initializes the ResizeObserver for the container
-     * @returns {void}
-     */
-    _initResizeObserver() {
-        this.resizeObserver = new ResizeObserver(entries => {
-            for (const entry of entries) {
-                if (entry.target === this.container) {
-                    setTimeout(() => {
-                        this._createConnectionLines();
-                    }, this.options.animationConfig.resizeDelay);
-                }
-            }
-        });
-        this.resizeObserver.observe(this.container);
     }
 
     /**
@@ -128,7 +155,6 @@ export class Roadmap {
         }
 
         this.SVG = this._createSVG();
-
         this._getQuarterColor();
 
         const points = this._createPoints();
@@ -137,55 +163,62 @@ export class Roadmap {
     }
 
     /**
-     * @description Create points
+     * @description Create points for the path
      * @returns {Array}
      */
     _createPoints() {
-        const points = Array.from(this.quarters).map((quarter, index) => {
+        const timelineRect = this.parentSVG.getBoundingClientRect();
+        
+        return Array.from(this.quarters).map((quarter, index) => {
             const rect = quarter.getBoundingClientRect();
-            const timelineRect = this.parentSVG.getBoundingClientRect();
-            
             const styles = window.getComputedStyle(quarter);
             const paddingLeft = parseFloat(styles.paddingLeft);
             const paddingRight = parseFloat(styles.paddingRight);
             const paddingTop = parseFloat(styles.paddingTop);
             
+            // Вычисляем смещение для точек в зависимости от индекса
+            const offsetX = index % 2 === 0 ? paddingRight : -paddingRight;
+            
             let x, y;
             
             if (index % 2 === 0) {
-                x = rect.right - timelineRect.left - paddingRight;
+                // Для четных элементов (слева)
+                x = rect.right - timelineRect.left + offsetX;
                 y = rect.top - timelineRect.top + paddingTop;
             } else {
-                x = rect.left - timelineRect.left + paddingLeft;
+                // Для нечетных элементов (справа)
+                x = rect.left - timelineRect.left + offsetX;
                 y = rect.top - timelineRect.top + paddingTop;
             }
             
             return { x, y };
         });
-
-        return points;
     }
 
     /**
-     * @description Create connection
-     * @param {Array} points - The points
+     * @description Create connection between points
+     * @param {Array} points - The points to connect
      * @returns {void}
      */
     _createConnection(points) {
         const connections = points.slice(0, -1).map((start, index) => {
             const end = points[index + 1];
             
+            // Вычисляем расстояние между точками
             const distance = Math.abs(end.x - start.x);
-            const arcHeight = Math.min(distance * 0.3, 150); // max height
             
+            // Настраиваем высоту дуги в зависимости от расстояния
+            const arcHeight = Math.min(distance * this.options.animationConfig.curvature, 150);
+            
+            // Создаем контрольные точки для кривой Безье
             const controlPoint1 = {
                 x: start.x + (end.x - start.x) * 0.5,
-                y: start.y - arcHeight,
+                y: start.y - arcHeight
             };
             
             const controlPoint2 = {
                 x: end.x - (end.x - start.x) * 0.5,
-                y: end.y - arcHeight,
+                y: end.y - arcHeight
             };
             
             return {
@@ -196,6 +229,7 @@ export class Roadmap {
             };
         });
 
+        // Создаем пути и точки
         connections.forEach((conn, i) => {
             const path = this._createCurvedPath(conn.start, conn.end, conn.controlPoint1, conn.controlPoint2);
             this.SVG.appendChild(path);
@@ -284,24 +318,34 @@ export class Roadmap {
     }
 
     /**
-     * @description Disconnect observer
+     * @description Cleanup the component
      * @returns {void}
      */
-    _disconnect() {
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-            this.resizeObserver = null;
-        }
+    dispose() {
         if (this.animationObserver) {
-            this.animationObserver.disconnect();
-            this.animationObserver = null;
+            this.animationObserver.dispose();
         }
-        // Удалить SVG из DOM, если нужно полностью очистить визуализацию
+
         if (this.SVG && this.SVG.parentNode) {
             this.SVG.parentNode.removeChild(this.SVG);
-            this.SVG = null;
         }
+
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = null;
+        }
+
+        window.removeEventListener('resize', this._handleResize);
+        this.container.removeEventListener('animationend', this._handleVisibilityChange);
+        
         this.initialized = false;
+        this.container = null;
+        this.parentSVG = null;
+        this.SVG = null;
+        this.quarters = null;
+        this.colors = null;
     }
 }
+
+
 
