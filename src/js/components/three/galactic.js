@@ -278,12 +278,11 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
             side: THREE.DoubleSide
         });
 
-        const galaxyPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-        this._setOrbitRotation(galaxyPlane);
+        this.galaxyPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        this._setOrbitRotation(this.galaxyPlane);
         if (this.scene) {
-            this.scene.add(galaxyPlane);
+            this.scene.add(this.galaxyPlane);
         }
-        this.galaxyPlane = galaxyPlane;
     }
 
     /**

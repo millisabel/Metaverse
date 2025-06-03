@@ -272,7 +272,7 @@ export class Object_3D_Controller {
      */
     setupLights(options = {}) {
         if (!this.scene) return;
-        const config = mergeOptionsWithObjectConfig(this.lightsOptions, options);
+        const config = deepMergeOptions(this.lightsOptions, options);
         this.lights = addLightsToScene(this.scene, config);
     }
     

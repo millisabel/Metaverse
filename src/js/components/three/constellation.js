@@ -5,6 +5,7 @@ import constellationsData from '../../data/constellations.json';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
+import { isMobile } from '../../utils/utils';
 
 /**
  * @param {Object} options
@@ -12,6 +13,29 @@ import { createLogger } from "../../utils/logger";
  */
 const DEFAULT_OPTIONS = {
     countConstellations: constellationsData.length,  
+    constellation: {
+        distance: {
+            max: isMobile() ? -100 : -150,
+            min: -10,
+        },
+        screen: {
+            max: isMobile() ? 50 : 100,
+        },
+    },
+    stars: {
+        size: 0.5,
+        opacity: 0.8,
+    },
+    responsive: {
+        constellation: {
+            'distance': {
+                'max': 'isMobile() ? -100 : -150',
+            },
+            'screen': {
+                'max': 'isMobile() ? 50 : 200',
+            },
+        },
+    },
 };
 
 /**
@@ -22,7 +46,10 @@ const DEFAULT_OPTIONS = {
  * @param {Object} data.color - color of the constellation
  */
 class ConstellationGroup {
-    constructor(data, starTexture) {
+    constructor(data, starTexture, optionsConstellation, optionsStars) {
+        this.optionsConstellation = optionsConstellation;
+        this.optionsStars = optionsStars;
+
         this.group = new THREE.Group();
         this.data = data;
         this.stars = [];
@@ -38,8 +65,8 @@ class ConstellationGroup {
         this.zPhase = Math.random() * Math.PI * 2;
         
         // Distance constraints
-        this.maxDistance = -150;
-        this.minDistance = -10;
+        this.maxDistance = this.optionsConstellation.distance.max;
+        this.minDistance = this.optionsConstellation.distance.min;
 
         // Parameters for rotation
         this.rotationSpeed = {
@@ -76,7 +103,7 @@ class ConstellationGroup {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        this.maxScreenDistance = 200;
+        this.maxScreenDistance = this.optionsConstellation.screen.max;
         
         this.init(starTexture);
     }
@@ -94,10 +121,10 @@ class ConstellationGroup {
             );
             const starMaterial = new THREE.PointsMaterial({
                 color: this.data.color || 0xFFFFFF,
-                size: 0.5,
+                size: this.optionsStars.size,
                 map: starTexture,
                 transparent: true,
-                opacity: 0.8,
+                opacity: this.optionsStars.opacity,
                 blending: THREE.AdditiveBlending
             });
 
@@ -108,8 +135,8 @@ class ConstellationGroup {
             this.stars.push({
                 position,
                 mesh: star,
-                baseSize: 0.5,
-                currentSize: 0.5
+                baseSize: this.optionsStars.size,
+                currentSize: this.optionsStars.size
             });
             this.group.add(star);
         });
@@ -331,46 +358,27 @@ export class Constellation extends Object_3D_Observer_Controller {
      * @returns {void}
      */
     async setupScene() {
-        this.logger.log('Scene initialization', {
-            conditions: ['initializing-scene'],
-            functionName: 'setupScene'
-        });
-
+        this.logMessage = `${this.constructor.name} setupScene \n`;
         this._createConstellations();
         this.setupLights(this.options.lights);
+        this.logMessage = `${this.constructor.name} setupScene completed \n`;
     }
 
     /**
-     * @description Create constellations
+     * @description On resize
      * @returns {void}
      */
-    _createConstellations() {
-        const starTexture = createStarTexture();
-
-        const count = this.options.countConstellations || constellationsData.length;
-        const dataToUse = constellationsData.slice(0, count);
-        
-        dataToUse.forEach((data) => {
-            const constellationGroup = new ConstellationGroup(data, starTexture);
-            this.scene.add(constellationGroup.group);
-            this.constellations.push(constellationGroup);
-        });
-
-        this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
-    }
+    onResize() {    
+        this.logMessage = `${this.constructor.name} onResize \n`;
+        super.onResize();
+        this.logMessage = `${this.constructor.name} onResize completed \n`;
+    }   
 
     /**
      * @description Update the animation
      * @returns {void}
      */
     update() {
-        if (!this.canAnimate()) {
-            return;
-        }
-
-        if (!this.animationFrameId) {
-            this.logger.log({conditions: ['running']});
-        }
 
         if (this.frame % 2 === 0) {
             const time = Date.now() * 0.001;
@@ -381,9 +389,8 @@ export class Constellation extends Object_3D_Observer_Controller {
             }
         }
         this.frame++;
-        if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-        }
+
+        super.update();
     }
 
     /**
@@ -391,7 +398,9 @@ export class Constellation extends Object_3D_Observer_Controller {
      * @returns {void}
      */
     cleanup() {
-        let logMessage = `starting cleanup in ${this.constructor.name}\n`;
+        this.logMessage = 
+            `${this.constructor.name} starting cleanup \n` + 
+            `---------------------------------------\n`;
 
         if (this.constellations && Array.isArray(this.constellations)) {
             this.constellations.forEach(constellationGroup => {
@@ -415,6 +424,37 @@ export class Constellation extends Object_3D_Observer_Controller {
         }
 
         this.constellations = [];
-        super.cleanup(logMessage);
+
+        this.logMessage += 
+            `mesh disposed \n` + 
+            `geometry disposed \n` + 
+            `this.constellations ${this.constellations} \n`;
+
+        super.cleanup();
+
+        this.logMessage += `${this.constructor.name} cleanup completed \n`;
+    }
+
+    /**
+     * @description Create constellations
+     * @returns {void}
+     */
+    _createConstellations() {
+        this.logMessage = `${this.constructor.name} _createConstellations \n`;
+
+        const starTexture = createStarTexture();
+
+        const count = this.options.countConstellations || constellationsData.length;
+        const dataToUse = constellationsData.slice(0, count);
+        
+        dataToUse.forEach((data) => {
+            const constellationGroup = new ConstellationGroup(data, starTexture, this.options.constellation, this.options.stars);
+            this.scene.add(constellationGroup.group);
+            this.constellations.push(constellationGroup);
+        });
+
+        this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
+        
+        this.logMessage = `${this.constructor.name} _createConstellations completed \n`;
     }
 }

@@ -25,8 +25,8 @@ const NAME_3D_OBJECTS = {
  */
 const Z_INDEX = {
     SECTION: 0,
-    STARS: 2,
-    GALACTIC: 1,
+    STARS: 1,
+    CONSTELLATION: 2,
 };
 
 const CONFIG = {
@@ -75,11 +75,11 @@ const CONFIG = {
             
         }
     },
-    // CONSTELLATION: {
-    //     classRef: Constellation,
-    //     containerName: 'CONSTELLATION',
-    //     zIndex: 2,
-    // }
+    CONSTELLATION: {
+        classRef: Constellation,
+        containerName: 'CONSTELLATION',
+        zIndex: Z_INDEX.CONSTELLATION,
+    }
 }
 
 /**

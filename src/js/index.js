@@ -23,7 +23,7 @@ if(process.env.NODE_ENV === 'development') {
     // Logger.disableLoggerFor('RendererManager');
 
     // Logger.disableLoggerFor('HeroSetup');
-    Logger.disableLoggerFor('AboutSetup');
+    // Logger.disableLoggerFor('AboutSetup');
     Logger.disableLoggerFor('RoadmapSetup');
     Logger.disableLoggerFor('DynamicsSetup');
     Logger.disableLoggerFor('VRMarketSetup');
@@ -34,7 +34,7 @@ if(process.env.NODE_ENV === 'development') {
     // Logger.disableLoggerFor('Stars');
     // Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Glow');
-    Logger.disableLoggerFor('Constellation');
+    // Logger.disableLoggerFor('Constellation');
     Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
     Logger.disableLoggerFor('SingleGlow');
