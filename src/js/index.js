@@ -80,8 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initModal();
     updateCopyrightYear('[data-year="currentYear"]');
 
-    new AnimationObserverCSS(
-        ['.star', '.roadmap-quarter', '.game-character--badge']
-    );
+    new AnimationObserverCSS([
+        '.star', 
+        '.game-character--badge',
+        { 
+            selector: '.roadmap-quarter',
+            pseudo: 'before'
+        }
+    ]);
 });
 

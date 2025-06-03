@@ -8,11 +8,13 @@ import {createLogger} from "./logger";
  * - Pauses animation when elements are out of viewport, resumes when visible.
  * - Supports dynamic DOM changes via MutationObserver.
  * - Can track active sections for navigation highlighting (e.g., navbar).
+ * - Supports pseudo-element animations tracking through CSS classes
  *
  * @class
  * @example
  * new AnimationObserverCSS([
- *   '.star', '.game-character--badge'
+ *   '.star', '.game-character--badge',
+ *   { selector: '.roadmap-quarter', pseudo: 'before' }
  * ], (activeSectionId) => {
  *   // Highlight nav link logic
  * });
@@ -20,7 +22,7 @@ import {createLogger} from "./logger";
 export class AnimationObserverCSS {
     /**
      * @constructor
-     * @param {Array<string|HTMLElement>} targets - Array of selectors (strings) or DOM elements to observe for animation.
+     * @param {Array<string|HTMLElement|Object>} targets - Array of selectors (strings), DOM elements, or objects with pseudo-element config
      * @param {function(string):void} [onActiveSectionChange] - Callback for active section change (optional).
      * @param {NodeList|Element[]} [sections] - Sections for section observer (optional, defaults to all <section>).
      */
@@ -30,7 +32,7 @@ export class AnimationObserverCSS {
         /** @type {ReturnType<typeof createLogger>} */
         this.logger = createLogger(this.name);
 
-        /** @type {Array<string|HTMLElement>} */
+        /** @type {Array<string|HTMLElement|Object>} */
         this.targets = targets;
         /** @type {function(string):void|null} */
         this.onActiveSectionChange = onActiveSectionChange;
@@ -38,15 +40,42 @@ export class AnimationObserverCSS {
         this.observedElements = new Set();
         /** @type {HTMLElement[]} */
         this.elements = [];
+        /** @type {Map<HTMLElement, string>} */
+        this.pseudoElements = new Map();
 
         /** @type {HTMLElement[]} */
         this.sections = Array.from(sections || document.querySelectorAll('section'));
         /** @type {string} */
         this.currentSection = '';
 
+        this._initStyles();
         this.handleResize = this.handleResize.bind(this);
 
         this.init();
+    }
+
+    /**
+     * Initialize required styles for animation control
+     * @private
+     */
+    _initStyles() {
+        const styleId = 'animation-observer-styles';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                .animation-paused-before::before {
+                    animation: none !important;
+                }
+                .animation-paused-after::after {
+                    animation: none !important;
+                }
+                .animation-paused {
+                    animation-play-state: paused !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     /**
@@ -76,7 +105,7 @@ export class AnimationObserverCSS {
 
     /**
      * Collects all elements to be observed based on selectors or direct DOM elements.
-     * Removes duplicates.
+     * Now supports pseudo-element configurations.
      */
     collectElements() {
         let elements = [];
@@ -85,6 +114,15 @@ export class AnimationObserverCSS {
                 elements.push(...document.querySelectorAll(target));
             } else if (target instanceof HTMLElement) {
                 elements.push(target);
+            } else if (typeof target === 'object' && target.selector) {
+                // Handle pseudo-element configuration
+                const els = document.querySelectorAll(target.selector);
+                els.forEach(el => {
+                    elements.push(el);
+                    if (target.pseudo) {
+                        this.pseudoElements.set(el, target.pseudo);
+                    }
+                });
             }
         });
         this.elements = Array.from(new Set(elements));
@@ -125,20 +163,32 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Sets animation state to running for the element.
+     * Sets animation state to running for the element and its pseudo-elements if configured
      * @param {HTMLElement} el
      */
     startAnimation(el) {
-        el.style.animationPlayState = 'running';
+        if (this.pseudoElements.has(el)) {
+            const pseudo = this.pseudoElements.get(el);
+            el.classList.remove(`animation-paused-${pseudo}`);
+        } else {
+            el.style.animationPlayState = 'running';
+            el.classList.remove('animation-paused');
+        }
         el.setAttribute('data-animation-paused', 'false');
     }
 
     /**
-     * Sets animation state to paused for the element.
+     * Sets animation state to paused for the element and its pseudo-elements if configured
      * @param {HTMLElement} el
      */
     pauseAnimation(el) {
-        el.style.animationPlayState = 'paused';
+        if (this.pseudoElements.has(el)) {
+            const pseudo = this.pseudoElements.get(el);
+            el.classList.add(`animation-paused-${pseudo}`);
+        } else {
+            el.style.animationPlayState = 'paused';
+            el.classList.add('animation-paused');
+        }
         el.setAttribute('data-animation-paused', 'true');
     }
 

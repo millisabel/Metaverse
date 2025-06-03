@@ -53,7 +53,10 @@ export class Roadmap {
         this.options = deepMergeOptions(DEFAULT_OPTIONS, options);
 
         this.animationObserver = new AnimationObserverCSS(
-            [this.container], 
+            [{ 
+                selector: getClassSelector(this.options.classes.quarters),
+                pseudo: 'before'
+            }], 
             null,
             null
         );
