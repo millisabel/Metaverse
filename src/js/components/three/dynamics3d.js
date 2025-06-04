@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { createLogger } from '../../utils/logger';
 import { SingleGlow } from './singleGlow';
-import { mergeOptions } from '../../utils/utils';
+import { deepMergeOptions } from '../../utils/utils';
 import { getFinalGlowOptions } from '../../utilsThreeD/glowUtils';
-import { getAnimatedRotation, getAnimatedPosition, getAnimatedScale } from '../../utilsThreeD/animationUtils';
 
 
 const DEFAULT_MATERIAL_CONFIG = {
@@ -111,7 +110,7 @@ const DEFAULT_LIGHTS_CONFIG = {
     hemiIntensity: 0.5
 };
 
-export class Dynamics3D extends AnimationController {
+export class Dynamics3D extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options);
         
@@ -124,15 +123,7 @@ export class Dynamics3D extends AnimationController {
         this.group = null;
         this.currentScale =  {};
 
-        this.animationParams = mergeOptions(DEFAULT_ANIMATION_PARAMS, this.options.animationParams);
-
-        this.logger.log({
-            conditions: ['init'],
-            functionName: 'constructor',
-            customData: {
-                options: this.options
-            }
-        });
+        this.animationParams = deepMergeOptions(DEFAULT_ANIMATION_PARAMS, this.options.animationParams);
     }
 
     /**
@@ -140,60 +131,142 @@ export class Dynamics3D extends AnimationController {
      * @returns {Promise<void>}
      */
     async setupScene() {
-        if (!this.scene) {
-            this.logger.log('Scene not available for setup', {
-                conditions: ['error'],
-                functionName: 'setupScene',
-                type: 'error',
-            });
-            return;
-        }
-
-        this.logger.log({
-            conditions: ['info'],
-            functionName: 'setupScene',
-            type: 'info',
-            styles: {
-                headerBackground: '#af274b',
-            },
-            customData: {
-                options: this.options,
-            }
-        });
         this.group = new THREE.Group();
-        this._setRendererSizeToContainer();
 
-        try {
-            this._createGlowEffect();
-            await this._createAndAddDecorationMesh();
-            this._createAndAddMainMesh();
-        } catch (error) {
-            this.logger.log(`Failed to create scene elements: ${error}`, {
-                conditions: ['error'],
-                functionName: 'setupScene'
-            });
-        }
+        this._createMesh();
+        await this._createAndAddDecorationMesh();
+        //     this._createGlowEffect();
         
         this.scene.add(this.group);
         this.setupLights(DEFAULT_LIGHTS_CONFIG);
     }
 
     /**
-     * @description Sets the renderer size to the container size
+     * @description Handles external resize events (calls parent logic and updates renderer size)
      * @returns {void}
      */
-    _setRendererSizeToContainer() {
-        const rect = this.container.getBoundingClientRect();
-        const size = Math.min(rect.width, rect.height);
-        this.renderer.setSize(size, size, false);
+    onResize() {
+        super.onResize();
+    }
+
+    /**
+     * @description Updates the group animation
+     * @returns {void}
+     */
+    update() {
+        if (!this.group) return;
+
+        const t = performance.now() * 0.001;
+
+        this._meshAnimation(t);
+        this._applyGroupAnimation(t);
+        // this._animateGlowEffect(t);
+
+        super.update();
+    }
+
+    /**
+     * @description Cleans up the dynamics3d component
+     * @returns {void}
+     */
+    cleanup() {
+        this.logMessage += `${this.constructor.name} starting cleanup\n`;
+
+        // if (this.glowEffect) {
+        //     if (typeof this.glowEffect.dispose === 'function') {
+        //         this.glowEffect.dispose();
+        //     }
+        //     this.glowEffect = null;
+        // }
+
+        if (this.group) {
+            this.group.clear();
+            if (this.scene) {
+                this.scene.remove(this.group);
+            }
+            this.group = null;
+        }
+
+        this.mesh = null;
+        // this.decorationMesh = null;
+
+        super.cleanup();
+
+        this.logMessage += `${this.constructor.name} cleanup completed\n`;
     }
     
+    /**
+     * @description Creates and adds the main mesh to the group
+     * @returns {void}
+     */
+    _createMesh() {
+        const geometry = this._createGeometry();
+        const material = this._createGlowMaterial();
+
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
+    
+        const meshOptions = this.options.mesh || {};
+        this._applyMeshTransform(meshOptions);
+    
+        if (this.mesh instanceof THREE.Object3D) {
+            this.group.add(this.mesh);
+        }
+    }
+
+    /**
+     * @description Creates the main mesh geometry
+     * @returns {THREE.Geometry}
+     */
+    _createGeometry() {
+        switch (this.options.mesh.shape) {
+            case 'circle':
+                return new THREE.CircleGeometry(...this.options.mesh.geometry);
+            case 'box':
+                return new THREE.BoxGeometry(...this.options.mesh.geometry);
+            default:
+                return new THREE.CircleGeometry(1, 16);
+        }
+    }
+
+    /**
+     * @description Creates the glow material
+     * @returns {THREE.Material}
+     */
+    _createGlowMaterial() {
+        const object3dConfig = deepMergeOptions(DEFAULT_OBJECT_3D_CONFIG.material, this.options.mesh.material);
+        const material = new THREE.MeshStandardMaterial(object3dConfig);
+
+        return material;
+    }
+
+    /**
+     * @description Applies the mesh transform
+     * @param {THREE.Mesh} mesh - The mesh to apply the transform to
+     * @param {Object} meshOptions - The mesh options
+     * @returns {void}
+     */
+    _applyMeshTransform(meshOptions = {}) {
+        const scale = meshOptions.scale || { x: 1, y: 1, z: 1 };
+        this.mesh.scale.set(scale.x, scale.y, scale.z);
+ 
+        const position = meshOptions.position || { x: 0, y: 0, z: 0 };
+        this.mesh.position.set(
+            position.x ?? 0,
+            position.y ?? 0,
+            position.z ?? 0
+        );
+    }
+
+    // DECORATION
+
     /**
      * @description Creates and adds the decoration mesh to the group
      * @returns {Promise<void>}
      */
     async _createAndAddDecorationMesh() {
         this.decorationMesh = await this._createDecoration();
+
         if (this.decorationMesh) {
             this.decorationMesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
             if (this.decorationMesh instanceof THREE.Object3D) {
@@ -226,15 +299,15 @@ export class Dynamics3D extends AnimationController {
         decoration.position.z = 0;
         return decoration; 
     }
-
+    
     /**
      * @description Gets the decoration material
      * @returns {Promise<{material: THREE.MeshStandardMaterial, size: {width: number, height: number}}>}
      */ 
     async _getDecorationMaterial() {
-        let materialConfig = mergeOptions(DEFAULT_MATERIAL_CONFIG.options, this.options.decoration.options);
+        let materialConfig = deepMergeOptions(DEFAULT_MATERIAL_CONFIG.options, this.options.decoration.options);
         delete materialConfig.texture;
-        let materialSize = mergeOptions(DEFAULT_MATERIAL_CONFIG.size, this.options.decoration.size);
+        let materialSize = deepMergeOptions(DEFAULT_MATERIAL_CONFIG.size, this.options.decoration.size);
     
         const loader = new THREE.TextureLoader();
         const texturePath = this.options.decoration.patch;
@@ -255,110 +328,22 @@ export class Dynamics3D extends AnimationController {
             size: materialSize
         };
     }
-    
+
+    // ANIMATION
+
     /**
-     * @description Creates and adds the main mesh to the group
+     * @description Applies the mesh animation
+     * @param {number} t - The time
+     * @param {Object} params - The animation parameters
      * @returns {void}
      */
-    _createAndAddMainMesh() {
-        const geometry = this._createGeometry();
-        const material = this._createGlowMaterial();
+    _meshAnimation(t) {
+        if (!this.mesh) return;
 
-        if (!geometry || !material) {
-            this.logger.log('Failed to create main mesh', {
-                conditions: ['error'],
-                functionName: 'createAndAddMainMesh'
-            });
-            return ;
-        }
+        const params = this.animationParams.mesh;
 
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
-    
-        const meshOptions = this.options.mesh || {};
-        this._applyMeshTransform(this.mesh, meshOptions);
-    
-        if (this.mesh instanceof THREE.Object3D) {
-            this.group.add(this.mesh);
-        }
-    }
-
-    /**
-     * @description Creates the main mesh geometry
-     * @returns {THREE.Geometry}
-     */
-    _createGeometry() {
-        switch (this.options.mesh.shape) {
-            case 'circle':
-                return new THREE.CircleGeometry(...this.options.mesh.geometry);
-            case 'box':
-                return new THREE.BoxGeometry(...this.options.mesh.geometry);
-            default:
-                return new THREE.CircleGeometry(1, 64);
-        }
-    }
-
-    _createGlowMaterial() {
-        const object3dConfig = mergeOptions(DEFAULT_OBJECT_3D_CONFIG.material, this.options.mesh.material);
-        const material = new THREE.MeshStandardMaterial(object3dConfig);
-
-        return material;
-    }
-
-    /**
-     * @description Applies the mesh transform
-     * @param {THREE.Mesh} mesh - The mesh to apply the transform to
-     * @param {Object} meshOptions - The mesh options
-     * @returns {void}
-     */
-    _applyMeshTransform(mesh, meshOptions = {}) {
-        const scale = meshOptions.scale || { x: 1, y: 1, z: 1 };
-        mesh.scale.set(scale.x, scale.y, scale.z);
- 
-        const position = meshOptions.position || { x: 0, y: 0, z: 0 };
-        mesh.position.set(
-            position.x ?? 0,
-            position.y ?? 0,
-            position.z ?? 0
-        );
-    }
-
-    /**
-     * @description Creates the glow effect
-     * @returns {void}
-     */
-    _createGlowEffect() {
-        this.logger.log({
-            functionName: 'createGlowEffect',
-            customData: {
-                options: this.options
-            }
-        });
-
-        if (!this.options.glow && !this.options.glow.enabled) {
-            return;
-        }
-        
-        const options = getFinalGlowOptions(
-            {}, 
-            GLOW_DYNAMIC_DEFAULTS_OPTIONS, 
-            this.options.glow.options      
-        );
-
-        this.glowEffect = new SingleGlow(
-            this.scene,
-            this.renderer,
-            this.container,
-            this.camera,
-            options,
-        );
-        this.glowEffect.setup();
-
-        if (this.glowEffect.mesh) {
-            if (this.glowEffect.mesh instanceof THREE.Object3D) {
-                this.group.add(this.glowEffect.mesh);
-            }
-        }
+        const rot = this._getAnimatedRotation(t, params.rotation);
+        this.mesh.rotation.set(rot.x, rot.y, rot.z);
     }
 
     /**
@@ -367,14 +352,16 @@ export class Dynamics3D extends AnimationController {
      * @param {Object} params - The animation parameters
      * @returns {void}
      */
-    _applyGroupAnimation(t, params) {
-        const rot = getAnimatedRotation(t, params.rotation);
+    _applyGroupAnimation(t) {
+        const params = this.animationParams.group;
+
+        const rot = this._getAnimatedRotation(t, params.rotation);
         this.group.rotation.set(rot.x, rot.y, rot.z);
     
-        const pos = getAnimatedPosition(t, params.position);
+        const pos = this._getAnimatedPosition(t, params.position);
         this.group.position.set(pos.x, pos.y, pos.z);
     
-        const scale = getAnimatedScale(t, params.scale);
+        const scale = this._getAnimatedScale(t, params.scale);
         this.group.scale.set(scale.x, scale.y, scale.z);
 
         this.currentScale = {
@@ -385,16 +372,83 @@ export class Dynamics3D extends AnimationController {
     }
 
     /**
-     * @description Applies the mesh animation
+     * @description Gets the animated rotation
      * @param {number} t - The time
-     * @param {Object} params - The animation parameters
+     * @param {Object} rotationParams - The rotation parameters
+     * @returns {Object} The animated rotation
+     */
+    _getAnimatedRotation(t, rotationParams) {
+        return {
+            x: Math.sin(t * rotationParams.x.speed + (rotationParams.x.phase || 0)) * (rotationParams.x.amplitude || 0),
+            y: Math.cos(t * rotationParams.y.speed + (rotationParams.y.phase || 0)) * (rotationParams.y.amplitude || 0),
+            z: Math.sin(t * rotationParams.z.speed + (rotationParams.z.phase || 0)) * (rotationParams.z.amplitude || 0),
+        };
+    }
+
+    /**
+     * @description Gets the animated position
+     * @param {number} t - The time
+     * @param {Object} positionParams - The position parameters
+     * @returns {Object} The animated position
+     */
+    _getAnimatedPosition(t, positionParams) {
+        return {
+            x: Math.sin(t * positionParams.x.speed + (positionParams.x.phase || 0)) * (positionParams.x.amplitude || 0),
+            y: Math.sin(t * positionParams.y.speed + (positionParams.y.phase || 0)) * (positionParams.y.amplitude || 0),
+            z: positionParams.z.basePosition - Math.abs(Math.sin(t * positionParams.z.speed + (positionParams.z.phase || 0)) * (positionParams.z.amplitude || 0)),
+        };
+    }
+
+    /**
+     * @description Gets the animated scale
+     * @param {number} t - The time
+     * @param {Object} scaleParams - The scale parameters
+     * @returns {Object} The animated scale
+     */
+    _getAnimatedScale(t, scaleParams) {
+        const scale = 1 + Math.sin(t * scaleParams.speed) * (scaleParams.amplitude || 0);
+        return { x: scale, y: scale, z: scale };
+    }
+
+    // GLOW
+
+    /**
+     * @description Creates the glow effect
      * @returns {void}
      */
-    _applyMeshAnimation(t, params) {
-        if (!this.mesh || !params || !params.rotation) return;
-        const rot = getAnimatedRotation(t, params.rotation);
-        this.mesh.rotation.set(rot.x, rot.y, rot.z);
-    }
+    // _createGlowEffect() {
+    //     this.logger.log({
+    //         functionName: 'createGlowEffect',
+    //         customData: {
+    //             options: this.options
+    //         }
+    //     });
+
+    //     if (!this.options.glow && !this.options.glow.enabled) {
+    //         return;
+    //     }
+        
+    //     const options = getFinalGlowOptions(
+    //         {}, 
+    //         GLOW_DYNAMIC_DEFAULTS_OPTIONS, 
+    //         this.options.glow.options      
+    //     );
+
+    //     this.glowEffect = new SingleGlow(
+    //         this.scene,
+    //         this.renderer,
+    //         this.container,
+    //         this.camera,
+    //         options,
+    //     );
+    //     this.glowEffect.setup();
+
+    //     if (this.glowEffect.mesh) {
+    //         if (this.glowEffect.mesh instanceof THREE.Object3D) {
+    //             this.group.add(this.glowEffect.mesh);
+    //         }
+    //     }
+    // }
 
     /**
      * @description Animates the glow effect based on the object's position
@@ -416,61 +470,5 @@ export class Dynamics3D extends AnimationController {
                 this.sectionController.setGlowScaleForCard(this.cardIndex, scale);
             }
         }
-    }
-
-    /**
-     * @description Handles external resize events (calls parent logic and updates renderer size)
-     * @returns {void}
-     */
-    onResize() {
-        this.logger.log({ functionName: 'onResize' });
-        if (super.onResize) super.onResize();
-    }
-
-    /**
-     * @description Updates the group animation
-     * @returns {void}
-     */
-    update() {
-        if (!this.group) return;
-
-        const t = performance.now() * 0.001;
-
-        this._applyMeshAnimation(t, this.animationParams.mesh);
-        this._applyGroupAnimation(t, this.animationParams.group);
-        this._animateGlowEffect(t);
-        this.renderScene();
-    }
-
-    /**
-     * @description Cleans up the dynamics3d component
-     * @returns {void}
-     */
-    cleanup() {
-        let logMessage = `starting cleanup in ${this.constructor.name}\n`;
-
-        if (this.glowEffect) {
-            if (typeof this.glowEffect.dispose === 'function') {
-                this.glowEffect.dispose();
-            }
-            this.glowEffect = null;
-            logMessage += `Glow effect disposed\n`;
-        }
-
-        if (this.group) {
-            this.group.clear();
-            if (this.scene) {
-                this.scene.remove(this.group);
-            }
-            this.group = null;
-                logMessage += `Group removed from scene\n`;
-        }
-
-        this.mesh = null;
-        logMessage += `Mesh removed from scene\n`;
-        this.decorationMesh = null;
-        logMessage += `Decoration mesh removed from scene\n`;
-
-        super.cleanup(logMessage);
     }
 }

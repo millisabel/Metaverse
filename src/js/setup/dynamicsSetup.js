@@ -1,4 +1,4 @@
-import { Universal3DSection } from '../controllers/Universal3DSection';
+import { SectionController } from '../controllers/SectionController';
 import { Dynamics3D } from '../components/three/dynamics3d';
 import { Glow } from '../components/three/glow';
 
@@ -173,9 +173,16 @@ const CONFIG_GLOW = {
     containerName: 'DYNAMICS_GLOW',
     zIndex: Z_INDEX.GLOW,
     classRef: Glow,
+    camera: {
+        position: {
+            x: 0,
+            y: 0,
+            z: 2,
+        },
+    },
     objectConfig: {
         objectOptions: {
-            size: { min: 0.1, max: 0.1 }, 
+            size: { min: 1, max: 1 }, 
             movement: {
                 enabled: false,
                 zEnabled: true,
@@ -187,13 +194,16 @@ const CONFIG_GLOW = {
                 }
             },
             scale: {
-                min: 0, 
-                max: 10
+                min: 1, 
+                max: 1
             },
             positioning: {
                 mode: 'element',
-                align: isMobile ? 'top center' : 'center center',
-                offset: { x: 0, y: isMobile ? 0 : -100 }
+                align: isMobile() ? 'top left' : 'center bottom',
+                offset: { 
+                    x: 0, 
+                    y: isMobile() ? 0 : 100 
+                }
             },
             pulseControl: {
                 enabled: true,
@@ -202,8 +212,8 @@ const CONFIG_GLOW = {
         },
         shaderOptions: {
             scale: {
-                min: 0, 
-                max: 10
+                min: 1, 
+                max: 1
             },
             opacity: {
                 min: 0, 
@@ -258,7 +268,6 @@ const CONFIG_GLOW = {
         ]
     }
 };
-const cardKeys = ['CARD_GUARDIANS', 'CARD_METAVERSE', 'CARD_SANKOPA'];
 const CONFIG = {
     CARD_GUARDIANS: CONFIG_CARDS.GUARDIANS,
     CARD_METAVERSE: CONFIG_CARDS.METAVERSE,
@@ -266,26 +275,27 @@ const CONFIG = {
     GLOW: CONFIG_GLOW,
 };
 
-export class DynamicsSetup extends Universal3DSection {
+const cardKeys = [CARD_NAMES.GUARDIANS, CARD_NAMES.METAVERSE, CARD_NAMES.SANKOPA];
+
+export class DynamicsSetup extends SectionController {
     constructor() {
         super(SECTION_ID, CONFIG, Z_INDEX.SECTION);
     }
+    // syncWithCard(card3D, cardIndex) {
+    //     if (this.controllers.GLOW && typeof this.controllers.GLOW.syncWithCard === 'function') {
+    //         this.controllers.GLOW.syncWithCard(card3D, cardIndex);
+    //     }
+    // }
 
-    syncWithCard(card3D, cardIndex) {
-        if (this.controllers.GLOW && typeof this.controllers.GLOW.syncWithCard === 'function') {
-            this.controllers.GLOW.syncWithCard(card3D, cardIndex);
-        }
-    }
-
-    update() {
-        super.update();
-        cardKeys.forEach((key, index) => {
-            const card = this.controllers[key];
-            if (card) {
-                this.syncWithCard(card, index);
-            }
-        });
-    }
+    // update() {
+    //     super.update();
+    //     cardKeys.forEach((key, index) => {
+    //         const card = this.controllers[key];
+    //         if (card) {
+    //             this.syncWithCard(card, index);
+    //         }
+    //     });
+    // }
 }
 
 

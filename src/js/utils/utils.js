@@ -187,29 +187,6 @@ export function getColors(container, selector, options = {}) {
     return colors;
 }
 
-
-
-
-
-
-
-export function getSizeContainer(container) {
-    const rect = container.getBoundingClientRect();
-    return {
-        width: rect.width,
-        height: rect.height
-    };
-}
-/**
- * @description Gets the aspect ratio of a container
- * @param {HTMLElement} container - The container element
- * @returns {number} The aspect ratio
- */
-export function getAspectRatio(container) {
-    const { width, height } = getSizeContainer(container);
-    return width / height;
-}
-
 /**
  * @description Updates the copyright year
  * @param {string} selector - Selector for the copyright year element
@@ -236,10 +213,43 @@ export function getClassSelector(classNames) {
     return '.' + classNames.trim().replace(/\s+/g, '.');
 }
 
+/**
+ * @description Shuffles an array
+ * @param {Array} array - The array to shuffle
+ * @returns {Array} The shuffled array
+ */
+export function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
 
 
 
 
+
+
+
+
+export function getSizeContainer(container) {
+    const rect = container.getBoundingClientRect();
+    return {
+        width: rect.width,
+        height: rect.height
+    };
+}
+/**
+ * @description Gets the aspect ratio of a container
+ * @param {HTMLElement} container - The container element
+ * @returns {number} The aspect ratio
+ */
+export function getAspectRatio(container) {
+    const { width, height } = getSizeContainer(container);
+    return width / height;
+}
 
 /**
  * @description Generates a random color
@@ -259,20 +269,6 @@ export function getRandomValue(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-
-/**
- * @description Shuffles an array
- * @param {Array} array - The array to shuffle
- * @returns {Array} The shuffled array
- */
-export function shuffleArray(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
 
 
 /**

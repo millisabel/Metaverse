@@ -4,9 +4,28 @@ import { Glow } from '../components/three/glow';
 import { projectToBack } from '../utilsThreeD/utilsThreeD';
 import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
+const SECTION_ID = 'explore-3d';
+
+const NAME_3D_OBJECTS = {
+    GLOW: 'GLOW',
+};  
+
+const Z_INDEX = {
+    SECTION: 0,
+    GLOW: 1,
+};
+
+const CONFIG = {
+    GLOW: {
+        classRef: Glow,
+        containerName: NAME_3D_OBJECTS.GLOW,
+        zIndex: Z_INDEX.GLOW,
+    }
+};
+
 export class ExploreSetup extends SectionObserver {
     constructor() {
-        super('explore-3d', 'ExploreSetup', {
+        super(SECTION_ID, 'ExploreSetup', {
             camera: {
                 fov: 75,
                 position: { x: 0, y: 0, z: 0 },

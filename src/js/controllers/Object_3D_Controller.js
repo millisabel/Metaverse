@@ -26,7 +26,6 @@ export class Object_3D_Controller {
         this.cameraController = null;
         this.animationFrameId = null;
         this.resizeTimeout = null;
-
     }
 
     _logMessage() {

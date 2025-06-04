@@ -1,4 +1,4 @@
-import { deepMergeOptions, shuffleArray } from '../utils/utils';
+import { deepMergeOptions } from '../utils/utils';
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from '../components/three/singleGlow';
 import { GLOWS_DEFAULT_OPTIONS } from '../components/three/glow';
 
@@ -27,74 +27,6 @@ export function getFinalGlowOptions(individual = {}, localDefaults = {}, userOpt
     );
 }
 
-export function getGlowGroupOptions(userOptions = {}) {
-    // Глубокий merge дефолтов и пользовательских опций
-    const merged = deepMergeOptions(GLOWS_DEFAULT_OPTIONS, userOptions);
-
-    // shuffle colorPalette если нужно
-    if (
-        (!merged.individualOptions || merged.individualOptions.length === 0) &&
-        Array.isArray(merged.colorPalette)
-    ) {
-        merged.colorPalette = merged.shuffleColors
-            ? shuffleArray([...merged.colorPalette])
-            : [...merged.colorPalette];
-    }
-
-    return merged;
-}
-
-/**
- * @description Gets the single glow options
- * @param {Object} baseOptions - The base options
- * @param {Object} individualOptions - The individual options
- * @param {number} index - The index
- * @returns {Object} The single glow options
- */
-export function getSingleGlowOptions(baseOptions, individualOptions = {}, index = 0) {
-    const defaultOptions = GLOWS_DEFAULT_OPTIONS;
-    // Используем deepMergeOptions для корректного объединения всех вложенных опций
-    const cleanGroup = stripGroupOptions(deepMergeOptions(defaultOptions, baseOptions));
-    const finalOptions = deepMergeOptions(
-        Object.keys(SINGLE_GLOW_DEFAULT_OPTIONS),
-        individualOptions,
-        cleanGroup,
-        SINGLE_GLOW_DEFAULT_OPTIONS
-    );
-
-    // Корректируем objectOptions.positioning и objectOptions.initialPosition
-    finalOptions.objectOptions.positioning = resolvePositioningMode(finalOptions.objectOptions);
-    finalOptions.objectOptions.positioning.initialPosition = resolveGlowPosition(finalOptions.objectOptions, index);
-    // Корректируем цвет (индивидуальный/групповой)
-    finalOptions.shaderOptions.color = resolveGlowColor(
-        index,
-        individualOptions.shaderOptions || {},
-        baseOptions,
-        defaultOptions
-    );
-
-    // Корректируем pulseControl
-    const pulseControl = finalOptions.objectOptions.pulseControl || {};
-    const individualPulse = individualOptions.objectOptions?.pulseControl || {};
-    finalOptions.objectOptions.pulseControl = {
-        enabled: individualPulse.enabled !== undefined ? individualPulse.enabled : pulseControl.enabled,
-        randomize: individualPulse.randomize !== undefined ? individualPulse.randomize : pulseControl.randomize
-    };
-
-    if (
-        finalOptions.objectOptions.pulseControl.randomize &&
-        (!individualOptions.shaderOptions || !individualOptions.shaderOptions.pulse)
-    ) {
-        applyRandomizedPulseOptions(finalOptions.shaderOptions);
-    }
-
-    if (typeof window !== 'undefined') {
-        console.log('SingleGlow FINAL options:', finalOptions);
-    }
-
-    return finalOptions;
-}
-
 /**
  * @description Applies the randomized pulse options
  * @param {Object} shaderOptions - The shader options
@@ -118,67 +50,6 @@ function applyRandomizedPulseOptions(shaderOptions) {
 }
 
 /**
- * @description Resolves the glow color
- * @param {number} index - The index
- * @param {Object} individual - The individual
- * @param {Object} groupOptions - The group options
- * @param {Object} defaultOptions - The default options
- * @returns {string|number} The resolved color
- */ 
-function resolveGlowColor(index, individual, groupOptions, defaultOptions) {
-    // 1. Индивидуальный уровень
-    if (individual && individual.shaderOptions && individual.shaderOptions.color)
-        return individual.shaderOptions.color;
-    // 2. Групповой уровень
-    if (groupOptions && groupOptions.shaderOptions && groupOptions.shaderOptions.color)
-        return groupOptions.shaderOptions.color;
-    // 3. Массив цветов (через colorPalette)
-    if (Array.isArray(groupOptions.colorPalette)) {
-        const colors = groupOptions.shuffleColors
-            ? shuffleArray([...groupOptions.colorPalette])
-            : [...groupOptions.colorPalette];
-        return colors[index % colors.length];
-    }
-    // 4. Дефолт
-    return defaultOptions.shaderOptions.color;
-}
-
-/** 
- * @description Resolves the glow position
- * @param {Object} options - The options
- * @param {number} index - The index
- * @returns {Object} The resolved position
- */
-function resolveGlowPosition(options, index) {
-    if (options.positioning?.mode === 'fixed') {
-        return options.position;
-    }
-    if (options.positioning?.mode === 'random') {
-        return getRandomGlowPosition(options, index);
-    }
-    return undefined;
-}
-
-/**
- * @description Resolves the glow positioning mode
- * @param {Object} options - The options
- * @returns {Object} The resolved positioning mode
- */
-function resolvePositioningMode(options) {
-    let positioning = options.positioning || {};
-    if (!positioning.mode) {
-        if (positioning.targetSelector) {
-            positioning.mode = 'element';
-        } else if (options.position) {
-            positioning.mode = 'fixed';
-        } else {
-            positioning.mode = 'random';
-        }
-    }
-    return positioning;
-}
-
-/**
  * @description Strips the group options
  * @param {Object} options - The options
  * @returns {Object} The stripped options
@@ -193,27 +64,6 @@ function stripGroupOptions(options) {
     } = options;
 
     return rest;
-}
-
-/**
- * @description Gets the random glow position
- * @param {Object} options - The options
- * @param {number} index - The index
- * @returns {Object} The random glow position
- */
-function getRandomGlowPosition(options, index) {
-    if (Array.isArray(options.initialPositions) && options.initialPositions.length > 0) {
-        return options.initialPositions[index % options.initialPositions.length];
-    }
-    const movement = options.movement || {};
-    const xSpread = movement.range?.x || 1;
-    const ySpread = movement.range?.y || 1;
-    const zRange = movement.range?.z || 0.1;
-    const zEnabled = movement.zEnabled !== false;
-    const x = (Math.random() - 0.5) * xSpread;
-    const y = (Math.random() - 0.5) * ySpread;
-    const z = zEnabled ? (Math.random() * 2 - 1) * zRange : 0;
-    return { x, y, z };
 }
 
 function getOptionValue(key, individual, group, def) {
@@ -231,107 +81,179 @@ function getOptionValue(key, individual, group, def) {
     return def[key];
 }
 
-/**
- * @description Формирует массив опций для каждого блика (группового или одиночного)
- * @param {Object} groupOptions - Групповые опции (то, что приходит в Glow)
- * @param {Object} classDefaults - Дефолты класса (например, GLOW_DEFAULT_OPTIONS)
- * @param {Object} singleDefaults - Дефолты одиночного блика (SINGLE_GLOW_DEFAULT_OPTIONS)
- * @returns {Array<Object>} Массив опций для каждого блика
- */
-export function getAllSingleGlowOptions(groupOptions, classDefaults, singleDefaults) {
-    const individualOptions = Array.isArray(groupOptions.individualOptions) ? groupOptions.individualOptions : [];
-    let count = groupOptions.count || 1;
-    if (individualOptions.length > count) count = individualOptions.length;
-    const palette = Array.isArray(groupOptions.colorPalette) ? [...groupOptions.colorPalette] : [];
-    const useShuffle = !!groupOptions.shuffleColors;
-    if (palette.length && useShuffle) {
-        for (let i = palette.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [palette[i], palette[j]] = [palette[j], palette[i]];
-        }
-    }
-    const result = [];
-    for (let i = 0; i < count; i++) {
-        const individual = individualOptions[i] || {};
-        // Глубокий merge: individual → groupOptions → classDefaults → singleDefaults
-        const merged = deepMergeOptions(
-            Object.keys(singleDefaults),
-            individual,
-            groupOptions,
-            classDefaults,
-            singleDefaults
-        );
-        // Цвет по приоритету
-        merged.shaderOptions = merged.shaderOptions || {};
-        merged.shaderOptions.color = resolveGlowColorFull(
-            i,
-            individual.shaderOptions || {},
-            individual,
-            groupOptions,
-            classDefaults,
-            singleDefaults,
-            palette
-        );
-        // Корректируем objectOptions.positioning и objectOptions.initialPosition
-        merged.objectOptions.positioning = resolvePositioningMode(merged.objectOptions);
-        merged.objectOptions.positioning.initialPosition = resolveGlowPosition(merged.objectOptions, i);
-        result.push(merged);
-    }
-    return result;
-}
+// Color
 
 /**
- * @description Расширенная функция выбора цвета по приоритету для блика
+ * @description Extended function for selecting a color by priority for a glow
+ * @param {number} index - The index
+ * @param {Object} shaderIndividual - The shader individual
+ * @param {Object} individual - The individual
+ * @param {Object} group - The group
+ * @param {Object} classDefaults - The class defaults
+ * @param {Object} singleDefaults - The single defaults
+ * @param {Array} palette - The palette
+ * @returns {string|number} The resolved color
  */
-function resolveGlowColorFull(index, shaderIndividual, individual, group, classDefaults, singleDefaults, palette) {
-    // 1. Индивидуальный уровень (shaderOptions.color)
+export function resolveGlowColor(index, shaderIndividual, individual, group, classDefaults, singleDefaults, palette) {
     if (shaderIndividual && shaderIndividual.color) return shaderIndividual.color;
-    // 2. Индивидуальный уровень (color)
     if (individual && individual.color) return individual.color;
-    // 3. Групповой уровень (shaderOptions.color)
     if (group && group.shaderOptions && group.shaderOptions.color) return group.shaderOptions.color;
-    // 4. Групповой уровень (color)
     if (group && group.color) return group.color;
-    // 5. colorPalette
     if (palette && palette.length) return palette[index % palette.length];
-    // 6. classDefaults (shaderOptions.color)
     if (classDefaults && classDefaults.shaderOptions && classDefaults.shaderOptions.color) return classDefaults.shaderOptions.color;
-    // 7. classDefaults (color)
     if (classDefaults && classDefaults.color) return classDefaults.color;
-    // 8. singleDefaults (shaderOptions.color)
     if (singleDefaults && singleDefaults.shaderOptions && singleDefaults.shaderOptions.color) return singleDefaults.shaderOptions.color;
-    // 9. singleDefaults (color)
     if (singleDefaults && singleDefaults.color) return singleDefaults.color;
-    // 10. fallback
     return 0xffffff;
 }
 
-// Обновлённый deepMergeOptions для поддержки произвольного числа уровней и гарантии структуры singleDefaults
-function deepMergeOptions(keys, ...sources) {
-    const result = {};
-    for (const key of keys) {
-        // Собираем значения для этого ключа из всех sources
-        const values = sources.map(src => (src && src[key] !== undefined ? src[key] : undefined));
-        // Если хотя бы одно значение — объект (и не массив), делаем рекурсивный merge
-        if (values.some(v => typeof v === 'object' && v !== null && !Array.isArray(v))) {
-            // Собираем все объекты для этого ключа
-            const objects = values.map(v => (typeof v === 'object' && v !== null && !Array.isArray(v) ? v : {}));
-            // Берём ключи из singleDefaults (последний source)
-            const subKeys = Object.keys(objects[objects.length - 1]);
-            result[key] = deepMergeOptions(subKeys, ...objects);
+// Positioning
+
+/**
+ * @description Resolves the glow positioning mode
+ * @param {Object} options - The options
+ * @returns {Object} The resolved positioning mode
+ */
+export function resolvePositioningMode(options) {
+    let positioning = options.positioning || {};
+
+    if (!positioning.mode) {
+        if (positioning.targetSelector) {
+            positioning.mode = 'element';
+        } else if (options.position) {
+            positioning.mode = 'fixed';
         } else {
-            // Берём первое определённое значение с конца (приоритет: individual → group → class → default)
-            let merged = undefined;
-            for (let i = 0; i < values.length; i++) {
-                if (values[i] !== undefined) {
-                    merged = values[i];
-                    break;
-                }
-            }
-            if (merged !== undefined) {
-                result[key] = merged;
-            }
+            positioning.mode = 'random';
         }
     }
-    return result;
+    return positioning;
+}
+
+/** 
+ * @description Resolves the glow position based on positioning mode
+ * @param {Object} options - The options
+ * @param {number} index - The index
+ * @returns {Object} The resolved position
+ */
+export function resolveGlowPosition(options, index, glowCount) {
+    const mode = options.positioning?.mode;
+    
+    if (mode === 'element' && !options.positioning.container) {
+        console.warn('Container is required for element positioning, falling back to random');
+        return getRandomGlowPosition(options, index, glowCount);
+    }
+    
+    let position;
+    switch (mode) {
+        case 'fixed':
+            position = { ...options.position };
+            break;
+            
+        case 'random':
+            position = getRandomGlowPosition(options, index, glowCount);
+            break;
+            
+        case 'element':
+            position = getPositionByElement(options);
+            break;
+            
+        default:
+            console.warn(`Unknown positioning mode: ${mode}, falling back to random`);
+            position = getRandomGlowPosition(options, index, glowCount);
+    }
+
+    return position;
+}
+
+/**
+ * @description Gets the random glow position
+ * @param {Object} options - The options
+ * @param {number} index - The index
+ * @returns {Object} The random glow position
+ */
+export function getRandomGlowPosition(options, index, glowCount) {
+    if (Array.isArray(options.initialPositions) && options.initialPositions.length > 0) {
+        return { ...options.initialPositions[index % options.initialPositions.length] };
+    }
+
+    const movement = options.movement || {};
+    const range = movement.range || {};
+    
+    const xRange = range.x || 0;
+    const yRange = range.y || 0;
+    const zRange = range.z || 0;
+    const zEnabled = movement.zEnabled !== false;
+
+    const totalGlows = glowCount || 12; 
+    
+    const progress = index / totalGlows; 
+    const angle = progress * Math.PI * 4; 
+    const radius = progress * 0.8; 
+    
+    const x = Math.cos(angle) * radius * xRange;
+    const y = Math.sin(angle) * radius * yRange;
+    
+    const z = zEnabled ? Math.sin(angle * 2) * zRange : 0;
+
+    const position = { x, y, z };
+    
+    return position;
+}
+
+/**
+ * @description Gets the position by element
+ * @param {Object} options - The options
+ * @returns {Object} The position by element
+ */
+export function getPositionByElement(options) {
+    const targetSelector = options.positioning.targetSelector;
+    const container = options.positioning.container;
+    const align = options.positioning.align || 'center center';
+    const offset = options.positioning.offset || { x: 0, y: 0 };
+
+    const el = document.querySelector(targetSelector);
+
+    if (!el) {
+        console.warn('Element not found:', targetSelector);
+        return { x: 0, y: 0 };
+    }
+
+    const rect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    const [vertical = 'center', horizontal = 'center'] = align.split(' ');
+
+    let x, y;
+
+    switch (horizontal) {
+        case 'left':
+            x = rect.left;
+            break;
+        case 'right':
+            x = rect.left + rect.width;
+            break;
+        default: 
+            x = rect.left + (rect.width / 2);
+    }
+
+    switch (vertical) {
+        case 'top':
+            y = rect.top;
+            break;
+        case 'bottom':
+            y = rect.top + rect.height;
+            break;
+        default: 
+            y = rect.top + (rect.height / 2);
+    }
+
+    x += offset.x || 0;
+    y += offset.y || 0;
+
+
+    x = ((x - containerRect.left) / containerRect.width) * 2 - 1;
+    y = -((y - containerRect.top) / containerRect.height) * 2 + 1;
+
+
+    return { x, y };
 }

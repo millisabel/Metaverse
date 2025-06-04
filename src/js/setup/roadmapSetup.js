@@ -14,67 +14,66 @@ const Z_INDEX = {
     GLOW: 2,
 };
 const CONFIG_3D = {
-    // GLOW: {
-    //     classRef: Glow,
-    //     containerName: NAME_3D_OBJECTS.GLOW,
-    //     zIndex: Z_INDEX.GLOW,
-    //     camera: {
-    //         position: {
-    //             x: 0,
-    //             y: 0,
-    //             z: 10
-    //         }
-    //     },
-    //     objectConfig: {
-    //         count: isMobile() ? 3 : 12,
-    //         colorPalette: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
-    //         shuffleColors : true,
-    //         sizePx: 150,
-    //         size: {
-    //             min: isMobile() ? 0.5 : 1,
-    //             max: isMobile() ? 2 : 2
-    //         },
-    //         movement: {
-    //             enabled: true,    
-    //             zEnabled: true,
-    //             speed: 0.1,
-    //             range: {
-    //                 x: isMobile() ? 1 : 4,
-    //                 y: 7,
-    //                 z: 0.5,
-    //             }
-    //         },
-    //         intersection: {
-    //             enabled: true,
-    //             selector: '.roadmap-quarter',
-    //             colorVar: '--roamap-color',
-    //             lerpSpeed: 0.005,
-    //         },
-    //         positioning: {
-    //             mode: 'random', 
-    //         },
-    //         pulseControl: {
-    //             enabled: true,
-    //             randomize: true
-    //         },
-    //         shaderOptions: {
-    //             opacity: {
-    //                 min: 0.1,
-    //                 max: 0.3
-    //             },
-    //             scale: {
-    //                 min: 0.8,
-    //                 max: 2.5
-    //             },
-    //             pulse: {
-    //                 speed: { min: 0.1, max: 0.3 },
-    //                 intensity: 1,
-    //                 sync: false,
-    //             },
-    //             objectPulse: 0
-    //         },
-    //     },
-    // },
+    GLOW: {
+        classRef: Glow,
+        containerName: NAME_3D_OBJECTS.GLOW,
+        zIndex: Z_INDEX.GLOW,
+        objectConfig: {
+            count: isMobile() ? 3 : 12,
+            colorPalette: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
+            shuffleColors : true,
+            objectOptions: {
+                size: {
+                    min: isMobile() ? 0.5 : 1,
+                    max: isMobile() ? 2 : 2
+                },
+                scale: { 
+                    min: 1, 
+                    max: 1 
+                },
+                movement: {
+                    enabled: true,    
+                    zEnabled: true,
+                    speed: 0.1,
+                    range: {
+                        x: isMobile() ? 1 : 3,
+                        y: 4,
+                        z: 2,
+                    }
+                },
+                pulseControl: {
+                    enabled: true,
+                    randomize: true
+                },
+                opacity: { 
+                    min: 1, 
+                    max: 1 
+                },
+                intersection: {
+                    enabled: true,
+                    selector: '.roadmap-quarter',
+                    colorVar: '--roamap-color',
+                    lerpSpeed: 0.005,
+                },
+            },
+            shaderOptions: {
+                opacity: {
+                    min: 0.1,
+                    max: 0.3
+                },
+                scale: {
+                    min: 0.5,
+                    max: 2.5
+                },
+                pulse: {
+                    enabled: true,
+                    speed: { min: 0.5, max: 1 },
+                    intensity: 1.1,
+                    randomize: true,
+                },
+            },
+        },
+    },
 }
 const CONFIG_ROADMAP = {
     zIndex: Z_INDEX.ROADMAP,
