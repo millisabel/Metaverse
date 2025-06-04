@@ -1,84 +1,43 @@
 import { deepMergeOptions } from '../utils/utils';
+import { shuffleArray } from '../utils/utils';
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from '../components/three/singleGlow';
 import { GLOWS_DEFAULT_OPTIONS } from '../components/three/glow';
 
 /**
- * Собирает итоговые опции для блика с учётом приоритетов:
- * индивидуальные → локальные дефолты → глобальные дефолты
+ * @description Gets the final glow options
+ * @param {Object} individual - The individual
+ * @param {Object} localDefaults - The local defaults
+ * @param {Object} userOptions - The user options
+ * @returns {Object} The final glow options
  */
 export function getFinalGlowOptions(individual = {}, localDefaults = {}, userOptions = {}) {
-    // userOptions — то, что приходит извне (например, this.options.glow)
-    // localDefaults — дефолты для конкретного класса (например, Dynamics3D)
-    // individual — индивидуальные опции для блика (если есть)
+    const result = {
+        objectOptions: { ...SINGLE_GLOW_DEFAULT_OPTIONS.objectOptions },
+        shaderOptions: { ...SINGLE_GLOW_DEFAULT_OPTIONS.shaderOptions }
+    };
 
-    // Сначала объединяем глобальные и локальные дефолты
-    const group = deepMergeOptions(GLOWS_DEFAULT_OPTIONS, localDefaults);
-    // Затем объединяем с пользовательскими опциями
-    const groupWithUser = deepMergeOptions(group, userOptions);
-    // Очищаем от групповых опций
-    const cleanGroup = stripGroupOptions(groupWithUser);
-
-    // Теперь делаем deepMergeOptions по структуре SINGLE_GLOW_DEFAULT_OPTIONS
-    return deepMergeOptions(
-        Object.keys(SINGLE_GLOW_DEFAULT_OPTIONS),
-        individual,
-        cleanGroup,
-        SINGLE_GLOW_DEFAULT_OPTIONS
-    );
-}
-
-/**
- * @description Applies the randomized pulse options
- * @param {Object} shaderOptions - The shader options
- * @returns {void}
- */
-function applyRandomizedPulseOptions(shaderOptions) {
-    const pulse = shaderOptions.pulse;
-    if (!pulse) return;
-    // Speed
-    if (pulse.speed && typeof pulse.speed === 'object') {
-        const min = pulse.speed.min ?? 0.1;
-        const max = pulse.speed.max ?? 0.5;
-        pulse.speed = Math.random() * (max - min) + min;
+    if (localDefaults.objectOptions) {
+        result.objectOptions = deepMergeOptions(result.objectOptions, localDefaults.objectOptions);
     }
-    // Intensity
-    if (pulse.intensity && typeof pulse.intensity === 'object') {
-        const min = pulse.intensity.min ?? 1;
-        const max = pulse.intensity.max ?? 3;
-        pulse.intensity = Math.random() * (max - min) + min;
+    if (localDefaults.shaderOptions) {
+        result.shaderOptions = deepMergeOptions(result.shaderOptions, localDefaults.shaderOptions);
     }
-}
 
-/**
- * @description Strips the group options
- * @param {Object} options - The options
- * @returns {Object} The stripped options
- */
-function stripGroupOptions(options) {
-    const {
-        count,
-        individualOptions,
-        shuffleColors,
-        colorPalette,
-        ...rest
-    } = options;
-
-    return rest;
-}
-
-function getOptionValue(key, individual, group, def) {
-    // Только для shaderOptions — вложенный объект
-    if (key === 'shaderOptions') {
-        return deepMergeOptions(
-            Object.keys(def.shaderOptions),
-            individual && individual.shaderOptions ? individual.shaderOptions : {},
-            group && group.shaderOptions ? group.shaderOptions : {},
-            def.shaderOptions
-        );
+    if (userOptions.objectOptions) {
+        result.objectOptions = deepMergeOptions(result.objectOptions, userOptions.objectOptions);
     }
-    if (individual && individual[key] !== undefined) return individual[key];
-    if (group && group[key] !== undefined) return group[key];
-    return def[key];
+    if (userOptions.shaderOptions) {
+        result.shaderOptions = deepMergeOptions(result.shaderOptions, userOptions.shaderOptions);
+    }
+
+    if (individual.objectOptions) {
+        result.objectOptions = deepMergeOptions(result.objectOptions, individual.objectOptions);
+    }
+    if (individual.shaderOptions) {
+        result.shaderOptions = deepMergeOptions(result.shaderOptions, individual.shaderOptions);
+    }
+
+    return result;
 }
 
 // Color
@@ -105,6 +64,20 @@ export function resolveGlowColor(index, shaderIndividual, individual, group, cla
     if (singleDefaults && singleDefaults.shaderOptions && singleDefaults.shaderOptions.color) return singleDefaults.shaderOptions.color;
     if (singleDefaults && singleDefaults.color) return singleDefaults.color;
     return 0xffffff;
+}
+
+/**
+ * @description Prepares color palette with optional shuffling
+ * @param {Array} colorPalette - Array of colors
+ * @param {boolean} shouldShuffle - Whether to shuffle the palette
+ * @returns {Array} The prepared palette
+ */
+export function preparePalette(options = {}) {
+    let palette = Array.isArray(options.colorPalette) ? [...options.colorPalette] : [];
+    if (options.shuffleColors && palette.length > 1) {
+        palette = shuffleArray(palette);
+    }
+    return palette;
 }
 
 // Positioning
@@ -257,3 +230,125 @@ export function getPositionByElement(options) {
 
     return { x, y };
 }
+
+// Pulse
+
+/**
+ * @description Applies the randomized pulse options
+ * @param {Object} shaderOptions - The shader options
+ * @returns {void}
+ */
+export function applyRandomizedPulseOptions(shaderOptions) {
+    const pulse = shaderOptions.pulse;
+    if (!pulse) return;
+    // Speed
+    if (pulse.speed && typeof pulse.speed === 'object') {
+        const min = pulse.speed.min ?? 0.1;
+        const max = pulse.speed.max ?? 0.5;
+        pulse.speed = Math.random() * (max - min) + min;
+    }
+    // Intensity
+    if (pulse.intensity && typeof pulse.intensity === 'object') {
+        const min = pulse.intensity.min ?? 1;
+        const max = pulse.intensity.max ?? 3;
+        pulse.intensity = Math.random() * (max - min) + min;
+    }
+}
+
+// Movement
+
+/**
+ * @description Generates trajectory parameters for movement
+ * @param {Object} range - The range of movement
+ * @returns {Object} The trajectory parameters
+ */
+export function generateTrajectoryParams(range = {}) {
+    return {
+        freq: {
+            x: Math.random() * 0.5 + 0.5,
+            y: Math.random() * 0.5 + 0.5,
+            z: Math.random() * 0.5 + 0.5
+        },
+        amplitude: {
+            x: (range.x || 1) * (0.5 + Math.random() * 0.5),
+            y: (range.y || 1) * (0.5 + Math.random() * 0.5),
+            z: (range.z || 1) * (0.5 + Math.random() * 0.5)
+        },
+        phase: {
+            x: Math.random() * Math.PI * 2,
+            y: Math.random() * Math.PI * 2,
+            z: Math.random() * Math.PI * 2
+        }
+    };
+}
+
+/**
+ * @description Calculates the new position based on time and trajectory
+ * @param {number} time - The current time
+ * @param {Object} trajectory - The trajectory parameters
+ * @param {Object} initialPosition - The initial position
+ * @param {number} speed - The speed of movement
+ * @param {boolean} zEnabled - Whether movement is enabled on the Z-axis
+ * @returns {Object} The new position {x, y, z}
+ */
+export function calculateMovementPosition(time, trajectory, initialPosition, speed, zEnabled) {
+    const t = time * speed;
+    const { freq, amplitude, phase } = trajectory;
+
+    return {
+        x: initialPosition.x + Math.sin(t * freq.x + phase.x) * amplitude.x,
+        y: initialPosition.y + Math.cos(t * freq.y + phase.y) * amplitude.y,
+        z: initialPosition.z + (zEnabled ? Math.sin(t * freq.z + phase.z) * amplitude.z : 0)
+    };
+}
+
+// Intersection
+
+/**
+ * @description Converts RGBA color to RGB
+ * @param {string} colorStr - String with color in rgba or rgb format
+ * @returns {string} Color in rgb format
+ */
+export function stripAlphaFromColor(colorStr) {
+    if (typeof colorStr === 'string' && colorStr.startsWith('rgba')) {
+        const match = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+        if (match) {
+            return `rgb(${match[1]},${match[2]},${match[3]})`;
+        }
+    }
+    return colorStr;
+}
+
+/**
+ * @description Checks if a point intersects with a rectangle with a tolerance
+ * @param {Object} point - The coordinates of the point {x, y}
+ * @param {DOMRect} rect - The rectangle
+ * @param {number} tolerance - The tolerance in pixels
+ * @returns {boolean} Whether there is an intersection
+ */
+export function checkIntersection(point, rect, tolerance = 4) {
+    return (
+        point.x >= rect.left - tolerance && 
+        point.x <= rect.right + tolerance &&
+        point.y >= rect.top - tolerance && 
+        point.y <= rect.bottom + tolerance
+    );
+}
+
+/**
+ * @description Gets the color of an element
+ * @param {Element} element - The DOM element
+ * @param {string} colorVar - The CSS variable with the color
+ * @returns {string|null} The color of the element
+ */
+export function getElementColor(element, colorVar) {
+    let colorStr = null;
+    if (colorVar) {
+        colorStr = getComputedStyle(element).getPropertyValue(colorVar).trim();
+    }
+    if (!colorStr) {
+        colorStr = getComputedStyle(element).backgroundColor;
+    }
+    return colorStr ? stripAlphaFromColor(colorStr) : null;
+}
+

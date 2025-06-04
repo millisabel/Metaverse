@@ -182,7 +182,6 @@ const CONFIG_GLOW = {
     },
     objectConfig: {
         objectOptions: {
-            size: { min: 1, max: 1 }, 
             movement: {
                 enabled: false,
                 zEnabled: true,
@@ -193,10 +192,6 @@ const CONFIG_GLOW = {
                     z: 0.5,
                 }
             },
-            scale: {
-                min: 1, 
-                max: 1
-            },
             positioning: {
                 mode: 'element',
                 align: isMobile() ? 'top left' : 'center bottom',
@@ -204,10 +199,6 @@ const CONFIG_GLOW = {
                     x: 0, 
                     y: isMobile() ? 0 : 100 
                 }
-            },
-            pulseControl: {
-                enabled: true,
-                randomize: false,
             },
         },
         shaderOptions: {

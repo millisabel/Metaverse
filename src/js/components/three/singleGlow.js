@@ -1,15 +1,19 @@
 import * as THREE from 'three';
 import { createLogger } from "../../utils/logger";
-import { getWorldScaleForPixelSize } from '../../utilsThreeD/utilsThreeD';
 
 import vertexShader from '../../shaders/glow.vert';
 import fragmentShader from '../../shaders/glow.frag';
 
+import { 
+    generateTrajectoryParams, 
+    calculateMovementPosition,
+    applyRandomizedPulseOptions
+} from '../../utilsThreeD/glowUtils';
+
+
+
 export const SINGLE_GLOW_DEFAULT_OPTIONS = {
     objectOptions: {
-        sizePx: 100,
-        size: { min: 1, max: 1 },
-        scale: { min: 1, max: 1 },
         positioning: {
             mode: 'random',
             targetSelector: null,
@@ -23,11 +27,12 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
             speed: 0.1,
             range: { x: 0, y: 0, z: 0 },
         },
-        pulseControl: {
+        intersection: {
             enabled: false,
-            randomize: false,
+            selector: null,
+            colorVar: null,
+            lerpSpeed: 0,
         },
-        opacity: { min: 1, max: 1 },
     },
     shaderOptions: {
         color: 0xFFFFFF,
@@ -47,7 +52,6 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
     },
 };
 
-// Константа для uniforms, используемых в шейдере
 const SHADER_UNIFORMS = {
     color: v => ({ value: new THREE.Color(v.options.shaderOptions.color) }),
     opacity: v => ({ value: v.options.shaderOptions.opacity.max }),
@@ -55,22 +59,13 @@ const SHADER_UNIFORMS = {
     scaleMin: v => ({ value: v.options.shaderOptions.scale.min }),
     scaleMax: v => ({ value: v.options.shaderOptions.scale.max }),
     pulseSpeed: v => ({ value: v._pulseSpeed }),
-    pulseIntensity: v => ({ value: v.options.shaderOptions.pulse.intensity }),
+    pulseIntensity: v => ({ value: typeof v.options.shaderOptions.pulse.intensity === 'number' ? 
+        v.options.shaderOptions.pulse.intensity : 
+        v.options.shaderOptions.pulse.intensity.max ?? 2 }),
     objectPulse: v => ({ value: v.options.shaderOptions.objectPulse }),
-    syncWithObject: v => ({ value: v.options.shaderOptions.pulse.sync ? 1.0 : 0.0 })
+    syncWithObject: v => ({ value: v.options.shaderOptions.pulse.sync ? 1.0 : 0.0 }),
+    highlightIntensity: v => ({ value: v.options.shaderOptions.pulse?.highlightIntensity ?? 0 })
 };
-
-// Utility to strip alpha from rgba color string
-function stripAlphaFromColor(colorStr) {
-    // rgba(255,255,255,0.05) -> rgb(255,255,255)
-    if (typeof colorStr === 'string' && colorStr.startsWith('rgba')) {
-        const match = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
-        if (match) {
-            return `rgb(${match[1]},${match[2]},${match[3]})`;
-        }
-    }
-    return colorStr;
-}
 
 /**
  * SingleGlow class
@@ -87,27 +82,21 @@ export class SingleGlow {
 
         this.options = options;
 
-        this.position = this.options.objectOptions.positioning.position;
-
-        // this._randomOffset = Math.random() * Math.PI * 2;
-        // Генерируем уникальные параметры траектории для блика
-        // const range = this.options.objectOptions.movement?.range || { x: 1, y: 1, z: 0.1 };
-        // this._trajectory = {
-        //     freqX: Math.random() * 0.5 + 0.5,
-        //     freqY: Math.random() * 0.5 + 0.5,
-        //     freqZ: Math.random() * 0.5 + 0.5,
-        //     ampX: (range.x || 1) * (0.5 + Math.random() * 0.5),
-        //     ampY: (range.y || 1) * (0.5 + Math.random() * 0.5),
-        //     ampZ: (range.z || 1) * (0.5 + Math.random() * 0.5),
-        //     phaseX: Math.random() * Math.PI * 2,
-        //     phaseY: Math.random() * Math.PI * 2,
-        //     phaseZ: Math.random() * Math.PI * 2,
-        // };
-        // Цвет для плавного перехода
-        // this._currentColor = new THREE.Color(this.options.shaderOptions.color);
-        // this._targetColor = new THREE.Color(this.options.shaderOptions.color);
-        // this._highlightIntensity = this.options.shaderOptions.pulse?.highlightIntensity ?? 0;
-        // this._targetHighlightIntensity = this._highlightIntensity;
+        this.position = this.options.objectOptions.positioning?.position;
+        this.range = this.options.objectOptions.movement?.range;
+        this._trajectory = null;
+        
+        if (this.options.shaderOptions.pulse?.enabled) {
+            if (this.options.shaderOptions.pulse.randomize) {
+                applyRandomizedPulseOptions(this.options.shaderOptions);
+            }
+            this._pulseSpeed = this._initPulseSpeed();
+        }
+        
+        if (options.objectOptions.intersection?.enabled) {
+            this._currentColor = new THREE.Color(this.options.shaderOptions.color);
+            this._targetColor = new THREE.Color(this.options.shaderOptions.color);
+        }
     }
 
     /**
@@ -116,7 +105,7 @@ export class SingleGlow {
      */
     setup() {
         this.mesh = this._createMesh();
-        
+        this._trajectory = generateTrajectoryParams(this.range);
         this._setPosition(this.position);
     }
 
@@ -129,25 +118,10 @@ export class SingleGlow {
         if (this.mesh && this.mesh.material) {
             this.mesh.material.uniforms.time.value = time;
         }
-        // this._applyMovement(time);
-        // // --- Intersection logic ---
-        // if (this.options.intersection?.enabled) {
-        //     this._updateIntersectionColor();
-        //     // Плавно меняем цвет к целевому
-        //     const lerpSpeed = this.options.intersection.lerpSpeed ?? 0.05;
-        //     this._currentColor.lerp(this._targetColor, lerpSpeed);
-        //     if (this.mesh.material.uniforms.color) {
-        //         this.mesh.material.uniforms.color.value.copy(this._currentColor);
-        //     }
-        // }
-
-        // // --- Highlight intensity sync ---
-        // if (typeof this._targetHighlightIntensity === 'number') {
-        //     this._highlightIntensity += (this._targetHighlightIntensity - this._highlightIntensity) * 0.1;
-        //     if (this.mesh.material.uniforms.highlightIntensity) {
-        //         this.mesh.material.uniforms.highlightIntensity.value = this._highlightIntensity;
-        //     }
-        // }
+        this._applyMovement(time);
+        if (this.options.objectOptions.intersection?.enabled) {
+            this._lerpColor();
+        }
     }
 
     /**
@@ -236,109 +210,62 @@ export class SingleGlow {
     }
 
     /**
-     * @description Генерирует индивидуальную скорость пульсации для блика
-     * @returns {number} Индивидуальная скорость пульсации
-     */
-    // _generatePulseSpeed() {
-    //     const pulseSpeed = this.options.shaderOptions?.pulse?.speed;
-    //     if (typeof pulseSpeed === 'object' && pulseSpeed !== null) {
-    //         const min = pulseSpeed.min ?? 0.5;
-    //         const max = pulseSpeed.max ?? 0.5;
-    //         return (min === max) ? min : (Math.random() * (max - min) + min);
-    //     } else {
-    //         return pulseSpeed ?? 0.5;
-    //     }
-    // }
-
-    /**
-     * @description Устанавливает начальную позицию блика
+     * @description Применяет движение к блику
+     * @param {number} time - Текущее время
      * @returns {void}
      */
-    // _setInitialPosition() {
-    //     this.logger.log('Setting initial position', {
-    //         functionName: '_setInitialPosition',
-    //     });
-    //     if (this.options.targetSelector) {
-    //         this._setPositionByElement({
-    //             targetSelector: this.options.targetSelector,
-    //             align: this.options.align,
-    //             offset: this.options.offset
-    //         });
-    //     } else if (this.options.position) {
-    //         this.mesh.position.set(this.options.position.x, this.options.position.y, this.options.position.z);
-    //     } else {
-    //         this.mesh.position.set(0, 0, 0);
-    //     }
-    // }
+    _applyMovement(time) {
+        const { movement, positioning } = this.options.objectOptions;
+        if (!movement?.enabled) return;
+
+        const newPosition = calculateMovementPosition(
+            time,
+            this._trajectory,
+            positioning.initialPosition,
+            movement.speed,
+            movement.zEnabled
+        );
+
+        this._setPosition(newPosition);
+    }
 
     /**
-     * @description Устанавливает начальный размер блика
-     * @returns {void}
+     * @description Updates the target color for interpolation
+     * @param {THREE.Color} color - New target color
      */
-    // _setInitialSize() {
-    //     this.logger.log('Setting initial size', { functionName: '_setInitialSize' });
-    //     const { sizePx, size } = this.options.objectOptions;
-    //     if (sizePx && this.camera) {
-    //         const min = size?.min ?? 1;
-    //         const max = size?.max ?? min;
-    //         const sizeFactor = (min === max) ? min : (Math.random() * (max - min) + min);
-    //         this._sizeFactor = sizeFactor;
-    //         const pixelSize = sizePx * sizeFactor;
-    //         const worldScale = getWorldScaleForPixelSize(pixelSize, this.camera, this.mesh.position.z);
-    //         this._baseWorldScale = worldScale;
-    //         this.mesh.scale.set(worldScale, worldScale, 1);
-    //     } else {
-    //         const min = size?.min ?? 1;
-    //         this.mesh.scale.set(min, min, 1);
-    //         this._baseWorldScale = min;
-    //         this._sizeFactor = min;
-    //     }
-    // }
+    updateTargetColor(color) {
+        if (this._targetColor) {
+            this._targetColor.copy(color);
+        }
+    }
 
     /**
-     * @description Устанавливает позицию меша по экранным координатам с учётом камеры
-     * @param {number} x - X в px
-     * @param {number} y - Y в px
-     * @returns {void}
+     * @description Smoothly changes the current color to the target
+     * @private
      */
-    // _setMeshPositionFromScreen(x, y) {
-    //     this.logger.log('Setting mesh position from screen', {
-    //         functionName: '_setMeshPositionFromScreen',
-    //     });
-
-    //     // Гарантируем, что this.options.position всегда есть
-    //     if (!this.options.position) {
-    //         this.options.position = {};
-    //     }
-
-    //     let scenePos;
-    //     if (this.camera) {
-    //         const z = typeof this.options.position.z === 'number' ? this.options.position.z : 0.5;
-    //         scenePos = this._convertScreenToScenePosition(x, y, z);
-    //         this.mesh.position.copy(scenePos);
-    //     } else {
-    //         const z = typeof this.options.position.z === 'number' ? this.options.position.z : 0;
-    //         this.mesh.position.set(x, y, z);
-    //     }
-    // }
+    _lerpColor() {
+        const lerpSpeed = this.options.objectOptions.intersection?.lerpSpeed ?? 0.05;
+        this._currentColor.lerp(this._targetColor, lerpSpeed);
+        
+        if (this.mesh.material.uniforms.color) {
+            this.mesh.material.uniforms.color.value.copy(this._currentColor);
+        }
+    }
 
     /**
-     * @description Преобразует экранные координаты (px) в координаты 3D-сцены
-     * @param {number} xPx - X в пикселях
-     * @param {number} yPx - Y в пикселях
-     * @param {number} z - Z в NDC (0 ближе к near, 1 ближе к far)
-     * @returns {THREE.Vector3}
+     * @description Initializes the pulse speed
+     * @private
+     * @returns {number} The pulse speed
      */
-    // _convertScreenToScenePosition(xPx, yPx, z = 0) {
-    //     this.logger.log('Converting screen to scene position', {
-    //         functionName: '_convertScreenToScenePosition',
-    //     });
-    //     const xNDC = (xPx / window.innerWidth) * 2 - 1;
-    //     const yNDC = -((yPx / window.innerHeight) * 2 - 1);
-    //     const vector = new THREE.Vector3(xNDC, yNDC, z);
-    //     vector.unproject(this.camera);
-    //     return vector;
-    // }
+    _initPulseSpeed() {
+        const pulseSpeed = this.options.shaderOptions?.pulse?.speed;
+        if (typeof pulseSpeed === 'number') {
+            return pulseSpeed;
+        }
+        
+        return pulseSpeed?.max ?? 0.5;
+    }
+
 
     /**
      * @description Updates the opacity uniform for pulsating effect
@@ -379,17 +306,6 @@ export class SingleGlow {
     //     this.options.shaderOptions.color = newColor.getStyle ? newColor.getStyle() : color;
     // }
 
-    /**
-     * @description Sets the size (scale) of the glow dynamically
-     * @param {number} size - Новый базовый размер блика
-     * @returns {void}
-     */
-    // setSize(size) {
-    //     if (!this.mesh) return;
-    //     this.options.objectOptions.size.max = size;
-    //     this.mesh.scale.set(size * this.options.shaderOptions.scale.min, size * this.options.shaderOptions.scale.min, 1);
-    //     this.options.objectOptions.size = size;
-    // }
 
     /**
      * @description Sets the target value for objectPulse (for external sync)
@@ -399,80 +315,7 @@ export class SingleGlow {
     //     this._targetHighlightIntensity = value;
     // }
 
-    /**
-     * @description Checks intersection with DOM elements and updates target color
-     * Uses container-relative coordinates and tolerance for robust detection
-     * @returns {void}
-     */
-    // _updateIntersectionColor() {
-    //     const intersection = this.options.intersection;
-    //     if (!intersection?.enabled || !intersection.selector) return;
-    //     // Get container rect
-    //     const containerRect = this.container.getBoundingClientRect();
-    //     // Project 3D position to screen (container) coordinates
-    //     const vector = this.mesh.position.clone().project(this.camera);
-    //     const x = (vector.x * 0.5 + 0.5) * containerRect.width + containerRect.left;
-    //     const y = (1 - (vector.y * 0.5 + 0.5)) * containerRect.height + containerRect.top;
-    //     const tolerance = 4; // px, area margin for intersection
-    //     // Find all elements by selector
-    //     const elements = Array.from(document.querySelectorAll(intersection.selector));
-    //     const foundColors = [];
-    //     for (const el of elements) {
-    //         const rect = el.getBoundingClientRect();
-    //         if (
-    //             x >= rect.left - tolerance && x <= rect.right + tolerance &&
-    //             y >= rect.top - tolerance && y <= rect.bottom + tolerance
-    //         ) {
-    //             // Try to get color from CSS variable or fallback to background
-    //             let colorStr = null;
-    //             if (intersection.colorVar) {
-    //                 colorStr = getComputedStyle(el).getPropertyValue(intersection.colorVar).trim();
-    //             }
-    //             if (!colorStr) {
-    //                 colorStr = getComputedStyle(el).backgroundColor;
-    //             }
-    //             if (colorStr) {
-    //                 try {
-    //                     // Удаляем альфа-канал, если есть
-    //                     const safeColor = stripAlphaFromColor(colorStr);
-    //                     foundColors.push(new THREE.Color(safeColor));
-    //                 } catch (e) {
-    //                     // Log color parse error
-    //                     console.warn('Failed to parse color:', colorStr, e);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     if (foundColors.length > 0) {
-    //         // Average all found colors
-    //         let r = 0, g = 0, b = 0;
-    //         foundColors.forEach(c => { r += c.r; g += c.g; b += c.b; });
-    //         r /= foundColors.length; g /= foundColors.length; b /= foundColors.length;
-    //         this._targetColor.setRGB(r, g, b);
-    //     } else {
-    //         // Fallback to initial color
-    //         this._targetColor.set(this.options.shaderOptions.color);
-    //     }
-    // }
 
-    /**
-     * @description Applies movement to the glow
-     * @param {number} time - The current time (seconds)
-     * @returns {void}
-     */
-    // _applyMovement(time) {
-    //     const { movement, positioning } = this.options.objectOptions;
-    //     if (!movement?.enabled) return;
-    //     const { speed = 1, zEnabled = true } = movement;
-    //     const t = time * speed;
-    //     const tr = this._trajectory;
-    //     const dx = Math.sin(t * tr.freqX + tr.phaseX) * tr.ampX;
-    //     const dy = Math.cos(t * tr.freqY + tr.phaseY) * tr.ampY;
-    //     const dz = zEnabled ? Math.sin(t * tr.freqZ + tr.phaseZ) * tr.ampZ : 0;
-    //     this.mesh.position.x = positioning.initialPosition.x + dx;
-    //     this.mesh.position.y = positioning.initialPosition.y + dy;
-    //     this.mesh.position.z = positioning.initialPosition.z + dz;
-    // }
 
     /**
      * @description Sets the opacity of the glow dynamically
@@ -495,14 +338,6 @@ export class SingleGlow {
     //     this.mesh.scale.set(scale, scale, 1);
     // }
 
-    /**
-     * @description Устанавливает масштаб объекта (Three.js)
-     * @param {number} scale - Новый масштаб объекта
-     */
-    // setObjectScale(scale) {
-    //     if (!this.mesh) return;
-    //     this.mesh.scale.set(scale, scale, 1);
-    // }
 
     /**
      * @description Устанавливает масштаб блика через uniform (масштаб в шейдере)
@@ -547,61 +382,3 @@ export class SingleGlow {
     //     // Для управления объектом используйте setObjectScale и objectOptions
     // }
 } 
-
-
-
-
-/**
- * @description Устанавливает позицию меша по элементу
- * @param {Object} options - Опции
- * @returns {void}
- */
-// _setPositionByElement({
-//     targetSelector,
-//     align = 'center center',
-//     offset = { x: 0, y: 0 }
-//   }) {
-//     this.logger.log('Setting position by element', {
-//         functionName: '_setPositionByElement',
-//     });
-//     const el = document.querySelector(targetSelector);
-//     if (!el) {
-//         console.warn('Glow: targetSelector not found', targetSelector, ' — will retry');
-//         setTimeout(() => this._setPositionByElement({ targetSelector, ...this.options.objectOptions.positioning }), 100);
-//         return;
-//     }
-  
-//     const rect = el.getBoundingClientRect();
-//     const containerRect = this.container.getBoundingClientRect();
-//     const sizePx = this.options.objectOptions.sizePx || 0;
-
-//     let vertical = 'center', horizontal = 'center';
-//     if (align) {
-//         const parts = align.split(' ');
-//         parts.forEach(part => {
-//             if (['top', 'center', 'bottom'].includes(part)) vertical = part;
-//             if (['left', 'center', 'right'].includes(part)) horizontal = part;
-//         });
-//     }
-
-//     let x, y;
-//     switch (horizontal) {
-//         case 'left':   x = rect.left + sizePx / 2; break;
-//         case 'center': x = rect.left + rect.width / 2; break;
-//         case 'right':  x = rect.left + rect.width - sizePx / 2; break;
-//         default:       x = rect.left + rect.width / 2;
-//     }
-//     switch (vertical) {
-//         case 'top':    y = rect.top + sizePx / 2; break;
-//         case 'center': y = rect.top + rect.height / 2; break;
-//         case 'bottom': y = rect.top + rect.height - sizePx / 2; break;
-//         default:       y = rect.top + rect.height / 2;
-//     }
-
-//     x -= containerRect.left;
-//     y -= containerRect.top;
-//     x += offset.x || 0;
-//     y += offset.y || 0;
-
-//     this._setMeshPositionFromScreen(x, y);
-// }

@@ -23,31 +23,15 @@ const CONFIG_3D = {
             colorPalette: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
             objectOptions: {
-                size: {
-                    min: isMobile() ? 0.5 : 1,
-                    max: isMobile() ? 2 : 2
-                },
-                scale: { 
-                    min: 1, 
-                    max: 1 
-                },
                 movement: {
                     enabled: true,    
                     zEnabled: true,
-                    speed: 0.1,
+                    speed: 0.05,
                     range: {
                         x: isMobile() ? 1 : 3,
                         y: 4,
                         z: 2,
                     }
-                },
-                pulseControl: {
-                    enabled: true,
-                    randomize: true
-                },
-                opacity: { 
-                    min: 1, 
-                    max: 1 
                 },
                 intersection: {
                     enabled: true,
@@ -58,16 +42,16 @@ const CONFIG_3D = {
             },
             shaderOptions: {
                 opacity: {
-                    min: 0.1,
+                    min: 0.05,
                     max: 0.3
                 },
                 scale: {
-                    min: 0.5,
+                    min: 0.9,
                     max: 2.5
                 },
                 pulse: {
                     enabled: true,
-                    speed: { min: 0.5, max: 1 },
+                    speed: { min: 0.2, max: 0.5 },
                     intensity: 1.1,
                     randomize: true,
                 },

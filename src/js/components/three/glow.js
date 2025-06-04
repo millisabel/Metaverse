@@ -4,18 +4,22 @@ import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Obser
 import { SingleGlow } from './singleGlow';
 
 import { createLogger } from "../../utils/logger";
-import { deepMergeOptions, shuffleArray } from '../../utils/utils';
-import { resolveGlowColor, resolveGlowPosition, resolvePositioningMode } from '../../utilsThreeD/glowUtils';
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from './singleGlow';
+import { 
+    resolveGlowColor, 
+    resolveGlowPosition, 
+    resolvePositioningMode, 
+    getFinalGlowOptions,
+    preparePalette,
+    checkIntersection,
+    getElementColor
+} from '../../utilsThreeD/glowUtils';
 
 export const GLOWS_DEFAULT_OPTIONS = {
     count: 1,
     colorPalette: [],
     shuffleColors: false,
     objectOptions: {
-        sizePx: 100,
-        size: { min: 1, max: 1 },
-        scale: { min: 1, max: 1 },
         positioning: {
             mode: 'random',
             targetSelector: null,
@@ -29,11 +33,6 @@ export const GLOWS_DEFAULT_OPTIONS = {
             speed: 0.1,
             range: { x: 2, y: 2, z: 1 },
         },
-        pulseControl: {
-            enabled: false,
-            randomize: false,
-        },
-        opacity: { min: 1, max: 1 },
     },
     shaderOptions: {
         color: null,
@@ -83,7 +82,25 @@ export class Glow extends Object_3D_Observer_Controller {
      */
     update() {
         const time = performance.now() / 1000;
-        this.glows.forEach(glow => glow.update(time));
+        
+        if (this.glows && Array.isArray(this.glows)) {
+            this.glows.forEach(glow => {
+                if (glow && glow.update) {
+                    try {
+                        if (glow.options.objectOptions.intersection?.enabled) {
+                            const color = this._calculateIntersectionColor(glow);
+                            if (color) {
+                                glow.updateTargetColor(color);
+                            }
+                        }
+                        glow.update(time);
+                    } catch (error) {
+                        console.error('Error updating glow:', error);
+                    }
+                }
+            });
+        }
+        
         super.update();
     }
 
@@ -93,13 +110,17 @@ export class Glow extends Object_3D_Observer_Controller {
      */
     cleanup() {
         if (this.glows && Array.isArray(this.glows)) {
-            this.glows.forEach((glow, index) => {
+            this.glows.forEach((glow) => {
                 if (glow && typeof glow.cleanup === 'function') {
                     glow.cleanup();
+                    if (glow.mesh && this.scene) {
+                        this.scene.remove(glow.mesh);
+                    }
                 }
             });
         }
         this.glows = [];
+        
         super.cleanup();
     }
 
@@ -123,79 +144,38 @@ export class Glow extends Object_3D_Observer_Controller {
         return count;
     }
 
-
     /**
      * @description Prepares merged options for all glows
      * @returns {Array<Object>}
      */
     _prepareGlowOptions() {
         const glowCount = this._getGlowCount();
-        const palette = this._preparePalette();
-        const baseOptions = deepMergeOptions(SINGLE_GLOW_DEFAULT_OPTIONS, this.options);
+        const palette = preparePalette(this.options);
         const optionsArray = [];
 
         for (let i = 0; i < glowCount; i++) {
-            const currentBaseOptions = JSON.parse(JSON.stringify(baseOptions));
-            const currentGroupOptions = JSON.parse(JSON.stringify(this.options));
+            const individual = this.options.individualOptions?.[i] || {};
+            const finalOptions = getFinalGlowOptions(individual, GLOWS_DEFAULT_OPTIONS, this.options);
             
+            finalOptions.objectOptions.positioning = finalOptions.objectOptions.positioning || {};
+            finalOptions.objectOptions.positioning.container = this.container;
             
-            const optionsGlow = {
-                objectOptions: this._getGlowObjectOptions(currentBaseOptions, currentGroupOptions, i, glowCount),
-                shaderOptions: this._getGlowShaderOptions(currentBaseOptions, currentGroupOptions.individualOptions?.[i] || {}, i, palette),
-            };
-            optionsArray.push(optionsGlow);
+            this._preparePositioning(finalOptions.objectOptions, i, glowCount);
+
+            finalOptions.shaderOptions.color = resolveGlowColor(
+                i,
+                individual.shaderOptions || {},
+                individual,
+                this.options,
+                GLOWS_DEFAULT_OPTIONS,
+                SINGLE_GLOW_DEFAULT_OPTIONS,
+                palette
+            );
+            
+            optionsArray.push(finalOptions);
         }
 
         return optionsArray;
-    }
-
-    /**
-     * @description Prepares object options for a single glow
-     * @private
-     */
-    _getGlowObjectOptions(baseOptions, groupOptions, index, glowCount) {
-        const individual = groupOptions.individualOptions?.[index] || {};
-        const objectOptions = deepMergeOptions(baseOptions.objectOptions, individual.objectOptions || {});
-        
-        objectOptions.positioning = objectOptions.positioning || {};
-        objectOptions.positioning.container = this.container;
-        
-        this._preparePositioning(objectOptions, index, glowCount);
-        
-        return objectOptions;
-    }
-
-    /**
-     * @description Prepares shader options for a single glow
-     * @private
-     */
-    _getGlowShaderOptions(baseOptions, individual, index, palette) {
-        const shaderOptions = deepMergeOptions(baseOptions.shaderOptions, individual.shaderOptions || {});
-
-        shaderOptions.color = resolveGlowColor(
-            index,
-            individual.shaderOptions || {},
-            individual,
-            this.options,
-            GLOWS_DEFAULT_OPTIONS,
-            SINGLE_GLOW_DEFAULT_OPTIONS,
-            palette
-        );
-
-        return shaderOptions;
-    }
-
-    /**
-     * @description Prepares the palette
-     * @returns {Array}
-     */
-    _preparePalette() {
-        const groupOptions = this.options;
-        let palette = Array.isArray(groupOptions.colorPalette) ? [...groupOptions.colorPalette] : [];
-        if (groupOptions.shuffleColors && palette.length > 1) {
-            palette = shuffleArray(palette);
-        }
-        return palette;
     }
 
     /**
@@ -217,6 +197,7 @@ export class Glow extends Object_3D_Observer_Controller {
         const optionsArray = this._prepareGlowOptions();
         
         optionsArray.forEach((options) => {
+            options.container = this.container;
             
             const glow = new SingleGlow(options);
             glow.setup();
@@ -227,6 +208,55 @@ export class Glow extends Object_3D_Observer_Controller {
             
             this.glows.push(glow);
         });
+    }
+    
+    /**
+     * @description Calculates the color of the glow based on the intersection with the DOM elements
+     * @private
+     * @param {SingleGlow} glow - The glow instance
+     * @returns {THREE.Color|null} The calculated color or null
+     */
+    _calculateIntersectionColor(glow) {
+        const intersection = glow.options.objectOptions.intersection;
+        if (!intersection?.enabled || !intersection.selector) return null;
+
+        const containerRect = this.container.getBoundingClientRect();
+        const vector = glow.mesh.position.clone().project(this.cameraController.camera);
+        
+        const screenPoint = {
+            x: (vector.x * 0.5 + 0.5) * containerRect.width + containerRect.left,
+            y: (1 - (vector.y * 0.5 + 0.5)) * containerRect.height + containerRect.top
+        };
+
+        const elements = Array.from(document.querySelectorAll(intersection.selector));
+        const foundColors = [];
+
+        for (const el of elements) {
+            const rect = el.getBoundingClientRect();
+            if (checkIntersection(screenPoint, rect)) {
+                const colorStr = getElementColor(el, intersection.colorVar);
+                if (colorStr) {
+                    try {
+                        foundColors.push(new THREE.Color(colorStr));
+                    } catch (e) {
+                        console.warn('Failed to parse color:', colorStr, e);
+                    }
+                }
+            }
+        }
+
+        if (foundColors.length > 0) {
+            let r = 0, g = 0, b = 0;
+            foundColors.forEach(c => { r += c.r; g += c.g; b += c.b; });
+            const color = new THREE.Color(
+                r / foundColors.length,
+                g / foundColors.length,
+                b / foundColors.length
+            );
+            return color;
+        }
+
+        return new THREE.Color(glow.options.shaderOptions.color);
     }
 
     // setGlowScale(cardIndex, scale) {
@@ -267,5 +297,6 @@ export class Glow extends Object_3D_Observer_Controller {
     //     if (!card || !this.glows || !this.glows[glowIndex]) return;
     //     this.glows[glowIndex].syncWithObjectPosition(card);
     // }
+
 }
 
