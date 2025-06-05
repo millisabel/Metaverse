@@ -7,7 +7,8 @@ import fragmentShader from '../../shaders/glow.frag';
 import { 
     generateTrajectoryParams, 
     calculateMovementPosition,
-    applyRandomizedPulseOptions
+    applyRandomizedPulseOptions,
+    getPositionByElement
 } from '../../utilsThreeD/glowUtils';
 
 
@@ -484,7 +485,7 @@ export class SingleGlow {
         };
 
         const position = getPositionByElement(options);
-        
+
         this.mesh.position.x = position.x;
         this.mesh.position.y = position.y;
     }
