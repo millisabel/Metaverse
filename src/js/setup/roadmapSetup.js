@@ -90,7 +90,7 @@ const CONFIG_MORE_BUTTON = {
 export class RoadmapSetup extends SectionController {
     constructor() {
         super(SECTION_ID, CONFIG_3D, Z_INDEX.SECTION);
-
+        
         new Roadmap(this.container, CONFIG_ROADMAP);
         new MoreButton(this.container, CONFIG_MORE_BUTTON);
     }

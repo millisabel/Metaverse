@@ -121,7 +121,7 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
         this.decorationMesh = null;
         this.glowEffect = null;
         this.group = null;
-        this.currentScale =  {};
+        this.currentPosition =  {};
 
         this.animationParams = deepMergeOptions(DEFAULT_ANIMATION_PARAMS, this.options.animationParams);
     }
@@ -364,7 +364,7 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
         const scale = this._getAnimatedScale(t, params.scale);
         this.group.scale.set(scale.x, scale.y, scale.z);
 
-        this.currentScale = {
+        this.currentPosition = {
             rotation: rot,
             position: pos,
             scale: scale

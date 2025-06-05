@@ -2,6 +2,7 @@ import { SectionController } from '../controllers/SectionController';
 import { Dynamics3D } from '../components/three/dynamics3d';
 import { Glow } from '../components/three/glow';
 
+import { Object3DSyncManager } from '../utilsThreeD/Object3DSyncManager';
 import { isMobile } from '../utils/utils';
 
 import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
@@ -184,7 +185,7 @@ const CONFIG_GLOW = {
         objectOptions: {
             movement: {
                 enabled: false,
-                zEnabled: true,
+                zEnabled: false,
                 speed: 0.1,
                 range: {
                     x: 0,
@@ -203,12 +204,12 @@ const CONFIG_GLOW = {
         },
         shaderOptions: {
             scale: {
-                min: 1, 
+                min: 0, 
                 max: 1
             },
             opacity: {
                 min: 0, 
-                max: 0.3,
+                max: 1,
             },
             pulse: {
                 enabled: true, 
@@ -219,7 +220,7 @@ const CONFIG_GLOW = {
                 intensity: 1,
                 randomize: false,
                 sync: {
-                    enabled: false,
+                    enabled: true,
                     scale: true,
                     opacity: true,
                 },
@@ -260,33 +261,72 @@ const CONFIG_GLOW = {
     }
 };
 const CONFIG = {
+    GLOW: CONFIG_GLOW,
     CARD_GUARDIANS: CONFIG_CARDS.GUARDIANS,
     CARD_METAVERSE: CONFIG_CARDS.METAVERSE,
     CARD_SANKOPA: CONFIG_CARDS.SANKOPA,
-    GLOW: CONFIG_GLOW,
 };
-
-const cardKeys = [CARD_NAMES.GUARDIANS, CARD_NAMES.METAVERSE, CARD_NAMES.SANKOPA];
 
 export class DynamicsSetup extends SectionController {
     constructor() {
         super(SECTION_ID, CONFIG, Z_INDEX.SECTION);
+        /**
+         * @type {Object3DSyncManager|null}
+         */
+        this.syncManager = null;
     }
-    // syncWithCard(card3D, cardIndex) {
-    //     if (this.controllers.GLOW && typeof this.controllers.GLOW.syncWithCard === 'function') {
-    //         this.controllers.GLOW.syncWithCard(card3D, cardIndex);
-    //     }
-    // }
 
-    // update() {
-    //     super.update();
-    //     cardKeys.forEach((key, index) => {
-    //         const card = this.controllers[key];
-    //         if (card) {
-    //             this.syncWithCard(card, index);
-    //         }
-    //     });
-    // }
+    /**
+     * @override
+     * @description Инициализация секции, создание менеджера синхронизации между карточками и бликами
+     * @returns {Promise<void>}
+     */
+    async initSection() {
+        await super.initSection();
+
+        // Получаем массив контроллеров карточек
+        const cardKeys = ['CARD_GUARDIANS', 'CARD_METAVERSE', 'CARD_SANKOPA'];
+        const cards = cardKeys
+            .map(key => this.controllers[key])
+            .filter(card => !!card);
+
+        // Получаем массив бликов (SingleGlow)
+        let glows = [];
+        if (this.controllers.GLOW && Array.isArray(this.controllers.GLOW.glows)) {
+            glows = this.controllers.GLOW.glows;
+        }
+
+        // Если уже был syncManager — очищаем (на будущее, если потребуется)
+        if (this.syncManager && typeof this.syncManager.cleanup === 'function') {
+            this.syncManager.cleanup();
+        }
+
+        /**
+         * Создаем универсальный менеджер синхронизации между карточками и бликами.
+         * Для каждой пары вызывается метод syncWithObjectPosition у блика.
+         */
+        this.syncManager = new Object3DSyncManager(cards, glows, (card, glow) => {
+            if (glow && typeof glow.syncWithObjectPosition === 'function') {
+                glow.syncWithObjectPosition(card);
+            }
+        });
+
+        // После создания syncManager
+        if (this.controllers.GLOW) {
+            this.controllers.GLOW.syncManager = this.syncManager;
+        }
+    }
+
+    /**
+     * @override
+     * @description Обновление секции и синхронизация бликов с карточками
+     */
+    update() {
+        super.update();
+        if (this.syncManager) {
+            this.syncManager.update();
+        }
+    }
 }
 
 

@@ -81,6 +81,11 @@ export class Glow extends Object_3D_Observer_Controller {
      * @returns {void}
      */
     update() {
+        // Синхронизация бликов с карточками
+        if (this.syncManager) {
+            this.syncManager.update();
+        }
+        // Старая логика обновления бликов
         const time = performance.now() / 1000;
         
         if (this.glows && Array.isArray(this.glows)) {
@@ -198,6 +203,7 @@ export class Glow extends Object_3D_Observer_Controller {
         
         optionsArray.forEach((options) => {
             options.container = this.container;
+            options.index = optionsArray.indexOf(options);
             
             const glow = new SingleGlow(options);
             glow.setup();
@@ -293,10 +299,14 @@ export class Glow extends Object_3D_Observer_Controller {
      * @param {Dynamics3D} card - объект карточки Dynamics3D
      * @param {number} glowIndex - индекс блика
      */
-    // syncWithCard(card, glowIndex = 0) {
-    //     if (!card || !this.glows || !this.glows[glowIndex]) return;
-    //     this.glows[glowIndex].syncWithObjectPosition(card);
-    // }
+    syncWithCard(card, glowIndex = 0) {
+        if (!card || !this.glows || this.glows.length <= glowIndex) return;
+
+        const glow = this.glows[glowIndex];
+        if (glow) {
+            card.setLinkedGlow(glow);
+        }
+    }
 
 }
 

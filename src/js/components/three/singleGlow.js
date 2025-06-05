@@ -81,6 +81,7 @@ export class SingleGlow {
         this.logger = createLogger(this.name);
 
         this.options = options;
+        this.index = options.index ?? 0;
 
         this.position = this.options.objectOptions.positioning?.position;
         this.range = this.options.objectOptions.movement?.range;
@@ -107,6 +108,10 @@ export class SingleGlow {
         this.mesh = this._createMesh();
         this._trajectory = generateTrajectoryParams(this.range);
         this._setPosition(this.position);
+
+        if (this.index === 0) {
+            console.log(`[SingleGlow][setup][index=0] mesh.position:`, this.mesh.position);
+        }
     }
 
     /**
@@ -118,7 +123,9 @@ export class SingleGlow {
         if (this.mesh && this.mesh.material) {
             this.mesh.material.uniforms.time.value = time;
         }
-        this._applyMovement(time);
+        if (this.options.objectOptions.movement?.enabled) {
+            this._applyMovement(time);
+        }
         if (this.options.objectOptions.intersection?.enabled) {
             this._lerpColor();
         }
@@ -321,13 +328,13 @@ export class SingleGlow {
      * @description Sets the opacity of the glow dynamically
      * @param {number} opacity - Новый прозрачность блика
      */	
-    // setOpacity(opacity) {
-    //     if (!this.mesh) return;
-    //     this.options.shaderOptions.opacity.max = opacity;
-    //     if (this.mesh.material.uniforms && this.mesh.material.uniforms.opacity) {
-    //         this.mesh.material.uniforms.opacity.value = opacity;
-    //     }
-    // }
+    setOpacity(opacity) {
+        if (!this.mesh || !this.mesh.material?.uniforms?.opacity) return;
+        this.mesh.material.uniforms.opacity.value = opacity;
+        if (this.index === 0) {
+            console.log(`[SingleGlow][setOpacity][index=0] opacity:`, opacity);
+        }
+    }
 
     /**
      * @description Sets the scale of the glow dynamically
@@ -343,42 +350,54 @@ export class SingleGlow {
      * @description Устанавливает масштаб блика через uniform (масштаб в шейдере)
      * @param {number} scale - Новый масштаб для шейдера
      */
-    // setShaderScale(scale) {
-    //     if (this.mesh && this.mesh.material.uniforms.cardScale) {
-    //         this.mesh.material.uniforms.cardScale.value = scale;
-    //     }
-    // }
+    setShaderScale(scale) {
+        if (!this.mesh || !this.mesh.material?.uniforms?.cardScale) return;
+        this.mesh.material.uniforms.cardScale.value = scale;
+        if (this.index === 0) {
+            console.log(`[SingleGlow][setShaderScale][index=0] scale:`, scale);
+        }
+    }
 
     /**
      * @description Синхронизирует масштаб и прозрачность блика с позицией объекта (например, карточки) по оси Z
      * @param {Dynamics3D} object - объект, с позицией которого синхронизируем
      */
-    // syncWithObjectPosition(object) {
-    //     const syncOptions = this.options.shaderOptions.pulse?.sync || {};
-    //     if (!syncOptions.scale && !syncOptions.opacity) return;
-    //     const position = object?.currentScale?.position;
-    //     if (!position || typeof position.z !== 'number') return;
-    //     const z = position.z;
-    //     const zParams = object.animationParams.group?.position?.z || {};
-    //     const baseZ = zParams.basePosition ?? 0;
-    //     const amplitudeZ = zParams.amplitude ?? 0;
-    //     const realMinZ = amplitudeZ * -1;
-    //     const realMaxZ = baseZ;
-    //     const tolerance = Math.abs(amplitudeZ) * 0;
-    //     const minZ = realMinZ - tolerance;
-    //     const maxZ = realMaxZ + tolerance;
-    //     let normalizedZ = (z - minZ) / (maxZ - minZ);
-    //     normalizedZ = Math.max(0, Math.min(1, normalizedZ));
-    //     if (minZ > maxZ) {
-    //         normalizedZ = 1 - normalizedZ;
-    //     }
-    //     const scaleRange = this.options.shaderOptions.scale;
-    //     const opacityRange = this.options.shaderOptions.opacity;
-    //     const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
-    //     const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
-    //     // Управляем только шейдерным масштабом
-    //     if (syncOptions.scale) this.setShaderScale(scale);
-    //     if (syncOptions.opacity) this.setOpacity(opacity);
-    //     // Для управления объектом используйте setObjectScale и objectOptions
-    // }
+    syncWithObjectPosition(object) {
+        if(!object) return
+
+        const syncOptions = this.options.shaderOptions.pulse?.sync || {};
+        
+        if (!syncOptions.scale && !syncOptions.opacity) return;
+
+        const position = object.currentPosition?.position;
+
+        if (!position || typeof position.z !== 'number') {
+            console.warn('Invalid position data:', { position, object });
+            return;
+        }
+
+        const z = position.z;
+        const zParams = object.animationParams.group?.position?.z || {};
+        const baseZ = zParams.basePosition ?? 0;
+        const amplitudeZ = zParams.amplitude ?? 0;
+        const realMinZ = amplitudeZ * -1;
+        const realMaxZ = baseZ;
+        const tolerance = Math.abs(amplitudeZ) * 0;
+        const minZ = realMinZ - tolerance;
+        const maxZ = realMaxZ + tolerance;
+
+        let normalizedZ = (z - minZ) / (maxZ - minZ);
+        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
+        if (minZ > maxZ) {
+            normalizedZ = 1 - normalizedZ;
+        }
+
+        const scaleRange = this.options.shaderOptions.scale;
+        const opacityRange = this.options.shaderOptions.opacity;
+        const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
+        const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
+
+        if (syncOptions.scale) this.setShaderScale(scale);
+        if (syncOptions.opacity) this.setOpacity(opacity);
+    }
 } 

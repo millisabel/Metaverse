@@ -14,9 +14,5 @@ void main() {
     float intensity = glow * falloff;
     float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
     intensity *= 0.9 + 0.1 * noise;
-    float finalOpacity = opacity;
-    if (syncOpacity > 0.5) {
-        finalOpacity = cardOpacity;
-    }
-    gl_FragColor = vec4(color, intensity * finalOpacity);
+    gl_FragColor = vec4(color, intensity * opacity);
 }
