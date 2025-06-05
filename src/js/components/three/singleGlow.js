@@ -36,6 +36,8 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
     },
     shaderOptions: {
         color: 0xFFFFFF,
+        radius: 1,
+        segments: 4,
         opacity: { min: 0.5, max: 1 },
         scale: { min: 1, max: 2 },
         pulse: {
@@ -43,11 +45,12 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
             speed: { min: 0.1, max: 0.3 },
             intensity: 2,
             randomize: false,
-            sync: {
-                scale: false,
-                opacity: false,
-            },
             highlightIntensity: 0,
+        },
+        sync: {
+            enabled: false,
+            scale: false,
+            opacity: false,
         },
     },
 };
@@ -63,8 +66,6 @@ const SHADER_UNIFORMS = {
         v.options.shaderOptions.pulse.intensity : 
         v.options.shaderOptions.pulse.intensity.max ?? 2 }),
     objectPulse: v => ({ value: v.options.shaderOptions.objectPulse }),
-    syncWithObject: v => ({ value: v.options.shaderOptions.pulse.sync ? 1.0 : 0.0 }),
-    highlightIntensity: v => ({ value: v.options.shaderOptions.pulse?.highlightIntensity ?? 0 })
 };
 
 /**
@@ -73,7 +74,7 @@ const SHADER_UNIFORMS = {
  * @param {THREE.WebGLRenderer} parentRenderer - The parent renderer
  * @param {HTMLElement} container - The container element
  * @param {THREE.Camera} camera - The camera
- * @param {Object} options - итоговые опции для одного блика
+ * @param {Object} options - The options
  */
 export class SingleGlow {
     constructor(options = {}) {
@@ -83,21 +84,17 @@ export class SingleGlow {
         this.options = options;
         this.index = options.index ?? 0;
 
-        this.position = this.options.objectOptions.positioning?.position;
-        this.range = this.options.objectOptions.movement?.range;
+        this.mesh = null;
+        this.position = null;
+        this.range = null;
         this._trajectory = null;
-        
-        if (this.options.shaderOptions.pulse?.enabled) {
-            if (this.options.shaderOptions.pulse.randomize) {
-                applyRandomizedPulseOptions(this.options.shaderOptions);
-            }
-            this._pulseSpeed = this._initPulseSpeed();
-        }
-        
-        if (options.objectOptions.intersection?.enabled) {
-            this._currentColor = new THREE.Color(this.options.shaderOptions.color);
-            this._targetColor = new THREE.Color(this.options.shaderOptions.color);
-        }
+        this._pulseSpeed = null;
+        this._currentColor = null;
+        this._targetColor = null;
+
+        this._initPositionAndMovement();
+        this._initPulseSettings();
+        this._initIntersectionColors();
     }
 
     /**
@@ -108,10 +105,6 @@ export class SingleGlow {
         this.mesh = this._createMesh();
         this._trajectory = generateTrajectoryParams(this.range);
         this._setPosition(this.position);
-
-        if (this.index === 0) {
-            console.log(`[SingleGlow][setup][index=0] mesh.position:`, this.mesh.position);
-        }
     }
 
     /**
@@ -120,15 +113,10 @@ export class SingleGlow {
      * @returns {void}
      */
     update(time) {
-        if (this.mesh && this.mesh.material) {
-            this.mesh.material.uniforms.time.value = time;
-        }
-        if (this.options.objectOptions.movement?.enabled) {
-            this._applyMovement(time);
-        }
-        if (this.options.objectOptions.intersection?.enabled) {
-            this._lerpColor();
-        }
+        this._updateTime(time);
+        this._updatePulse(time);
+        this._updateMovement(time);
+        this._updateIntersectionColor();
     }
 
     /**
@@ -147,7 +135,84 @@ export class SingleGlow {
     }
 
     /**
-     * @description Создаёт меш для блика
+     * @description Synchronizes the scale and opacity of the glow with the position of the object (e.g. card) along the Z axis
+     * @param {Dynamics3D} object - object with the position to synchronize
+     */
+    syncWithObjectPosition(object) {
+        if (!object) return;
+        const syncOptions = this.options.shaderOptions.sync || {};
+        if (!syncOptions.scale && !syncOptions.opacity) return;
+
+        const position = object.currentPosition?.position;
+        if (!position || typeof position.z !== 'number') return;
+
+        const z = position.z;
+        const zParams = object.animationParams.group?.position?.z || {};
+        const baseZ = zParams.basePosition ?? 0;
+        const amplitudeZ = zParams.amplitude ?? 0;
+        const realMinZ = baseZ - amplitudeZ;
+        const realMaxZ = baseZ;
+        const tolerance = Math.abs(amplitudeZ) * 0.01;
+        const minZ = realMinZ - tolerance;
+        const maxZ = realMaxZ + tolerance;
+
+        let normalizedZ = (z - minZ) / (maxZ - minZ);
+        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
+        if (minZ > maxZ) {
+            normalizedZ = 1 - normalizedZ;
+        }
+
+        const scaleRange = this.options.shaderOptions.scale;
+        const opacityRange = this.options.shaderOptions.opacity;
+        const calculatedScale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
+        const finalScale = Math.max(scaleRange.min, Math.min(scaleRange.max, calculatedScale));
+
+        const calculatedOpacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
+        const finalOpacity = Math.max(opacityRange.min, Math.min(opacityRange.max, calculatedOpacity));
+        
+        if (this.index === 0) {
+            this.logger.log(`[SingleGlow][syncWithObjectPosition][index=0] Z: ${z.toFixed(2)}, NormalizedZ: ${normalizedZ.toFixed(2)}, Scale: ${finalScale.toFixed(2)}, Opacity: ${finalOpacity.toFixed(2)}`);
+        }
+
+        if (syncOptions.scale) this._setShaderScale(finalScale);
+        if (syncOptions.opacity) this._setOpacity(finalOpacity);
+    }
+
+    /**
+     * @description Initializes position and movement properties
+     * @private
+     */
+    _initPositionAndMovement() {
+        this.position = this.options.objectOptions.positioning?.position;
+        this.range = this.options.objectOptions.movement?.range;
+    }
+
+    /**
+     * @description Initializes pulse settings if enabled
+     * @private
+     */
+    _initPulseSettings() {
+        if (this.options.shaderOptions.pulse?.enabled) {
+            if (this.options.shaderOptions.pulse.randomize) {
+                applyRandomizedPulseOptions(this.options.shaderOptions);
+            }
+            this._pulseSpeed = this._initPulseSpeed();
+        }
+    }
+
+    /**
+     * @description Initializes intersection colors if enabled
+     * @private
+     */
+    _initIntersectionColors() {
+        if (this.options.objectOptions.intersection?.enabled) {
+            this._currentColor = new THREE.Color(this.options.shaderOptions.color);
+            this._targetColor = new THREE.Color(this.options.shaderOptions.color);
+        }
+    }
+
+    /**
+     * @description Creates a mesh for the glow
      * @returns {THREE.Mesh}
      */
     _createMesh() {
@@ -158,30 +223,22 @@ export class SingleGlow {
     }
 
     /**
-     * @description Создаёт геометрию для блика (по умолчанию круг)
+     * @description Creates a geometry for the glow (default circle)
      * @returns {THREE.Geometry}
      */
     _createGeometry() {
-        const radius = 1;
-        const segments = 32;
+        const radius = this.options.shaderOptions.radius ?? 1;
+        const segments = this.options.shaderOptions.segments ?? 16;
         const geometry = new THREE.CircleGeometry(radius, segments);
         return geometry;
     }
 
     /**
-     * @description Создаёт ShaderMaterial для блика
+     * @description Creates a ShaderMaterial for the glow
      * @returns {THREE.ShaderMaterial}
      */
     _createMaterial() {
-        const uniforms = {};
-        for (const key in SHADER_UNIFORMS) {
-            uniforms[key] = SHADER_UNIFORMS[key](this);
-        }
-        uniforms.syncScale = { value: this.options.shaderOptions.pulse?.sync?.scale ? 1.0 : 0.0 };
-        uniforms.cardScale = { value: 1.0 };
-        uniforms.syncOpacity = { value: this.options.shaderOptions.pulse?.sync?.opacity ? 1.0 : 0.0 };
-        uniforms.cardOpacity = { value: this.options.shaderOptions.opacity.max };
-        uniforms.highlightIntensity = { value: this.options.shaderOptions.pulse?.highlightIntensity ?? 0 };
+        const uniforms = this._initializeUniforms();
 
         const material = new THREE.ShaderMaterial({
             uniforms,
@@ -194,6 +251,95 @@ export class SingleGlow {
         });
 
         return material;
+    }
+
+    /**
+     * @description Initializes shader uniforms with appropriate values
+     * @returns {Object} The uniforms object
+     * @private
+     */
+    _initializeUniforms() {
+        const uniforms = {};
+        
+        for (const key in SHADER_UNIFORMS) {
+            uniforms[key] = SHADER_UNIFORMS[key](this);
+        }
+
+        const syncEnabled = this.options.shaderOptions.sync?.enabled;
+        uniforms.syncScale = { value: this._getInitialScale(syncEnabled) };
+        uniforms.opacity = { value: this._getInitialOpacity(syncEnabled) };
+
+        return uniforms;
+    }
+
+    /**
+     * @description Gets initial scale value based on sync state
+     * @param {boolean} syncEnabled - Whether sync is enabled
+     * @returns {number} Initial scale value
+     * @private
+     */
+    _getInitialScale(syncEnabled) {
+        if (syncEnabled) {
+            return this.options.shaderOptions.scale?.min ?? 0;
+        }
+        return this.options.shaderOptions.scale?.max ?? 1.0;
+    }
+
+    /**
+     * @description Gets initial opacity value based on sync state
+     * @param {boolean} syncEnabled - Whether sync is enabled
+     * @returns {number} Initial opacity value
+     * @private
+     */
+    _getInitialOpacity(syncEnabled) {
+        if (syncEnabled) {
+            return this.options.shaderOptions.opacity?.min ?? 0;
+        }
+        return this.options.shaderOptions.opacity?.max ?? 1.0;
+    }
+
+    /**
+     * @description Updates the time uniform in the shader
+     * @param {number} time - The current time
+     * @private
+     */
+    _updateTime(time) {
+        if (this.mesh && this.mesh.material) {
+            this.mesh.material.uniforms.time.value = time;
+        }
+    }
+
+    /**
+     * @description Updates pulse animation if enabled and not synced
+     * @param {number} time - The current time
+     * @private
+     */
+    _updatePulse(time) {
+        if (this.options.shaderOptions.pulse?.enabled && !this.options.shaderOptions.sync?.scale) {
+            const pulse = this._calculatePulse(time);
+            this._setShaderScale(pulse);
+        }
+    }
+
+    /**
+     * @description Updates movement animation if enabled
+     * @param {number} time - The current time
+     * @private
+     */
+    _updateMovement(time) {
+        if (this.options.objectOptions.movement?.enabled) {
+            this._applyMovement(time);
+        }
+    }
+
+    /**
+     * @description Updates intersection color interpolation if enabled
+     * @private
+     */
+    _updateIntersectionColor() {
+        if (this.options.objectOptions.intersection?.enabled) {
+            this._lerpColor();
+        }
     }
 
     /**
@@ -217,8 +363,8 @@ export class SingleGlow {
     }
 
     /**
-     * @description Применяет движение к блику
-     * @param {number} time - Текущее время
+     * @description Applies movement to the glow
+     * @param {number} time - The current time
      * @returns {void}
      */
     _applyMovement(time) {
@@ -273,135 +419,51 @@ export class SingleGlow {
         return pulseSpeed?.max ?? 0.5;
     }
 
-
     /**
-     * @description Updates the opacity uniform for pulsating effect
-     * @param {number} time - Current animation time
-     * @returns {void}
+     * @description Calculates the pulse based on the current time
+     * @param {number} time - The current time (seconds)
+     * @returns {number} The calculated pulse
      */
-    // _updateScaleAndOpacity(time) {
-        // Пульсация размера
-        // let scaleFactor = this.options.size?.min ?? 1;
-        // if (this.options.pulse?.enabled && this.options.size?.max !== undefined) {
-        //     const t = (Math.sin(time * this._pulseSpeed) + 1) / 2;
-        //     scaleFactor = (this.options.size.max - this.options.size.min) * t + this.options.size.min;
-        // }
-        // const scale = (this._baseWorldScale ?? 1) * scaleFactor;
-        // this.mesh.scale.set(scale, scale, 1);
+    _calculatePulse(time) {
+        const pulse = this.options.shaderOptions.pulse;
+        const speed = typeof pulse.speed === 'number' ? pulse.speed : (pulse.speed?.max ?? 0.3);
+        const min = this.options.shaderOptions.scale.min ?? 0.8;
+        const max = this.options.shaderOptions.scale.max ?? 1.2;
+        
+        const basePulseValue = (Math.sin(time * speed) + 1) / 2; 
 
-        // // Пульсация прозрачности (оставляем как было)
-        // const opacityPulse = (Math.sin(time * this._pulseSpeed) + 1) / 2;
-        // const opacity = (this.options.opacity?.min ?? 0.2) + ((this.options.opacity?.max ?? 0.3) - (this.options.opacity?.min ?? 0.2)) * opacityPulse;
-        // if (this.mesh.material.uniforms) {
-        //     this.mesh.material.uniforms.opacity.value = opacity;
-        // }
-    //   }
+        const highlightIntensity = pulse.highlightIntensity ?? 0; 
+        const syncEnabledFlag = this.options.shaderOptions.sync?.enabled ? 1.0 : 0.0; 
 
-    /**
-     * @description Sets the color of the glow dynamically
-     * @param {string|THREE.Color} color - Новый цвет (CSS-строка или THREE.Color)
-     * @returns {void}
-     */
-    // setColor(color) {
-    //     if (!this.mesh || !this.mesh.material) return;
-    //     const newColor = (color instanceof THREE.Color) ? color : new THREE.Color(color);
-    //     if (this.mesh.material.uniforms && this.mesh.material.uniforms.color) {
-    //         this.mesh.material.uniforms.color.value = newColor;
-    //     } else if (this.mesh.material.color) {
-    //         this.mesh.material.color = newColor;
-    //     }
-    //     this.options.shaderOptions.color = newColor.getStyle ? newColor.getStyle() : color;
-    // }
+        const objectInfluence = THREE.MathUtils.smoothstep(highlightIntensity, 0.0, 1.0) * syncEnabledFlag;
 
+        const combinedEffect = THREE.MathUtils.lerp(
+            basePulseValue,
+            basePulseValue * (1.0 + objectInfluence),
+            THREE.MathUtils.smoothstep(objectInfluence, 0.0, 1.0) 
+        );
 
-    /**
-     * @description Sets the target value for objectPulse (for external sync)
-     * @param {number} value - Target value (0..1)
-     */
-    // setHighlightIntensity(value) {
-    //     this._targetHighlightIntensity = value;
-    // }
+        const finalPulseFactor = Math.pow(combinedEffect, 1.2) * pulse.intensity;
 
-
+        return min + (max - min) * finalPulseFactor;
+    }
 
     /**
      * @description Sets the opacity of the glow dynamically
-     * @param {number} opacity - Новый прозрачность блика
+     * @param {number} opacity - New opacity for the glow
      */	
-    setOpacity(opacity) {
+    _setOpacity(opacity) {
         if (!this.mesh || !this.mesh.material?.uniforms?.opacity) return;
         this.mesh.material.uniforms.opacity.value = opacity;
-        if (this.index === 0) {
-            console.log(`[SingleGlow][setOpacity][index=0] opacity:`, opacity);
-        }
     }
 
-    /**
-     * @description Sets the scale of the glow dynamically
-     * @param {number} scale - Новый масштаб блика
-     */
-    // setScale(scale) {
-    //     if (!this.mesh) return;
-    //     this.mesh.scale.set(scale, scale, 1);
-    // }
-
 
     /**
-     * @description Устанавливает масштаб блика через uniform (масштаб в шейдере)
-     * @param {number} scale - Новый масштаб для шейдера
+     * @description Sets the scale of the glow through the uniform (scale in the shader)
+     * @param {number} scale - New scale for the shader
      */
-    setShaderScale(scale) {
-        if (!this.mesh || !this.mesh.material?.uniforms?.cardScale) return;
-        this.mesh.material.uniforms.cardScale.value = scale;
-        if (this.index === 0) {
-            console.log(`[SingleGlow][setShaderScale][index=0] scale:`, scale);
-        }
-    }
-
-    /**
-     * @description Синхронизирует масштаб и прозрачность блика с позицией объекта (например, карточки) по оси Z
-     * @param {Dynamics3D} object - объект, с позицией которого синхронизируем
-     */
-    syncWithObjectPosition(object) {
-        if(!object) return
-
-        const syncOptions = this.options.shaderOptions.pulse?.sync || {};
-        
-        if (!syncOptions.scale && !syncOptions.opacity) return;
-
-        const position = object.currentPosition?.position;
-
-        if (!position || typeof position.z !== 'number') {
-            console.warn('Invalid position data:', { position, object });
-            return;
-        }
-
-        const z = position.z;
-        const zParams = object.animationParams.group?.position?.z || {};
-        const baseZ = zParams.basePosition ?? 0;
-        const amplitudeZ = zParams.amplitude ?? 0;
-        const realMinZ = amplitudeZ * -1;
-        const realMaxZ = baseZ;
-        const tolerance = Math.abs(amplitudeZ) * 0;
-        const minZ = realMinZ - tolerance;
-        const maxZ = realMaxZ + tolerance;
-
-        let normalizedZ = (z - minZ) / (maxZ - minZ);
-        normalizedZ = Math.max(0, Math.min(1, normalizedZ));
-        if (minZ > maxZ) {
-            normalizedZ = 1 - normalizedZ;
-        }
-
-        const scaleRange = this.options.shaderOptions.scale;
-        const opacityRange = this.options.shaderOptions.opacity;
-        const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
-        const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
-
-        
-        if (this.options.shaderOptions.pulse?.sync?.scale) this.setShaderScale(scale);
-        if (this.options.shaderOptions.pulse?.sync?.opacity) this.setOpacity(opacity);
-
-        if (syncOptions.scale) this.setShaderScale(scale);
-        if (syncOptions.opacity) this.setOpacity(opacity);
+    _setShaderScale(scale) {
+        if (!this.mesh || !this.mesh.material?.uniforms?.syncScale) return;
+        this.mesh.material.uniforms.syncScale.value = scale;
     }
 } 

@@ -1,10 +1,6 @@
 uniform vec3 color;
 uniform float opacity;
-uniform float cardProgress;
-uniform float syncOpacity;
-uniform float cardOpacity;
 varying vec2 vUv;
-varying float vPulse;
 
 void main() {
     vec2 center = vec2(0.5, 0.5);

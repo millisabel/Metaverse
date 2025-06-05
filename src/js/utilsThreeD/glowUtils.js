@@ -1,7 +1,6 @@
 import { deepMergeOptions } from '../utils/utils';
 import { shuffleArray } from '../utils/utils';
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from '../components/three/singleGlow';
-import { GLOWS_DEFAULT_OPTIONS } from '../components/three/glow';
 
 /**
  * @description Gets the final glow options

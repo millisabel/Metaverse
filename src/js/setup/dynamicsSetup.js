@@ -219,11 +219,11 @@ const CONFIG_GLOW = {
                 }, 
                 intensity: 1,
                 randomize: false,
-                sync: {
-                    enabled: true,
-                    scale: true,
-                    opacity: true,
-                },
+            },
+            sync: {
+                enabled: true,
+                scale: true,
+                opacity: true,
             },
         },
         individualOptions: [
@@ -326,6 +326,14 @@ export class DynamicsSetup extends SectionController {
         if (this.syncManager) {
             this.syncManager.update();
         }
+    }
+
+    cleanup() {
+        if (this.syncManager && typeof this.syncManager.cleanup === 'function') {
+            this.syncManager.cleanup();
+            this.syncManager = null;
+        }
+        super.cleanup();
     }
 }
 

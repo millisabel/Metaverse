@@ -15,6 +15,16 @@ import {
     getElementColor
 } from '../../utilsThreeD/glowUtils';
 
+/**
+ * @description Default options for the glows
+ * @type {Object}
+ * @property {number} count - The number of glows
+ * @property {Array} colorPalette - The color palette
+ * @property {boolean} shuffleColors - Whether to shuffle the colors
+ * @property {Object} objectOptions - The object options
+ * @property {Object} shaderOptions - The shader options
+ * @property {Object} individualOptions - The individual options
+ */
 export const GLOWS_DEFAULT_OPTIONS = {
     count: 1,
     colorPalette: [],
@@ -43,11 +53,11 @@ export const GLOWS_DEFAULT_OPTIONS = {
             speed: { min: 0.1, max: 0.3 },
             intensity: 2,
             randomize: false,
-            sync: {
-                scale: false,
-                opacity: false,
-            },
             highlightIntensity: 0,
+        },
+        sync: {
+            scale: false,
+            opacity: false,
         },
     },
     individualOptions: [],
@@ -81,12 +91,11 @@ export class Glow extends Object_3D_Observer_Controller {
      * @returns {void}
      */
     update() {
-        // Синхронизация бликов с карточками
+        const time = performance.now() / 1000;
+
         if (this.syncManager) {
             this.syncManager.update();
         }
-        // Старая логика обновления бликов
-        const time = performance.now() / 1000;
         
         if (this.glows && Array.isArray(this.glows)) {
             this.glows.forEach(glow => {
@@ -264,49 +273,5 @@ export class Glow extends Object_3D_Observer_Controller {
 
         return new THREE.Color(glow.options.shaderOptions.color);
     }
-
-    // setGlowScale(cardIndex, scale) {
-    //     if (this.glows && this.glows[cardIndex]) {
-    //         this.glows[cardIndex].setScale(scale);
-    //     }
-    // }
-
-    /**
-     * @description Sets the highlightIntensity value for a specific glow (for external sync)
-     * @param {number} index - Glow index
-     * @param {number} value - Target value (0..1)
-     */
-    // setGlowHighlightIntensity(index, value) {
-    //     if (this.glows[index] && typeof this.glows[index].setHighlightIntensity === 'function') {
-    //         this.glows[index].setHighlightIntensity(value);
-    //     }
-    // }
-
-    /**
-     * @description Sets the opacity value for a specific glow
-     * @param {number} cardIndex - Glow index
-     * @param {number} opacity - Target opacity value (0..1)
-     */
-    // setGlowOpacity(cardIndex, opacity) {
-    //     console.log('setGlowOpacity', cardIndex, opacity);
-    //     if (this.glows && this.glows[cardIndex]) {
-    //         this.glows[cardIndex].setOpacity(opacity);
-    //     }
-    // }
-
-    /**
-     * @description Синхронизирует блик под карточкой с позицией и анимацией карточки
-     * @param {Dynamics3D} card - объект карточки Dynamics3D
-     * @param {number} glowIndex - индекс блика
-     */
-    syncWithCard(card, glowIndex = 0) {
-        if (!card || !this.glows || this.glows.length <= glowIndex) return;
-
-        const glow = this.glows[glowIndex];
-        if (glow) {
-            card.setLinkedGlow(glow);
-        }
-    }
-
 }
 
