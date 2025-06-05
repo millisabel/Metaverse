@@ -397,6 +397,10 @@ export class SingleGlow {
         const scale = scaleRange.min + (scaleRange.max - scaleRange.min) * normalizedZ;
         const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
 
+        
+        if (this.options.shaderOptions.pulse?.sync?.scale) this.setShaderScale(scale);
+        if (this.options.shaderOptions.pulse?.sync?.opacity) this.setOpacity(opacity);
+
         if (syncOptions.scale) this.setShaderScale(scale);
         if (syncOptions.opacity) this.setOpacity(opacity);
     }

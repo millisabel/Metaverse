@@ -195,10 +195,10 @@ const CONFIG_GLOW = {
             },
             positioning: {
                 mode: 'element',
-                align: isMobile() ? 'top left' : 'center bottom',
+                align: isMobile() ? 'top left' : 'center center',
                 offset: { 
                     x: 0, 
-                    y: isMobile() ? 0 : 100 
+                    y: isMobile() ? 0 : -50, 
                 }
             },
         },
@@ -209,7 +209,7 @@ const CONFIG_GLOW = {
             },
             opacity: {
                 min: 0, 
-                max: 1,
+                max: 0.7,
             },
             pulse: {
                 enabled: true, 
