@@ -116,7 +116,7 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
                         `----------------------------------------------------------\n`;
 
                     if (!this.isVisible) {
-                        this.cleanup();
+                        this.isVisible = false;
     
                     } else {
                         if (!this.initialized) {

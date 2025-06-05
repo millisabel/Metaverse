@@ -177,8 +177,8 @@ export class SectionController extends SectionObserver {
     _cleanupControllers() {
         for (const [key, controller] of Object.entries(this.controllers)) {
             if (controller && typeof controller.cleanup === 'function') {
-                delete this.controllers[key];
-                this.logMessage += `controller ${key} cleaned up, state: ${this.controllers[key]}\n`;
+                controller.cleanup();
+                this.logMessage += `controller ${key} cleaned up success\n`;
             }
         }
 
