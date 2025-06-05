@@ -19,7 +19,7 @@ const CONFIG_3D = {
         containerName: NAME_3D_OBJECTS.GLOW,
         zIndex: Z_INDEX.GLOW,
         objectConfig: {
-            count: isMobile() ? 3 : 12,
+            count: isMobile() ? 4 : 12,
             colorPalette: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
             objectOptions: {
@@ -54,6 +54,18 @@ const CONFIG_3D = {
                     speed: { min: 0.2, max: 0.5 },
                     intensity: 1.1,
                     randomize: true,
+                },
+            },
+            responsive: {
+                count: 'isMobile() ? 4 : 12',
+                objectOptions: {
+                    movement: {
+                        range: {
+                            x: 'isMobile() ? 1 : 3',
+                            y: '4',
+                            z: '2',
+                        }
+                    },
                 },
             },
         },
