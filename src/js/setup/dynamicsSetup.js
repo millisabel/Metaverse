@@ -3,7 +3,6 @@ import { Dynamics3D } from '../components/three/dynamics3d';
 import { Glow } from '../components/three/glow';
 
 import { Object3DSyncManager } from '../utilsThreeD/Object3DSyncManager';
-import { isMobile } from '../utils/utils';
 
 import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
 import decoration2Svg from '../../assets/images/dynamics/decoration_2.svg';
@@ -19,11 +18,6 @@ const CARD_COLORS = {
     GUARDIANS: 0x00FFFF,
     METAVERSE: 0x4169FF,
     SANKOPA: 0xFF00FF,
-};
-const CARD_NAMES = {
-    GUARDIANS: 'CARD_GUARDIANS',
-    METAVERSE: 'CARD_METAVERSE',
-    SANKOPA: 'CARD_SANKOPA',
 };
 const CONFIG_CARDS = {  
     GUARDIANS: {
@@ -171,10 +165,10 @@ const CONFIG_GLOW = {
             },
             positioning: {
                 mode: 'element',
-                align: isMobile() ? 'top left' : 'center center',
+                align: 'center center',
                 offset: { 
                     x: 0, 
-                    y: isMobile() ? 0 : -50, 
+                    y: -50, 
                 }
             },
         },
@@ -185,7 +179,7 @@ const CONFIG_GLOW = {
             },
             opacity: {
                 min: 0, 
-                max: 0.7,
+                max: 0.6,
             },
             pulse: {
                 enabled: true, 
@@ -233,7 +227,7 @@ const CONFIG_GLOW = {
                     }
                 }
             }
-        ]
+        ],
     }
 };
 const CONFIG = {
@@ -270,22 +264,16 @@ export class DynamicsSetup extends SectionController {
             glows = this.controllers.GLOW.glows;
         }
 
-        // Если уже был syncManager — очищаем (на будущее, если потребуется)
         if (this.syncManager && typeof this.syncManager.cleanup === 'function') {
             this.syncManager.cleanup();
         }
 
-        /**
-         * Создаем универсальный менеджер синхронизации между карточками и бликами.
-         * Для каждой пары вызывается метод syncWithObjectPosition у блика.
-         */
         this.syncManager = new Object3DSyncManager(cards, glows, (card, glow) => {
             if (glow && typeof glow.syncWithObjectPosition === 'function') {
                 glow.syncWithObjectPosition(card);
             }
         });
 
-        // После создания syncManager
         if (this.controllers.GLOW) {
             this.controllers.GLOW.syncManager = this.syncManager;
         }
@@ -293,7 +281,22 @@ export class DynamicsSetup extends SectionController {
 
     /**
      * @override
-     * @description Обновление секции и синхронизация бликов с карточками
+     * @description Update the position of the glows by the card
+     */
+    onResize() {
+        super.onResize();
+        if (this.controllers.GLOW && Array.isArray(this.controllers.GLOW.glows)) {
+            this.controllers.GLOW.glows.forEach(glow => {
+                if (typeof glow.updatePositionByCard === 'function') {
+                    glow.updatePositionByCard();
+                }
+            });
+        } 
+    }
+
+    /**
+     * @override
+     * @description Update the section and synchronize the glows with the cards
      */
     update() {
         super.update();

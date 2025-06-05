@@ -463,4 +463,29 @@ export class SingleGlow {
         if (!this.mesh || !this.mesh.material?.uniforms?.syncScale) return;
         this.mesh.material.uniforms.syncScale.value = scale;
     }
+
+    /**
+     * @description Updates the position of the glow by the card
+     * @returns {void}
+     */
+    updatePositionByCard() {
+        const targetSelector = this.options.objectOptions?.positioning?.targetSelector;
+        const align = this.options.objectOptions?.positioning?.align || 'center center';
+        const container = this.options.container;
+        const offset = this.options.objectOptions?.positioning?.offset || { x: 0, y: 0 };
+
+        const options = {
+            positioning: {
+                targetSelector,
+                container,
+                align,
+                offset,
+            },
+        };
+
+        const position = getPositionByElement(options);
+        
+        this.mesh.position.x = position.x;
+        this.mesh.position.y = position.y;
+    }
 } 

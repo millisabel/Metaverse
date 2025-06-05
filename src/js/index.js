@@ -19,25 +19,26 @@ if(process.env.NODE_ENV === 'development') {
     Logger.enableGlobalLogging();
     Logger.disableLoggerFor('AnimationObserverCSS');
 
-    // Logger.disableLoggerFor('Universal3DSection');
-    // Logger.disableLoggerFor('AnimationController');
-    // Logger.disableLoggerFor('CameraController');
-    // Logger.disableLoggerFor('RendererManager');
+    Logger.disableLoggerFor('Universal3DSection');
+    Logger.disableLoggerFor('AnimationController');
+    Logger.disableLoggerFor('CameraController');
+    Logger.disableLoggerFor('RendererManager');
 
     Logger.disableLoggerFor('HeroSetup');
     Logger.disableLoggerFor('AboutSetup');
-    // Logger.disableLoggerFor('RoadmapSetup');
-    // Logger.disableLoggerFor('DynamicsSetup');
+    Logger.disableLoggerFor('RoadmapSetup');
+    Logger.disableLoggerFor('DynamicsSetup');
     Logger.disableLoggerFor('VRMarketSetup');
     Logger.disableLoggerFor('ExploreSetup');
     Logger.disableLoggerFor('ExploreScene');
     Logger.disableLoggerFor('SocialSetup');
 
-    Logger.disableLoggerFor('Stars');
+    Logger.disableLoggerFor('STARS');
+    Logger.disableLoggerFor('STARS_WHITE');
     Logger.disableLoggerFor('GalacticCloud');
     Logger.disableLoggerFor('Constellation');
-    // Logger.disableLoggerFor('Glow');
-    // Logger.disableLoggerFor('Dynamics3D');
+    Logger.disableLoggerFor('Glow');
+    Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
     Logger.disableLoggerFor('SingleGlow');
 
