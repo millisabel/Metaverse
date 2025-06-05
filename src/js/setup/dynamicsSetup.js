@@ -52,15 +52,7 @@ const CONFIG_CARDS = {
                     roughness: 0,
                     transparent: false,
                 },
-            },   
-            glow: {
-                enabled: true,
-                options: {
-                    shaderOptions: {
-                        color: CARD_COLORS.GUARDIANS,
-                    }
-                }
-            },
+            }, 
             animationParams: {
                 group: {
                 rotation: {
@@ -106,14 +98,6 @@ const CONFIG_CARDS = {
                     roughness: 0.05
                 },
             },
-            glow: {
-                enabled: true,
-                options: {
-                    shaderOptions: {
-                        color: CARD_COLORS.METAVERSE
-                    }
-                },
-            },
             animationParams: {
                 group: {
                     z: { speed: 0.15, amplitude: 10, phase: 0 }, 
@@ -143,14 +127,6 @@ const CONFIG_CARDS = {
                     color: CARD_COLORS.SANKOPA,
                     emissive: CARD_COLORS.SANKOPA,
                 },
-            },
-            glow: {
-                enabled: true,
-                options: {
-                    shaderOptions: {
-                        color: CARD_COLORS.SANKOPA,
-                    }
-                }
             },
             animationParams: {
                 group: {
@@ -278,19 +254,17 @@ export class DynamicsSetup extends SectionController {
 
     /**
      * @override
-     * @description Инициализация секции, создание менеджера синхронизации между карточками и бликами
+     * @description Initialize the section
      * @returns {Promise<void>}
      */
     async initSection() {
         await super.initSection();
 
-        // Получаем массив контроллеров карточек
         const cardKeys = ['CARD_GUARDIANS', 'CARD_METAVERSE', 'CARD_SANKOPA'];
         const cards = cardKeys
             .map(key => this.controllers[key])
             .filter(card => !!card);
 
-        // Получаем массив бликов (SingleGlow)
         let glows = [];
         if (this.controllers.GLOW && Array.isArray(this.controllers.GLOW.glows)) {
             glows = this.controllers.GLOW.glows;

@@ -2,9 +2,7 @@ import * as THREE from 'three';
 
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { createLogger } from '../../utils/logger';
-import { SingleGlow } from './singleGlow';
 import { deepMergeOptions } from '../../utils/utils';
-import { getFinalGlowOptions } from '../../utilsThreeD/glowUtils';
 
 
 const DEFAULT_MATERIAL_CONFIG = {
@@ -38,39 +36,6 @@ const DEFAULT_OBJECT_3D_CONFIG = {
         side: THREE.DoubleSide
     },
     zPosition: -0.5,
-};
-
-const GLOW_DYNAMIC_DEFAULTS_OPTIONS = {
-    enabled: true,
-    color: 0xFFFFFF,
-    size: {
-        min: 2,
-        max: 2
-    },
-    opacity: {
-        min: 0,
-        max: 0.05
-    },
-    scale: {
-        min: 2,
-        max: 8
-    },  
-    position: {
-        x: 0,
-        y: 0,
-        z: 0
-    },
-    movement: {
-        enabled: false
-    },
-    positioning: {
-        mode: 'fixed',
-    },
-    shaderOptions: {
-        color: 0xFFFFFF,
-        opacity: { min: 0.1, max: 0.4 },
-        scale: { min: 2, max: 8 },
-    }
 };
 
 const DEFAULT_ANIMATION_PARAMS = {
@@ -135,7 +100,6 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
 
         this._createMesh();
         await this._createAndAddDecorationMesh();
-        //     this._createGlowEffect();
         
         this.scene.add(this.group);
         this.setupLights(DEFAULT_LIGHTS_CONFIG);
@@ -160,7 +124,6 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
 
         this._meshAnimation(t);
         this._applyGroupAnimation(t);
-        // this._animateGlowEffect(t);
 
         super.update();
     }
@@ -172,23 +135,37 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
     cleanup() {
         this.logMessage += `${this.constructor.name} starting cleanup\n`;
 
-        // if (this.glowEffect) {
-        //     if (typeof this.glowEffect.dispose === 'function') {
-        //         this.glowEffect.dispose();
-        //     }
-        //     this.glowEffect = null;
-        // }
+        if (this.decorationMesh) {
+            if (this.decorationMesh.material) {
+                if (this.decorationMesh.material.map) {
+                    this.decorationMesh.material.map.dispose();
+                }
+                this.decorationMesh.material.dispose();
+            }
+            if (this.decorationMesh.geometry) {
+                this.decorationMesh.geometry.dispose();
+            }
+        }
+
+        if (this.mesh) {
+            if (this.mesh.material) {
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) {
+                this.mesh.geometry.dispose();
+            }
+        }
 
         if (this.group) {
             this.group.clear();
             if (this.scene) {
                 this.scene.remove(this.group);
             }
-            this.group = null;
         }
 
         this.mesh = null;
-        // this.decorationMesh = null;
+        this.decorationMesh = null;
+        this.group = null;
 
         super.cleanup();
 
@@ -408,67 +385,5 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
     _getAnimatedScale(t, scaleParams) {
         const scale = 1 + Math.sin(t * scaleParams.speed) * (scaleParams.amplitude || 0);
         return { x: scale, y: scale, z: scale };
-    }
-
-    // GLOW
-
-    /**
-     * @description Creates the glow effect
-     * @returns {void}
-     */
-    // _createGlowEffect() {
-    //     this.logger.log({
-    //         functionName: 'createGlowEffect',
-    //         customData: {
-    //             options: this.options
-    //         }
-    //     });
-
-    //     if (!this.options.glow && !this.options.glow.enabled) {
-    //         return;
-    //     }
-        
-    //     const options = getFinalGlowOptions(
-    //         {}, 
-    //         GLOW_DYNAMIC_DEFAULTS_OPTIONS, 
-    //         this.options.glow.options      
-    //     );
-
-    //     this.glowEffect = new SingleGlow(
-    //         this.scene,
-    //         this.renderer,
-    //         this.container,
-    //         this.camera,
-    //         options,
-    //     );
-    //     this.glowEffect.setup();
-
-    //     if (this.glowEffect.mesh) {
-    //         if (this.glowEffect.mesh instanceof THREE.Object3D) {
-    //             this.group.add(this.glowEffect.mesh);
-    //         }
-    //     }
-    // }
-
-    /**
-     * @description Animates the glow effect based on the object's position
-     * @param {number} t - The time
-     * @returns {void}
-     */
-    _animateGlowEffect(t) {
-        if (this.glowEffect && this.glowEffect.mesh) {
-            const z = this.group.position.z;
-            const minScale = 1;
-            const maxScale = 2;
-            const minZ = -10;
-            const maxZ = 0;
-            const k = (z - minZ) / (maxZ - minZ);
-            const scale = minScale + (maxScale - minScale) * k;
-                this.glowEffect.mesh.scale.set(scale, scale, scale);
-            
-            if (this.sectionController && typeof this.sectionController.setGlowScaleForCard === 'function') {
-                this.sectionController.setGlowScaleForCard(this.cardIndex, scale);
-            }
-        }
     }
 }

@@ -127,9 +127,6 @@ export class SingleGlow {
         if (this.mesh) {
             this.mesh.geometry.dispose();
             this.mesh.material.dispose();
-            if (this.scene && this.scene.children.includes(this.mesh)) {
-                this.scene.remove(this.mesh);
-            }
             this.mesh = null;
         }
     }
