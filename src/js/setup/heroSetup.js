@@ -3,8 +3,6 @@ import { SectionController } from '../controllers/SectionController';
 import { Stars } from "../components/three/stars";
 import { GalacticCloud } from '../components/three/galactic';
 
-import { isMobile } from "../utils/utils";
-
 
 /**
  * SECTION_ID
@@ -51,15 +49,17 @@ const CONFIG = {
             speed: { x: 0, y: 0, z: 0.00005 },
         },
         objectConfig: {
-            count: isMobile() ? 1000 : 2000,
+            count: 1000,
             colors: [0xA109FE, 0x7A59FF, 0x6100FF, 0x4642f4, 0xf00afe, 0xffffff],
             depth: {
-                range: isMobile() ? 400 : 800,
+                range: 400,
             },
             responsive: {
-                count: 'isMobile() ? 2000 : 5000',
-                depth: {
-                    range: 'isMobile() ? 400 : 800',
+                768: {
+                    count: 2000,
+                    depth: {
+                        range: 800,
+                    },
                 },
             }
         },

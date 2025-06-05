@@ -345,21 +345,21 @@ export function getQuarterColorFromVar(quarter) {
  * @param {any} value - The value to clone.
  * @returns {any} - Deeply cloned value.
  */
-// export function deepClone(value) {
-//     if (value === null || typeof value !== 'object') {
-//         return value;
-//     }
-//     if (Array.isArray(value)) {
-//         return value.map(deepClone);
-//     }
-//     const cloned = {};
-//     for (const key in value) {
-//         if (Object.prototype.hasOwnProperty.call(value, key)) {
-//             cloned[key] = deepClone(value[key]);
-//         }
-//     }
-//     return cloned;
-// }
+export function deepClone(value) {
+    if (value === null || typeof value !== 'object') {
+        return value;
+    }
+    if (Array.isArray(value)) {
+        return value.map(deepClone);
+    }
+    const cloned = {};
+    for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+            cloned[key] = deepClone(value[key]);
+        }
+    }
+    return cloned;
+}
 
 /**
  * Merges user options with default options for 3D object configuration

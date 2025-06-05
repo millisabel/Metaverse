@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 import { createLogger } from "../../utils/logger";
-import { isMobile } from '../../utils/utils';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { ShaderController } from '../../controllers/ShaderController';
 
@@ -48,8 +47,8 @@ const DEFAULT_OPTIONS = {
             z: 0,
         },
         initialOffset: {
-            x: isMobile() ? 0 : 2,
-            y: isMobile() ? -2 : 0,
+            x: 0,
+            y: -2,
             z: -2,
         },
         phase: {
@@ -67,10 +66,10 @@ const DEFAULT_OPTIONS = {
             max: 3,
         },
         speedPulse: 0.005,
-        speedMove: isMobile() ? 0 : 0.01,
+        speedMove: 0,
     },
     core: {
-        size: isMobile() ? 2 : 2.5,               
+        size: 2,               
         segments: 4,           
         shader: {               
             opacity: 0.5, 
@@ -88,24 +87,28 @@ const DEFAULT_OPTIONS = {
         }
     },
     plane: {
-        size: isMobile() ? 2 : 3,
+        size: 2,
         opacity: 1,
         transparent: false,
         rotationSpeed: 0.0005,
     },
     responsive: {
-        orbit: {
-            initialOffset: {
-                'x': 'isMobile() ? 0 : 2',
-                'y': 'isMobile() ? -2 : 0',
+        768: {
+            core: {
+                size: 3, 
             },
-            speedMove: 'isMobile() ? 0 : 0.01',
+            plane: {
+                size: 3,
+            },
         },
-        core: {
-            size: 'isMobile() ? 2 : 2.5',
-        },
-        plane: {
-            size: 'isMobile() ? 2 : 3',
+        1200: {
+            orbit: {
+                initialOffset: {
+                    x: 2,
+                    y: 0,
+                },
+                speedMove: 0.01,
+            },
         },
     },
 };
@@ -163,7 +166,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     onResize() {
-        if (!this.renderer || !this.cameraController.camera) return;
+
         
         super.onResize();
     }

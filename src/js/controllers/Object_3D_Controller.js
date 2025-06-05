@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { createLogger } from '../utils/logger';
-import { deepMergeOptions, isMobile } from '../utils/utils';
+import { deepMergeOptions, isMobile, deepClone } from '../utils/utils';
 
 import { RendererController } from './RendererController';
 import { CameraController } from './CameraController';
@@ -18,6 +18,8 @@ export class Object_3D_Controller {
         this.containerZIndex = customOptions.zIndex;
 
         this.options = deepMergeOptions(defaultOptions, customOptions.objectConfig);
+        this.baseOptions = deepClone(this.options); // Сохраняем эталонные опции
+        this.options = deepClone(this.baseOptions); // Текущие рабочие опции
         this.cameraOptions = customOptions.camera;
         this.lightsOptions = customOptions.lights;
 
@@ -59,6 +61,7 @@ export class Object_3D_Controller {
             this.cleanup();
             return;
         }
+        
         this._applyResponsiveOptions();
         this._initDependencies();
         this._initResizeHandler();
@@ -72,6 +75,7 @@ export class Object_3D_Controller {
      * @returns {Promise<void>}
      */
     async initScene() {
+        console.log('initScene');
         this.logMessage += 
             `${this.constructor.name} (Object_3D_Controller): initScene()\n` + 
             `----------------------------------------------------------\n`;
@@ -177,17 +181,17 @@ export class Object_3D_Controller {
      * @description Handles the resize event
      * @returns {void}
      */
-    onResize() {
-        const prevSnapshot = JSON.stringify(this.options);
+    async onResize() {
+        if (this._resizeInProgress) return;
+        this._resizeInProgress = true;
+
+        console.log('this.window.innerWidth:', window.innerWidth);
+        console.log('before:', this.options);
         this._applyResponsiveOptions();
-        const newSnapshot = JSON.stringify(this.options);
-        if (newSnapshot !== prevSnapshot) {
-            this._softCleanup();
-            this.initScene();
-            if (this.canAnimate && this.canAnimate()) {
-                this.animate();
-            }
-        }
+        console.log('after:', this.options);
+
+        this._softCleanup();
+        this.initScene(); 
 
         if (this.cameraController) {
             this.cameraController.onResize(this.container);
@@ -196,6 +200,14 @@ export class Object_3D_Controller {
             const rect = this.container.getBoundingClientRect();
             this.renderer.setSize(rect.width, rect.height);
         }
+
+        if (this.canAnimate && this.canAnimate()) {
+            this.animate();
+        }
+
+        setTimeout(() => {
+            this._resizeInProgress = false;
+        }, 100); 
     }
 
     /**
@@ -249,11 +261,6 @@ export class Object_3D_Controller {
             this.resizeTimeout = null;
         }
 
-        if (this.observer) {
-            this.observer.disconnect();
-            this.observer = null;
-        }
-
         this.logMessage += 
             `${this.constructor.name}: this.renderer: ${this.renderer}\n` +
             `${this.constructor.name}: Scene: ${this.scene}\n` +
@@ -262,6 +269,13 @@ export class Object_3D_Controller {
             `${this.constructor.name}: observer: ${this.observer}\n` +
             `${this.constructor.name}: Completed cleanup in Object_3D_Controller\n`;
   
+    }
+
+    cleanupObserver() {
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+        }
     }
     
     /**
@@ -353,24 +367,27 @@ export class Object_3D_Controller {
     }
 
     /**
-     * @description Applies responsive options to the target object
-     * @param {Object} responsive - Responsive options
-     * @param {Object} target - Target object
+     * @description Applies responsive options to the target object (Mobile First)
      * @returns {void}
      */
-    _applyResponsiveOptions(responsive = this.options.responsive, target = this.options) {  
-        if (!responsive) return;
-        for (const key in responsive) {
-            const value = responsive[key];
-            if (typeof value === 'string') {
-                target[key] = (new Function('isMobile', `return ${value}`))(isMobile);
-            } else if (typeof value === 'object' && value !== null) {
-                if (!target[key] || typeof target[key] !== 'object') {
-                    target[key] = {};
-                }
-                this._applyResponsiveOptions(value, target[key]);
-            }
+    _applyResponsiveOptions() {
+        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions()\n`;
+
+        Object.assign(this.options, deepClone(this.baseOptions));
+
+        const responsive = this.baseOptions.responsive;
+        if (!responsive || typeof responsive !== 'object') return;
+
+        const breakpoints = Object.keys(responsive)
+            .map(Number)
+            .filter(n => !isNaN(n) && window.innerWidth >= n)
+            .sort((a, b) => a - b);
+
+        for (const bp of breakpoints) {
+            mergeOptions(this.options, responsive[bp]);
         }
+
+        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions() success\n`;
     }
 
     /**
@@ -380,6 +397,7 @@ export class Object_3D_Controller {
      */
     _setupRenderer() {
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _setupRenderer()\n`;
+
 
         RendererController.getInstance().updateThreeRendererSize(
             this.renderer,
@@ -466,6 +484,24 @@ export class Object_3D_Controller {
             });
             this.scene = null;
         }       
+    }
+}
+
+// --- mergeOptions: поверхностное слияние только по ключам responsive ---
+function mergeOptions(target, source) {
+    for (const key in source) {
+        if (
+            typeof source[key] === 'object' &&
+            source[key] !== null &&
+            !Array.isArray(source[key])
+        ) {
+            if (!target[key] || typeof target[key] !== 'object') {
+                target[key] = {};
+            }
+            mergeOptions(target[key], source[key]);
+        } else {
+            target[key] = source[key];
+        }
     }
 }
 
