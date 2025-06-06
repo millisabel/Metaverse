@@ -127,6 +127,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         this.galaxyCore = null;
         this.galaxyPlane = null;
         this.shaderController = null;
+        this.galaxyTexture = null;  
     }
 
     /**
@@ -166,9 +167,12 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     onResize() {
-
-        
         super.onResize();
+        
+        // Update shader resolution uniform after resize
+        if (this.shaderController) {
+            this.shaderController.setUniform('resolution', new THREE.Vector2(window.innerWidth, window.innerHeight));
+        }
     }
 
     /**
@@ -198,6 +202,11 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
                 this.galaxyPlane.material.dispose();
             }
             this.galaxyPlane = null;
+        }
+
+        if (this.galaxyTexture) {
+            this.galaxyTexture.dispose();
+            this.galaxyTexture = null;
         }
     
         if (this.shaderController && typeof this.shaderController.dispose === 'function') {
@@ -261,19 +270,20 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @protected
      */
     async _createGalaxyPlane() {
-        const textureLoader = new THREE.TextureLoader();
-        let galaxyTexture = null;
-
-        try {
-            galaxyTexture = await textureLoader.loadAsync(galacticTexture);        
-        } catch (error) {
-            throw new Error('Failed to load galaxy texture');
+        // Load texture only once
+        if (!this.galaxyTexture) {
+            const textureLoader = new THREE.TextureLoader();
+            try {
+                this.galaxyTexture = await textureLoader.loadAsync(galacticTexture);        
+            } catch (error) {
+                throw new Error('Failed to load galaxy texture');
+            }
         }
 
         const planeSize = this.options.plane.size; 
         const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
         const planeMaterial = new THREE.MeshBasicMaterial({
-            map: galaxyTexture,
+            map: this.galaxyTexture,
             transparent: this.options.plane.transparent,
             opacity: this.options.plane.opacity,
             blending: THREE.AdditiveBlending,

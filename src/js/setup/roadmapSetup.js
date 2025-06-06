@@ -1,7 +1,6 @@
 import { Glow } from "../components/three/glow";
 import { Roadmap } from "../components/ui/roadmap";
 import { MoreButton } from "../components/common/moreButton";
-import { isMobile } from "../utils/utils";
 import { SectionController } from '../controllers/SectionController';
 
 const SECTION_ID = 'roadmap';

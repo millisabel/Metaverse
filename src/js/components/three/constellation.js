@@ -360,6 +360,7 @@ export class Constellation extends Object_3D_Observer_Controller {
 
         this.constellations = [];
         this.frame = 0;
+        this.starTexture = null;  // Store texture reference
     }
 
     /**
@@ -434,9 +435,16 @@ export class Constellation extends Object_3D_Observer_Controller {
 
         this.constellations = [];
 
+        // Dispose star texture
+        if (this.starTexture) {
+            this.starTexture.dispose();
+            this.starTexture = null;
+        }
+
         this.logMessage += 
             `mesh disposed \n` + 
             `geometry disposed \n` + 
+            `texture disposed \n` +
             `this.constellations ${this.constellations} \n`;
 
         super.cleanup();
@@ -451,13 +459,16 @@ export class Constellation extends Object_3D_Observer_Controller {
     _createConstellations() {
         this.logMessage = `${this.constructor.name} _createConstellations \n`;
 
-        const starTexture = createStarTexture();
+        // Create texture only once
+        if (!this.starTexture) {
+            this.starTexture = createStarTexture();
+        }
 
         const count = this.options.countConstellations || constellationsData.length;
         const dataToUse = constellationsData.slice(0, count);
         
         dataToUse.forEach((data) => {
-            const constellationGroup = new ConstellationGroup(data, starTexture, this.options.constellation, this.options.stars);
+            const constellationGroup = new ConstellationGroup(data, this.starTexture, this.options.constellation, this.options.stars);
             this.scene.add(constellationGroup.group);
             this.constellations.push(constellationGroup);
         });

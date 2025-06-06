@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { createLogger } from '../utils/logger';
-import { deepMergeOptions, isMobile, deepClone } from '../utils/utils';
+import { deepMergeOptions,  deepClone } from '../utils/utils';
 
 import { RendererController } from './RendererController';
 import { CameraController } from './CameraController';
@@ -444,7 +444,7 @@ export class Object_3D_Controller {
      * @param {Event} event
      * @private
      */
-    _handleWebGLContextRestored(event) {
+    _handleWebGLContextRestored() {
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextRestored()\n`;
 
         this.isContextLost = false;
