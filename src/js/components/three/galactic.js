@@ -57,7 +57,7 @@ const DEFAULT_OPTIONS = {
             z: Math.random() * Math.PI * 4,
         },
         amplitude: {
-            x: { min: -2, max: 2 },
+            x: { min: -2, max: 1 },
             y: { min: -2, max: 1 },
             z: { min: -2, max: -5 },
         },

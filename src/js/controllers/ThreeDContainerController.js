@@ -9,6 +9,19 @@ const STYLES_3D_CONTAINER = {
     pointerEvents: 'none',
 }
 
+// Polyfill for UUID generation
+function generateUUID() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    // Fallback: RFC4122 version 4 compliant UUID
+    // https://stackoverflow.com/a/2117523/65387
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 /**
  * Manages 3D scene containers with proper positioning and z-index.
  * Responsible only for DOM container creation and cleanup.
@@ -106,7 +119,7 @@ export class ThreeDContainerController {
         
         Object.assign(this.container.style, STYLES_3D_CONTAINER);
         this.container.style.zIndex = this.container_3D_zIndex;
-        this.container.id = `threejs-container-${this.container_3D_Name}-${crypto.randomUUID()}`;
+        this.container.id = `threejs-container-${this.container_3D_Name}-${generateUUID()}`;
 
         this.parentContainer.appendChild(this.container);
 

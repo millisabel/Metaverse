@@ -61,6 +61,9 @@ const CONFIG = {
                         range: 800,
                     },
                 },
+                1200: {
+                    count: 3000,
+                },
             }
         },
     },
