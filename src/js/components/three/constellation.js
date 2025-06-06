@@ -5,7 +5,6 @@ import constellationsData from '../../data/constellations.json';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
 import { createLogger } from "../../utils/logger";
-import { isMobile } from '../../utils/utils';
 
 /**
  * @param {Object} options
@@ -15,26 +14,21 @@ const DEFAULT_OPTIONS = {
     countConstellations: constellationsData.length,  
     constellation: {
         distance: {
-            max: isMobile() ? -100 : -150,
+            max: -100,
             min: -10,
         },
         screen: {
-            max: isMobile() ? 50 : 100,
+            max: 50,
         },
     },
     stars: {
         size: 0.5,
         opacity: 0.8,
-    },
-    responsive: {
-        constellation: {
-            'distance': {
-                'max': 'isMobile() ? -100 : -150',
-            },
-            'screen': {
-                'max': 'isMobile() ? 50 : 200',
-            },
-        },
+        activeSize: 2,
+        nextSize: 1,
+        pulseAmplitude: 1,
+        pulseSpeed: 0.1,
+        transitionSpeed: 0.02,
     },
 };
 
@@ -56,8 +50,8 @@ class ConstellationGroup {
         this.activeStarIndex = Math.floor(Math.random() * this.data.stars.length);
         this.nextStarIndex = this.getNextStarIndex();
         this.transitionProgress = 0;
-        this.changeSpeed = 0.2 + Math.random() * 0.3;
-        this.animationSpeed = 0.2 + Math.random() * 0.3;
+        this.changeSpeed = this.optionsStars.transitionSpeed || 0.02;
+        this.animationSpeed = this.optionsStars.pulseSpeed || 0.3;
         
         // Parameters for Z movement
         this.zSpeed = 0.01 + Math.random() * 0.015;
@@ -86,7 +80,7 @@ class ConstellationGroup {
         
         // Parameters for additional canvas movement
         this.canvasSpeed = 0.005 + Math.random() * 0.005;
-        this.canvasRadius = 100 + Math.random() * 100;
+        this.canvasRadius = 100 + Math.random() *100;
         this.canvasPhase = Math.random() * Math.PI * 2;
         
         // Save base positions for scaling
@@ -94,7 +88,7 @@ class ConstellationGroup {
         this.baseY = this.data.basePosition.y;
 
         // Parameters for avoiding collisions
-        this.avoidanceRadius = 100;
+        this.avoidanceRadius = 50;
         this.avoidanceSpeed = 0.1;
         this.avoidanceForce = new THREE.Vector3();
 
@@ -275,7 +269,7 @@ class ConstellationGroup {
      */
     update(time, otherConstellations) {
         // Update transitions between active stars
-        this.transitionProgress += this.changeSpeed * 0.01;
+        this.transitionProgress += this.changeSpeed;
 
         if (this.transitionProgress >= 1) {
             this.transitionProgress = 0;
@@ -324,16 +318,31 @@ class ConstellationGroup {
             const isNextActive = index === this.nextStarIndex;
 
             if (isCurrentActive) {
-                star.mesh.material.size = star.baseSize + Math.sin(time * this.animationSpeed) * 0.5;
-                star.mesh.material.opacity = 0.8 * (1 - this.transitionProgress);
+                // Smoother pulse using easing function
+                const pulse = (Math.sin(time * this.animationSpeed) + 1) / 2; // 0 to 1
+                const smoothPulse = this._easeInOutCubic(pulse);
+                star.mesh.material.size = star.baseSize + smoothPulse * this.optionsStars.pulseAmplitude;
+                star.mesh.material.opacity = this.optionsStars.opacity * (1 - this.transitionProgress);
             } else if (isNextActive) {
-                star.mesh.material.size = star.baseSize + Math.sin(time * this.animationSpeed) * 0.5;
-                star.mesh.material.opacity = 0.8 * this.transitionProgress;
+                // Smoother pulse for next star
+                const pulse = (Math.sin(time * this.animationSpeed) + 1) / 2;
+                const smoothPulse = this._easeInOutCubic(pulse);
+                star.mesh.material.size = star.baseSize + smoothPulse * this.optionsStars.pulseAmplitude;
+                star.mesh.material.opacity = this.optionsStars.opacity * this.transitionProgress;
             } else {
                 star.mesh.material.size = star.baseSize;
-                star.mesh.material.opacity = 0.4;
+                star.mesh.material.opacity = this.optionsStars.opacity * 0.5; // Half opacity for inactive stars
             }
         });
+    }
+
+    /**
+     * @description Ease-in-out cubic function for smooth transitions
+     * @param {number} x - Input value (0-1)
+     * @returns {number} - Smoothed value (0-1)
+     */
+    _easeInOutCubic(x) {
+        return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     }
 }
 

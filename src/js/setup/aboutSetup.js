@@ -1,10 +1,10 @@
-import { isMobile } from "../utils/utils";
 import { SectionController } from '../controllers/SectionController';
 
 import { Stars } from "../components/three/stars";
 import { Constellation } from '../components/three/constellation';
 
 import { initSlider } from '../components/common/slider';
+import constellationsData from '../data/constellations.json';
 
 const SECTION_ID = 'about';
 
@@ -35,14 +35,14 @@ const CONFIG = {
         containerName: NAME_3D_OBJECTS.STARS,
         zIndex: Z_INDEX.STARS,
         objectConfig: {
-            count: isMobile() ? 1000 : 2000,
+            count: 1000,
             colors: [0xFFFFFF],
             size: {
-                min: 2,
+                min: 3,
                 max: 5,
             },
             depth: {
-                range: isMobile() ? 200 : 400,
+                range: 200,
                 z: [200, -300]
             },
             movement: {
@@ -67,18 +67,78 @@ const CONFIG = {
                 }
             },
             responsive: {
-                count: 'isMobile() ? 1000 : 2000',
-                depth: {
-                    range: 'isMobile() ? 250 : 500',
+                768: {
+                    count: 1500,
+                    size: {
+                        min: 2,
+                        max: 5,
+                    },
+                    depth: {
+                        range: 250,
+                    },
                 },
-            }
-            
+                1200: {
+                    count: 2000,
+                    depth: {
+                        range: 500,
+                    },
+                },
+            },
         }
     },
     CONSTELLATION: {
         classRef: Constellation,
         containerName: 'CONSTELLATION',
         zIndex: Z_INDEX.CONSTELLATION,
+        objectConfig: {
+            countConstellations: 6,
+            constellation: {
+                distance: {
+                    max: -50,
+                    min: -10,
+                },
+                screen: {
+                    max: 20,
+                },
+            },
+            stars: {
+                size: 0.7,
+                opacity: 0.8,
+                activeSize: 2,
+                nextSize: 1,
+                pulseAmplitude: 1,
+                pulseSpeed: 0.05,
+                transitionSpeed: 0.02,
+            },
+            responsive: {
+                768: {
+                    countConstellations: 30,
+                    constellation: {
+                        distance: {
+                            max: -100,
+                        },
+                        screen: {
+                            max: 100,
+                        },
+                    },
+                },
+                1200: {
+                    countConstellations: constellationsData.length,
+                    constellation: {
+                        distance: {
+                            max: -150,
+                        },
+                        screen: {
+                            max: 150,
+                        },
+                    },
+                    stars: {
+                        size: 0.5,
+                        pulseAmplitude: 0.7,
+                    },
+                },
+            },
+        },
     }
 }
 
