@@ -19,7 +19,7 @@ const CONFIG_3D = {
         containerName: NAME_3D_OBJECTS.GLOW,
         zIndex: Z_INDEX.GLOW,
         objectConfig: {
-            count: isMobile() ? 4 : 12,
+            count: 4,
             colorPalette: ['#7A42F4', '#4642F4', '#F00AFE', '#56FFEB'],
             shuffleColors : true,
             objectOptions: {
@@ -28,7 +28,7 @@ const CONFIG_3D = {
                     zEnabled: true,
                     speed: 0.05,
                     range: {
-                        x: isMobile() ? 1 : 3,
+                        x: 1,
                         y: 4,
                         z: 2,
                     }
@@ -57,14 +57,28 @@ const CONFIG_3D = {
                 },
             },
             responsive: {
-                count: 'isMobile() ? 4 : 12',
-                objectOptions: {
-                    movement: {
-                        range: {
-                            x: 'isMobile() ? 1 : 3',
-                            y: '4',
-                            z: '2',
-                        }
+                768: {
+                    count: 8,
+                    objectOptions: {
+                        movement: {
+                            range: {
+                                x: 1,
+                                y: 3,
+                                z: 2,
+                            }
+                        },
+                    },
+                },
+                1200: {
+                    count: 12,
+                    objectOptions: {
+                        movement: {
+                            range: {
+                                x: 3,
+                                y: 4,
+                                z: 2,
+                            }
+                        },
                     },
                 },
             },
