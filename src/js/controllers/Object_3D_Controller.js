@@ -18,8 +18,7 @@ export class Object_3D_Controller {
         this.containerZIndex = customOptions.zIndex;
 
         this.options = deepMergeOptions(defaultOptions, customOptions.objectConfig);
-        this.baseOptions = deepClone(this.options); // Сохраняем эталонные опции
-        this.options = deepClone(this.baseOptions); // Текущие рабочие опции
+        this.baseOptions = deepClone(this.options);
         this.cameraOptions = customOptions.camera;
         this.lightsOptions = customOptions.lights;
 
@@ -75,7 +74,6 @@ export class Object_3D_Controller {
      * @returns {Promise<void>}
      */
     async initScene() {
-        console.log('initScene');
         this.logMessage += 
             `${this.constructor.name} (Object_3D_Controller): initScene()\n` + 
             `----------------------------------------------------------\n`;
@@ -185,10 +183,7 @@ export class Object_3D_Controller {
         if (this._resizeInProgress) return;
         this._resizeInProgress = true;
 
-        console.log('this.window.innerWidth:', window.innerWidth);
-        console.log('before:', this.options);
         this._applyResponsiveOptions();
-        console.log('after:', this.options);
 
         this._softCleanup();
         this.initScene(); 

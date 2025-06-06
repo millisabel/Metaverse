@@ -36,7 +36,7 @@ const defaultOptions = {
         enabled: true,
         probability: 0.2,
         speed: 0.03,
-        amplitude: { x: 0.1, y: 0.05, z: 20 }
+        amplitude: { x: 0.1, y: 0.05, z: 25 }
     },
     flicker: {
         fast: {
