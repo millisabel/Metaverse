@@ -80,6 +80,7 @@ export class Stars extends Object_3D_Observer_Controller {
         this.flickerAmplitudes = null;
         this.baseSizes = null;
         this.shaderController = null;
+        this.starTexture = null;  // Store texture reference
     }
 
     /**
@@ -120,6 +121,12 @@ export class Stars extends Object_3D_Observer_Controller {
             this.stars.material?.dispose();
             this.stars = null;
             this.logMessage += `${this.constructor.name} disposed: ${this.stars}\n`;
+        }
+        
+        // Dispose star texture
+        if (this.starTexture) {
+            this.starTexture.dispose();
+            this.starTexture = null;
         }
         
         this.phases = null;
@@ -193,11 +200,16 @@ export class Stars extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     _createStarPoints(geometry) {
+        // Create texture only once
+        if (!this.starTexture) {
+            this.starTexture = createStarTexture(this.options.shader.texture);
+        }
+        
         this.shaderController = new ShaderController({
             vertexShader: vertexShaderSource,
             fragmentShader: fragmentShaderSource,
             uniforms: {
-                pointTexture: { value: createStarTexture(this.options.shader.texture) },    
+                pointTexture: { value: this.starTexture },
                 glowColor: { value: new THREE.Color(this.options.shader.uniforms.glowColor) },
                 glowStrength: { value: this.options.shader.uniforms.glowStrength },
                 opacity: { value: this.options.shader.opacity },
