@@ -29,6 +29,7 @@ export class Object_3D_Controller {
         this.resizeTimeout = null;
         this.isContextLost = false;
         this._resizeInProgress = false;
+        this._currentBreakpoint = null;
     }
 
     _logMessage() {
@@ -189,7 +190,26 @@ export class Object_3D_Controller {
         if (this._resizeInProgress) return;
         this._resizeInProgress = true;
 
-        this._applyResponsiveOptions();
+        const prevBreakpoint = this._currentBreakpoint;
+        const newBreakpoint = this._applyResponsiveOptions();
+
+        if (prevBreakpoint === newBreakpoint) {
+            this.stopAnimation();
+            if (this.cameraController) {
+                this.cameraController.onResize(this.container);
+            }
+            if (this.renderer && this.container) {
+                const rect = this.container.getBoundingClientRect();
+                this.renderer.setSize(rect.width, rect.height);
+            }
+            setTimeout(() => {
+                if (this.canAnimate && this.canAnimate()) {
+                    this.animate();
+                }
+                this._resizeInProgress = false;
+            }, 100);
+            return;
+        }
 
         this._softCleanup();
         await this.initScene(); 
@@ -369,7 +389,7 @@ export class Object_3D_Controller {
 
     /**
      * @description Applies responsive options to the target object (Mobile First)
-     * @returns {void}
+     * @returns {number|null} Текущий брейкпоинт или null, если responsive не задан
      */
     _applyResponsiveOptions() {
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions()\n`;
@@ -377,18 +397,25 @@ export class Object_3D_Controller {
         Object.assign(this.options, deepClone(this.baseOptions));
 
         const responsive = this.baseOptions.responsive;
-        if (!responsive || typeof responsive !== 'object') return;
+        if (!responsive || typeof responsive !== 'object') {
+            this._currentBreakpoint = null;
+            return null;
+        }
 
         const breakpoints = Object.keys(responsive)
             .map(Number)
             .filter(n => !isNaN(n) && window.innerWidth >= n)
             .sort((a, b) => a - b);
 
+        let currentBreakpoint = null;
         for (const bp of breakpoints) {
             mergeOptions(this.options, responsive[bp]);
+            currentBreakpoint = bp;
         }
+        this._currentBreakpoint = currentBreakpoint;
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions() success\n`;
+        return currentBreakpoint;
     }
 
     /**
