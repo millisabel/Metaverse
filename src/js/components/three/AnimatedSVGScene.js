@@ -1,7 +1,7 @@
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Controller } from '../../controllers/Object_3D_Controller';
 import { AnimatedSVGMesh } from './AnimatedSVGMesh';
 
-export class AnimatedSVGScene extends AnimationController {
+export class AnimatedSVGScene extends Object_3D_Controller {
     constructor(container, options = {}) {
         super(container, {
             ...options,

@@ -7,7 +7,7 @@ import { AboutSetup } from './setup/aboutSetup';
 import { RoadmapSetup } from './setup/roadmapSetup';
 import { DynamicsSetup } from './setup/dynamicsSetup';
 import { VRMarketSetup } from './setup/vrMarketSetup';
-// import { initExplore } from './setup/exploreSetup';
+import { ExploreSetup } from './setup/exploreSetup';
 // import { initSocial } from './setup/socialSetup';
 
 // Common components
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new RoadmapSetup();
     new DynamicsSetup();
     new VRMarketSetup();
-    // initExplore();
+    new ExploreSetup();
     // initSocial();
 
     // Initialize UI components
