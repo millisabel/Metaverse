@@ -8,7 +8,7 @@ import decoration1Svg from '../../assets/images/dynamics/decoration_1.svg';
 import decoration2Svg from '../../assets/images/dynamics/decoration_2.svg';
 import decoration3Svg from '../../assets/images/dynamics/decoration_3.svg';
 
-let SECTION_ID = 'dynamics';
+const SECTION_ID = 'dynamics';
 const Z_INDEX = {
     SECTION: 0,
     GLOW: 1,

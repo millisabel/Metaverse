@@ -25,46 +25,73 @@ import { isMobile } from "../../utils/utils";
  */
 const DEFAULT_CONFIG = {
     movement: {
-        speed: 0.5,
-        amplitude: 20,
+        enabled: false,
+        speed: 0.8,
+        amplitude: 25,
         frequency: 0.002,
-        verticalLimit: 0.2, 
+        verticalLimit: 0.3, 
         waves: {
-            primary: { frequency: 1.5, amplitude: 1 },
+            primary: { frequency: 1.2, amplitude: 1 },
             secondary: { frequency: 0.7, amplitude: 0.5 },
             micro: { frequency: 3, amplitude: 0.3 }
         },
         verticalJumps: {
-            probability: 0.001, 
-            duration: 2000, 
-            maxHeight: 0.15 
+            probability: 0, 
+            duration: 1800, 
+            maxHeight: 0.2 
         }
     },
     horizontalMovement: {
-        speed: 0.0005,
+        enabled: false,
+        speed: 0.0002,
         padding: 50,
         waves: {
-            primary: { frequency: 1, amplitude: 1 },
-            secondary: { frequency: 0.3, amplitude: 0.3 }
+            primary: { frequency: 1, amplitude: 0.3 },
+            secondary: { frequency: 0.3, amplitude: 0.2 }
         }
     },
     rotation: {
-        speed: 0.5,
-        amplitude: 15,
+        enabled: true,
+        speed: 0.08,
+        amplitude: 25,
         waves: {
-            primary: { frequency: 0.8, amplitude: 1 },
-            secondary: { frequency: 0.4, amplitude: 0.5 }
+            primary: { frequency: 0.3, amplitude: 1.5 },
+            secondary: { frequency: 0.15, amplitude: 0.8 }
         }
     },
     scale: {
+        enabled: true,
         min: 0.2,
-        max: 1.2,
-        speed: 0.003
+        max: 1.3,
+        speed: 0.0002,
+        frequency: 1,
     },
     mobilePosition: {
         right: 20,
         bottom: 40
-    }
+    },
+    responsive: {
+        768: {
+            movement: {
+                enabled: true,
+                verticalJumps: {
+                    probability: 0.002,
+                }
+            },
+            horizontalMovement: {
+                enabled: true,
+            },
+            rotation: {
+                speed: 0.2,
+                amplitude: 15,
+            },
+            scale: {
+                min: 0.8,
+                speed: 0.0015,
+                frequency: 0.8,
+            }
+        }
+    }   
 };
 
 /**
@@ -95,9 +122,6 @@ export class CharacterFloatingBadge {
         
         // Store dimensions
         this.updateDimensions();
-
-        // Initialize logger
-        this.logger = createLogger('CharacterFloatingBadge');
 
         // Bind methods
         this.animate = this.animate.bind(this);
@@ -213,11 +237,6 @@ export class CharacterFloatingBadge {
         this.isAnimating = true;
         this.startTime = performance.now();
         this.animate();
-
-        this.logger.log('Animation started', {
-            conditions: ['animation-started'],
-            functionName: 'start'
-        });
     }
 
     /**
@@ -234,11 +253,6 @@ export class CharacterFloatingBadge {
 
         // Reset element styles
         this.element.style.transform = '';
-
-        this.logger.log('Animation stopped', {
-            conditions: ['animation-stopped'],
-            functionName: 'stop'
-        });
     }
 
     /**
@@ -380,11 +394,6 @@ export class CharacterFloatingBadge {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
         }
-
-        this.logger.log('Cleanup completed', {
-            conditions: ['cleanup'],
-            functionName: 'cleanup'
-        });
     }
 
     updatePosition() {

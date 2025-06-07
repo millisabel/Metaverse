@@ -6,7 +6,7 @@ import { HeroSetup } from './setup/heroSetup';
 import { AboutSetup } from './setup/aboutSetup';
 import { RoadmapSetup } from './setup/roadmapSetup';
 import { DynamicsSetup } from './setup/dynamicsSetup';
-// import { initVRMarket } from './setup/vrMarketSetup';
+import { VRMarketSetup } from './setup/vrMarketSetup';
 // import { initExplore } from './setup/exploreSetup';
 // import { initSocial } from './setup/socialSetup';
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new AboutSetup();
     new RoadmapSetup();
     new DynamicsSetup();
-    // initVRMarket();
+    new VRMarketSetup();
     // initExplore();
     // initSocial();
 
@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     new AnimationObserverCSS([
         '.star', 
-        '.game-character--badge',
         { 
             selector: '.roadmap-quarter',
             pseudo: 'before'

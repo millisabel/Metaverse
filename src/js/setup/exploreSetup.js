@@ -1,4 +1,4 @@
-import { SectionObserver } from '../controllers/SectionObserver';
+import { SectionController } from '../controllers/SectionController';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
 import { projectToBack } from '../utilsThreeD/utilsThreeD';
@@ -15,27 +15,28 @@ const Z_INDEX = {
     GLOW: 1,
 };
 
-const CONFIG = {
+const CONFIG_EXPLORE = {
     GLOW: {
         classRef: Glow,
         containerName: NAME_3D_OBJECTS.GLOW,
-        zIndex: Z_INDEX.GLOW,
+        zIndex: Z_INDEX.GLOW, 
+        camera: {
+            fov: 75,
+            position: { x: 0, y: 0, z: 0 },
+            lookAt: { x: 0, y: 0, z: 0 }
+        },
+        objectConfig: {
+            objectOptions: {
+                movement: { enabled: false },
+                opacity: { min: 0.1, max: 0.9 }
+            }
+        }
     }
 };
 
-export class ExploreSetup extends SectionObserver {
+export class ExploreSetup extends SectionController {
     constructor() {
-        super(SECTION_ID, 'ExploreSetup', {
-            camera: {
-                fov: 75,
-                position: { x: 0, y: 0, z: 0 },
-                lookAt: { x: 0, y: 0, z: 0 }
-            },
-            renderer: {
-                alpha: true,
-                antialias: true
-            }
-        });   
+        super(SECTION_ID, CONFIG_EXPLORE, Z_INDEX.SECTION);   
     
         this.CONTAINER_TYPES = {
             EXPLORE_SCENE: 'EXPLORE_SCENE',
