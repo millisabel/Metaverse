@@ -101,7 +101,9 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
         this._createMesh();
         await this._createAndAddDecorationMesh();
         
-        this.scene.add(this.group);
+        if (this.scene) {
+            this.scene.add(this.group);
+        }
         this.setupLights(DEFAULT_LIGHTS_CONFIG);
     }
 
@@ -244,7 +246,7 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
     async _createAndAddDecorationMesh() {
         this.decorationMesh = await this._createDecoration();
 
-        if (this.decorationMesh) {
+        if (this.decorationMesh && this.group) {
             this.decorationMesh.position.z = DEFAULT_OBJECT_3D_CONFIG.zPosition;
             if (this.decorationMesh instanceof THREE.Object3D) {
                 this.group.add(this.decorationMesh);

@@ -175,6 +175,7 @@ export function getRandomGlowPosition(options, index, glowCount) {
 /**
  * @description Gets the position by element
  * @param {Object} options - The options
+ * @param {THREE.Camera} [options.camera] - Optional camera for accurate projection
  * @returns {Object} The position by element
  */
 export function getPositionByElement(options) {
@@ -182,12 +183,14 @@ export function getPositionByElement(options) {
     const container = options.positioning.container;
     const align = options.positioning.align || 'center center';
     const offset = options.positioning.offset || { x: 0, y: 0 };
+    const zPosition = options.positioning.z || 0;
+    const camera = options.camera;
 
     const el = document.querySelector(targetSelector);
 
     if (!el) {
         console.warn('Element not found:', targetSelector);
-        return { x: 0, y: 0 };
+        return { x: 0, y: 0, z: zPosition };
     }
 
     const rect = el.getBoundingClientRect();
@@ -202,9 +205,9 @@ export function getPositionByElement(options) {
             x = rect.left;
             break;
         case 'right':
-            x = rect.left + rect.width;
+            x = rect.right;
             break;
-        default: 
+        default: // center
             x = rect.left + (rect.width / 2);
     }
 
@@ -213,21 +216,39 @@ export function getPositionByElement(options) {
             y = rect.top;
             break;
         case 'bottom':
-            y = rect.top + rect.height;
+            y = rect.bottom;
             break;
-        default: 
+        default: // center
             y = rect.top + (rect.height / 2);
     }
 
     x += offset.x || 0;
     y += offset.y || 0;
 
+    // Convert from screen coordinates to normalized device coordinates (-1 to 1)
+    const normalizedX = ((x - containerRect.left) / containerRect.width) * 2 - 1;
+    const normalizedY = -((y - containerRect.top) / containerRect.height) * 2 + 1;
 
-    x = ((x - containerRect.left) / containerRect.width) * 2 - 1;
-    y = -((y - containerRect.top) / containerRect.height) * 2 + 1;
-
-
-    return { x, y };
+    // If camera is provided and it's a perspective camera, calculate world coordinates
+    if (camera && camera.isPerspectiveCamera) {
+        const aspect = containerRect.width / containerRect.height;
+        const fov = camera.fov * (Math.PI / 180); // Convert to radians
+        const cameraZ = camera.position.z;
+        const distance = cameraZ - zPosition;
+        
+        // Calculate the visible height at the z position
+        const visibleHeight = 2 * Math.tan(fov / 2) * distance;
+        const visibleWidth = visibleHeight * aspect;
+        
+        // Convert normalized coordinates to world coordinates
+        const worldX = normalizedX * (visibleWidth / 2);
+        const worldY = normalizedY * (visibleHeight / 2);
+        
+        return { x: worldX, y: worldY, z: zPosition };
+    }
+    
+    // If no camera or orthographic camera, return normalized coordinates
+    return { x: normalizedX, y: normalizedY, z: zPosition };
 }
 
 // Pulse

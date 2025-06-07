@@ -76,6 +76,7 @@ export class Glow extends Object_3D_Observer_Controller {
         this.logger = createLogger(this.name);
 
         this.glows = [];
+        console.log('this.options в конструкторе', this);
     }
 
     /**
@@ -83,7 +84,16 @@ export class Glow extends Object_3D_Observer_Controller {
      * @returns {void}
      */
     async setupScene() {
-        this._createGlows();
+        // Only create glows if they don't exist
+        if (!this.glows || this.glows.length === 0) {
+            this._createGlows();
+        }
+    }
+
+    onResize() {
+        console.log('this.options до', this);
+        if (super.onResize) super.onResize();
+        console.log('this.options после', this);
     }
 
     /**
@@ -101,6 +111,12 @@ export class Glow extends Object_3D_Observer_Controller {
             this.glows.forEach(glow => {
                 if (glow && glow.update) {
                     try {
+                        // Update position if positioning mode is 'element'
+                        if (glow.options.objectOptions?.positioning?.mode === 'element' && 
+                            glow.options.objectOptions?.positioning?.targetSelector) {
+                            glow.updatePositionByCard(this.cameraController?.camera);
+                        }
+                        
                         if (glow.options.objectOptions.intersection?.enabled) {
                             const color = this._calculateIntersectionColor(glow);
                             if (color) {

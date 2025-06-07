@@ -168,7 +168,7 @@ const CONFIG_GLOW = {
                 align: 'center center',
                 offset: { 
                     x: 0, 
-                    y: -50, 
+                    y: 0, 
                 }
             },
         },
@@ -203,7 +203,7 @@ const CONFIG_GLOW = {
                 },
                 objectOptions: {
                     positioning: {
-                        targetSelector: '.dynamics .card--3d-left', 
+                        targetSelector: '.dynamics .card--3d-left',
                     }
                 }
             },
@@ -286,9 +286,10 @@ export class DynamicsSetup extends SectionController {
     onResize() {
         super.onResize();
         if (this.controllers.GLOW && Array.isArray(this.controllers.GLOW.glows)) {
+            const camera = this.controllers.GLOW.cameraController?.camera;
             this.controllers.GLOW.glows.forEach(glow => {
                 if (typeof glow.updatePositionByCard === 'function') {
-                    glow.updatePositionByCard();
+                    glow.updatePositionByCard(camera);
                 }
             });
         } 

@@ -27,6 +27,8 @@ export class Object_3D_Controller {
         this.cameraController = null;
         this.animationFrameId = null;
         this.resizeTimeout = null;
+        this.isContextLost = false;
+        this._resizeInProgress = false;
     }
 
     _logMessage() {
@@ -136,6 +138,10 @@ export class Object_3D_Controller {
             this.logMessage += `canAnimate: isResizing is ${this.isResizing}\n`;
             return false;
         }
+        if (this.isContextLost) {
+            this.logMessage += `canAnimate: isContextLost is ${this.isContextLost}\n`;
+            return false;
+        }
         if (!this.initialized) {
             this.logMessage += `canAnimate: initialized is ${this.initialized}\n`;
             return false;
@@ -186,7 +192,7 @@ export class Object_3D_Controller {
         this._applyResponsiveOptions();
 
         this._softCleanup();
-        this.initScene(); 
+        await this.initScene(); 
 
         if (this.cameraController) {
             this.cameraController.onResize(this.container);
@@ -436,7 +442,13 @@ export class Object_3D_Controller {
         event.preventDefault();
         this.isContextLost = true;
         this.stopAnimation();
-        throw new Error('WebGL context lost! Attempting to recover...');
+        
+        console.warn('WebGL context lost! Attempting to recover...');
+        this.logger.log({
+            message: 'WebGL context lost! Attempting to recover...',
+            functionName: '_handleWebGLContextLost',
+            level: 'warn'
+        });
     }
 
     /**

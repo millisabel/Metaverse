@@ -467,13 +467,15 @@ export class SingleGlow {
 
     /**
      * @description Updates the position of the glow by the card
+     * @param {THREE.Camera} [camera] - Optional camera for accurate projection
      * @returns {void}
      */
-    updatePositionByCard() {
+    updatePositionByCard(camera) {
         const targetSelector = this.options.objectOptions?.positioning?.targetSelector;
         const align = this.options.objectOptions?.positioning?.align || 'center center';
         const container = this.options.container;
         const offset = this.options.objectOptions?.positioning?.offset || { x: 0, y: 0 };
+        const z = this.options.objectOptions?.positioning?.z || 0;
 
         const options = {
             positioning: {
@@ -481,12 +483,15 @@ export class SingleGlow {
                 container,
                 align,
                 offset,
+                z,
             },
+            camera: camera || null
         };
 
         const position = getPositionByElement(options);
 
         this.mesh.position.x = position.x;
         this.mesh.position.y = position.y;
+        this.mesh.position.z = position.z;
     }
 } 
