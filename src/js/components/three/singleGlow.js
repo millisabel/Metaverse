@@ -290,9 +290,9 @@ export class SingleGlow {
      * @private
      */
     _getInitialOpacity(syncEnabled) {
-        if (syncEnabled) {
-            return this.options.shaderOptions.opacity?.min ?? 0;
-        }
+        // if (syncEnabled) {
+        //     return this.options.shaderOptions.opacity?.min ?? 0;
+        // }
         return this.options.shaderOptions.opacity?.max ?? 1.0;
     }
 
@@ -490,8 +490,10 @@ export class SingleGlow {
 
         const position = getPositionByElement(options);
 
-        this.mesh.position.x = position.x;
-        this.mesh.position.y = position.y;
-        this.mesh.position.z = position.z;
+        // this.mesh.position.x = position.x;
+        // this.mesh.position.y = position.y;
+        // this.mesh.position.z = position.z;
+
+        this._setPosition(position)
     }
 } 

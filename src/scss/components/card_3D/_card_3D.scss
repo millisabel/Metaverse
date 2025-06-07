@@ -5,13 +5,13 @@
 
 .card{
     &--3d {
+        position: relative;
         width: 100%;
         height: min(300px, 100vw);
         margin-bottom: 60px;
         border-radius: 16px;
         aspect-ratio: 1;
         background-color: var(--bs-body-bg);
-        position: relative;
 
         @media (max-width: 767.98px) {
             margin-bottom: 80px;
@@ -28,8 +28,8 @@
             right: 1% !important;
             bottom: 1% !important;
 
-            width: 98% !important;
-            height: 98% !important;
+            // width: 98% !important;
+            // height: 98% !important;
 
             border-radius: inherit;
             overflow: hidden;
@@ -38,8 +38,8 @@
 
         canvas {
             display: block;
-            width: 98% !important;
-            height: 98% !important;
+            width: 100% !important;
+            height: 100% !important;
             border-radius: inherit;
             background-color: var(--bs-body-bg);
         }
@@ -60,6 +60,10 @@
             --border-gradient-inner-clip-path: polygon(0 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 0 100%, 0 100%, 0 0);
             clip-path: var(--border-gradient-inner-clip-path);
             animation-delay: 12s;
+        }
+
+        &-canvas {
+            background-color: var(--bs-body-bg);
         }
     }
 

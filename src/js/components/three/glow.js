@@ -76,25 +76,18 @@ export class Glow extends Object_3D_Observer_Controller {
         this.logger = createLogger(this.name);
 
         this.glows = [];
-        console.log('this.options в конструкторе', this);
     }
 
     /**
      * @description Sets up the scene
      * @returns {void}
      */
-    async setupScene() {
-        // Only create glows if they don't exist
-            
-        console.log('this.glows до', [...this.glows]);        
+    async setupScene() {      
         if (this.glows && this.glows.length > 0) {
             this.softCleanupGlows();
         }
-        console.log('this.glows после softCleanupGlows', this.glows);
         if (!this.glows || this.glows.length === 0) {
             this._createGlows();
-
-        console.log('this.glows после', [...this.glows]);
         }
     }
 
@@ -114,7 +107,7 @@ export class Glow extends Object_3D_Observer_Controller {
         }
         
         if (this.glows && Array.isArray(this.glows)) {
-            this.glows.forEach(glow => {
+            this.glows.forEach((glow) => {
                 if (glow && glow.update) {
                     try {
                         // Update position if positioning mode is 'element'
@@ -262,6 +255,15 @@ export class Glow extends Object_3D_Observer_Controller {
             
             this.glows.push(glow);
         });
+
+        setTimeout(() => {
+            this.glows.forEach((glow) => {
+                if (glow.options.objectOptions?.positioning?.mode === 'element' && 
+                    glow.options.objectOptions?.positioning?.targetSelector) {
+                    glow.updatePositionByCard(this.cameraController?.camera);
+                }
+            });
+        }, 500);
     }
     
     /**

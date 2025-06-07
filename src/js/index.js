@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     AOS.init({
         duration: 800,
-        once: false,
+        once: true,
         mirror: true,
         offset: 100
     });
@@ -73,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     new AboutSetup();
     new RoadmapSetup();
     new DynamicsSetup();
-    // initDynamics();
     // initVRMarket();
     // initExplore();
     // initSocial();

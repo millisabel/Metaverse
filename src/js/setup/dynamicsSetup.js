@@ -175,11 +175,11 @@ const CONFIG_GLOW = {
         shaderOptions: {
             scale: {
                 min: 0, 
-                max: 1
+                max: 1.1
             },
             opacity: {
                 min: 0, 
-                max: 0.6,
+                max: 0.1,
             },
             pulse: {
                 enabled: true, 
@@ -203,7 +203,11 @@ const CONFIG_GLOW = {
                 },
                 objectOptions: {
                     positioning: {
-                        targetSelector: '.dynamics .card--3d-left',
+                        targetSelector: '#guardians3d',
+                        offset: { 
+                            x: 0, 
+                            y: 0, 
+                        }
                     }
                 }
             },
@@ -213,7 +217,11 @@ const CONFIG_GLOW = {
                 },
                 objectOptions: {
                     positioning: {
-                        targetSelector: '.dynamics .card--3d-center',
+                        targetSelector: '#metaverse3d',
+                        offset: { 
+                            x: 0, 
+                            y: 0, 
+                        }
                     }
                 }
             },
@@ -223,11 +231,25 @@ const CONFIG_GLOW = {
                 },
                 objectOptions: {
                     positioning: {
-                        targetSelector: '.dynamics .card--3d-right',
+                        targetSelector: '#sankopa3d',
                     }
                 }
             }
         ],
+        responsive: {
+            768: {
+                shaderOptions: {
+                    scale: {
+                        min: 0, 
+                        max: 1.2
+                    },
+                    opacity: {
+                        min: 0, 
+                        max: 0.5,
+                    },
+                },
+            },
+        }
     }
 };
 const CONFIG = {
