@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return error;
     };
-    
+
     AOS.init({
         duration: 800,
         once: true,

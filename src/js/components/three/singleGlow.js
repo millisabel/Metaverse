@@ -167,10 +167,6 @@ export class SingleGlow {
 
         const calculatedOpacity = opacityRange.min + (opacityRange.max - opacityRange.min) * normalizedZ;
         const finalOpacity = Math.max(opacityRange.min, Math.min(opacityRange.max, calculatedOpacity));
-        
-        if (this.index === 0) {
-            this.logger.log(`[SingleGlow][syncWithObjectPosition][index=0] Z: ${z.toFixed(2)}, NormalizedZ: ${normalizedZ.toFixed(2)}, Scale: ${finalScale.toFixed(2)}, Opacity: ${finalOpacity.toFixed(2)}`);
-        }
 
         if (syncOptions.scale) this._setShaderScale(finalScale);
         if (syncOptions.opacity) this._setOpacity(finalOpacity);
@@ -293,7 +289,7 @@ export class SingleGlow {
         // if (syncEnabled) {
         //     return this.options.shaderOptions.opacity?.min ?? 0;
         // }
-        return this.options.shaderOptions.opacity?.max ?? 1.0;
+        return this.options.shaderOptions.opacity?.min ?? 0;
     }
 
     /**
@@ -316,6 +312,13 @@ export class SingleGlow {
         if (this.options.shaderOptions.pulse?.enabled && !this.options.shaderOptions.sync?.scale) {
             const pulse = this._calculatePulse(time);
             this._setShaderScale(pulse);
+
+            if (!this.options.shaderOptions.sync?.opacity) {
+                const opacityRange = this.options.shaderOptions.opacity;
+                const t = (Math.sin(time * (this._pulseSpeed || 1)) + 1) / 2;
+                const opacity = opacityRange.min + (opacityRange.max - opacityRange.min) * t;
+                this._setOpacity(opacity);
+            }
         }
     }
 
@@ -489,10 +492,6 @@ export class SingleGlow {
         };
 
         const position = getPositionByElement(options);
-
-        // this.mesh.position.x = position.x;
-        // this.mesh.position.y = position.y;
-        // this.mesh.position.z = position.z;
 
         this._setPosition(position)
     }
