@@ -85,15 +85,21 @@ export class Glow extends Object_3D_Observer_Controller {
      */
     async setupScene() {
         // Only create glows if they don't exist
+            
+        console.log('this.glows до', [...this.glows]);        
+        if (this.glows && this.glows.length > 0) {
+            this.softCleanupGlows();
+        }
+        console.log('this.glows после softCleanupGlows', this.glows);
         if (!this.glows || this.glows.length === 0) {
             this._createGlows();
+
+        console.log('this.glows после', [...this.glows]);
         }
     }
 
     onResize() {
-        console.log('this.options до', this);
         if (super.onResize) super.onResize();
-        console.log('this.options после', this);
     }
 
     /**
@@ -152,6 +158,23 @@ export class Glow extends Object_3D_Observer_Controller {
         this.glows = [];
         
         super.cleanup();
+    }
+
+    /**
+     * @description Мягкая очистка бликов: удаляет все mesh из сцены, вызывает cleanup у SingleGlow, очищает массив бликов
+     */
+    softCleanupGlows() {
+        if (this.glows && Array.isArray(this.glows)) {
+            this.glows.forEach(glow => {
+                if (glow && typeof glow.cleanup === 'function') {
+                    glow.cleanup();
+                    if (glow.mesh && this.scene && this.scene.children.includes(glow.mesh)) {
+                        this.scene.remove(glow.mesh);
+                    }
+                }
+            });
+        }
+        this.glows = [];
     }
 
     /**
