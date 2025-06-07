@@ -59,7 +59,16 @@ else {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const origGetError = WebGLRenderingContext.prototype.getError;
 
+    WebGLRenderingContext.prototype.getError = function() {
+        const error = origGetError.apply(this, arguments);
+        if (error !== 0) {
+            console.warn('WebGL error detected:', error, new Error().stack);
+        }
+        return error;
+    };
+    
     AOS.init({
         duration: 800,
         once: true,
