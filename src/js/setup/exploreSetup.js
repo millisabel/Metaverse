@@ -1,8 +1,6 @@
 import { SectionController } from '../controllers/SectionController';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
-import { projectToBack } from '../utilsThreeD/utilsThreeD';
-import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
 const SECTION_ID = 'explore';
 

@@ -31,7 +31,7 @@ const EXPLORE_DEFAULT_OPTIONS = {
         { color: 0xff5722, size: { w: 0.4, h: 0.1, d: 2.5 } },
     ],
     imageConfigs: [
-        { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 2, h: 2 } },
+        { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 2.2, h: 2.2 } },
         { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 2, h: 2 } },
         { file: './assets/images/explore_3D/objects/object_money.png', size: { w: 1, h: 1 } },
         { file: './assets/images/explore_3D/objects/object_link.png', size: { w: 1.5, h: 1.5 } },
@@ -61,9 +61,11 @@ export class ExploreScene extends Object_3D_Observer_Controller {
     async setupScene() {
         console.log('setupScene called');
         this._createGrid();
-        // this._addLights();
-        // this.addTunnelImageObjects(this.imageConfigs);
-        // this.addTunnelBoxes(this.boxConfigs);
+        this.setupLights();
+        this._addLights();
+
+        this.addTunnelObjects(this.options.imageConfigs, 'image', this.createImageMesh.bind(this));
+        this.addTunnelObjects(this.options.boxConfigs, 'box', this.createBoxMesh.bind(this));
     }
 
     async onResize() {
@@ -128,165 +130,133 @@ export class ExploreScene extends Object_3D_Observer_Controller {
      * @private
      */
     _addLights() {
-        // Ambient, directional, and point lights for tunnel illumination
-        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-        this.scene.add(ambient);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(10, 20, 30);
+        const { gridWidth, gridHeight, gridDepth } = this._getTunnelDimensions();
+
+        const tunnelCenter = new THREE.Vector3(
+        gridWidth / 2,
+        gridHeight / 2,
+        -gridDepth / 2
+        );
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(
+        gridWidth / 2,        
+        gridHeight * 1.2,      
+        gridDepth * 0.7        
+        );
+        dirLight.target.position.copy(tunnelCenter);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+
         this.scene.add(dirLight);
-        const pointLight = new THREE.PointLight(0xffffff, 0.4, 100);
-        pointLight.position.set(-5, 10, 20);
-        this.scene.add(pointLight);
-        const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
-        bottomLight.position.set(0, -10, 10);
-        const width = this.gridOptions.gridWidth * this.gridOptions.cellSize;
-        const height = this.gridOptions.gridHeight * this.gridOptions.cellSize;
-        const depth = this.gridOptions.gridDepth * this.gridOptions.cellSize;
-        const tunnelLight = new THREE.DirectionalLight(0xffffff, 1.1);
-        tunnelLight.position.set(-10, height / 2, 40);
-        tunnelLight.target.position.set(width / 2, height / 2, -depth / 2);
-        this.scene.add(tunnelLight);
-        this.scene.add(tunnelLight.target);
-        this.scene.add(bottomLight);
+        this.scene.add(dirLight.target);
+        this.scene.add(ambient);
     }
 
     /**
-     * Adds image objects (PlaneGeometry with texture) to the tunnel.
-     * @param {Array} imageObjects - Array of objects: { file: string, size?: {w: number, h: number}, position?: {x: number, y: number, z: number} }
+     * Universal method to add tunnel objects (images, boxes, etc.)
+     * @param {Array} configs - Array of configs for objects
+     * @param {string} type - Type of object ('image' | 'box')
+     * @param {Function} meshFactory - Function (cfg, idx, width, height, loader?) => { mesh, extra }
      */
-    addTunnelImageObjects(imageObjects) {
-        if (!Array.isArray(imageObjects) || imageObjects.length === 0) return;
-        const loader = new THREE.TextureLoader();
+    addTunnelObjects(configs, type, meshFactory) {
         const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
         const width = gridWidth;
         const height = gridHeight;
-        imageObjects.forEach((obj, idx) => {
-            if (!obj || typeof obj !== 'object') return;
-            const size = obj.size || { w: 1, h: 1 };
-            loader.load(
-                obj.file,
-                texture => {
-                    const geometry = new THREE.PlaneGeometry(size.w, size.h);
-                    const material = new THREE.MeshBasicMaterial({
-                        map: texture,
-                        transparent: true,
-                        opacity: 0 
-                    });
-                    const mesh = new THREE.Mesh(geometry, material);
-                    // All objects spawn at the left wall, random height
-                    let pos;
-                    if (obj.position) {
-                        pos = obj.position;
-                    } else {
-                        const x = -width / 2;
-                        const y = -height / 2 + Math.random() * height;
-                        const z = 0;
-                        pos = { x, y, z };
-                    }
-                    mesh.position.set(pos.x, pos.y, pos.z);
-                    mesh.name = obj.name || `image_object_${idx}`;
-                    mesh.scale.set(10, 10, 1); 
-                    this.scene.add(mesh);
-                    const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
-                    const rotationSpeed = 0.2 + Math.random() * 0.4;
-                    const rotationPhase = Math.random() * Math.PI * 2;
-                    this.tunnelItems.push({
-                        type: 'image',
-                        mesh,
-                        state: 'waiting',
-                        timer: 0,
-                        delay: idx === 0 ? 0 : Math.random() * 30,
-                        start: { ...pos },
-                        end: { x: worldCenter.x, y: worldCenter.y, z: worldCenter.z },
-                        durationFadeIn: 1.3 + Math.random() * 0.9,
-                        durationMove: 8 + Math.random() * 60,
-                        durationFadeOut: 1.3 + Math.random() * 0.3,
-                        pauseAfter: 0.7 + Math.random() * 10,
-                        floatA: 0.35 + Math.random() * 0.15,
-                        floatB: 0.35 + Math.random() * 0.15,
-                        freqA: 0.7 + Math.random() * 0.3 + idx * 0.07,
-                        freqB: 0.8 + Math.random() * 0.3 + idx * 0.09,
-                        moveStart: null,
-                        rotationAxis,
-                        rotationSpeed,
-                        rotationPhase
-                    });
-                },
-                undefined,
-                err => {
-                    console.error(`Failed to load texture for ${obj.file}`);
-                }
-            );
-        });
-    }
+        const loader = type === 'image' ? new THREE.TextureLoader() : null;
 
-    /**
-     * Adds glossy boxes to the tunnel.
-     * @param {Array} boxConfigs - Array of objects: { color: number, size: {w: number, h: number, d: number}, position?: {x: number, y: number, z: number} }
-     */
-    addTunnelBoxes(boxConfigs) {
-        const { gridWidth, gridHeight, gridDepth, worldCenter } = this._getTunnelDimensions();
-        const width = gridWidth;
-        const height = gridHeight;
-        boxConfigs.forEach((cfg, i) => {
-            const geometry = new THREE.BoxGeometry(cfg.size.w, cfg.size.h, cfg.size.d, 16, 4, 16);
-            const material = new THREE.MeshStandardMaterial({
-                color: cfg.color,
-                metalness: 0.1,
-                roughness: 0.7,
-                opacity: 1,
-                transparent: false
-            });
-            // All boxes spawn at the left wall, random height
-            let pos;
-            if (cfg.position) {
-                pos = cfg.position;
-            } else {
-                const x = -width / 2;
-                const y = -height / 2 + Math.random() * height;
-                const z = 0;
-                pos = { x, y, z };
-            }
-            const mesh = new THREE.Mesh(geometry, material);
+        configs.forEach((cfg, idx) => {
+            const { mesh, extra } = meshFactory(cfg, idx, width, height, loader);
+            let pos = cfg.position || {
+                x: -width / 2,
+                y: -height / 2 + Math.random() * height,
+                z: 0
+            };
             mesh.position.set(pos.x, pos.y, pos.z);
-            mesh.rotation.x = 0;
-            mesh.scale.set(1, 1, 1);
+            mesh.name = cfg.name || `${type}_object_${idx}`;
             this.scene.add(mesh);
-            const glossGeometry = new THREE.PlaneGeometry(cfg.size.w * 0.8, cfg.size.d * 0.7);
-            const glossMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.18
-            });
-            const glossMesh = new THREE.Mesh(glossGeometry, glossMaterial);
-            glossMesh.position.set(0, cfg.size.h / 2 + 0.01, 0);
-            glossMesh.rotation.x = -Math.PI / 2;
-            // mesh.add(glossMesh);
+            if (type === 'image') mesh.scale.set(10, 10, 1);
             const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
-            const rotationSpeed = 0.15 + Math.random() * 0.3;
+            const rotationSpeed = type === 'image'
+                ? 0.2 + Math.random() * 0.4
+                : 0.15 + Math.random() * 0.3;
             const rotationPhase = Math.random() * Math.PI * 2;
             this.tunnelItems.push({
-                type: 'box',
+                type,
                 mesh,
+                ...extra,
                 state: 'waiting',
                 timer: 0,
-                delay: i === 0 ? 0 : 15 + Math.random() * 40,
+                delay: idx === 0 ? 0 : (type === 'box' ? 15 + Math.random() * 50 : Math.random() * 30),
                 start: { ...pos },
                 end: { x: worldCenter.x, y: worldCenter.y, z: worldCenter.z },
                 durationFadeIn: 1.3 + Math.random() * 0.9,
-                durationMove: 40 + Math.random() * 30,
+                durationMove: type === 'box' ? 40 + Math.random() * 30 : 8 + Math.random() * 60,
                 durationFadeOut: 1.3 + Math.random() * 0.3,
-                pauseAfter: 15 + Math.random() * 15,
+                pauseAfter: type === 'box' ? 15 + Math.random() * 15 : 0.7 + Math.random() * 10,
                 floatA: 0.35 + Math.random() * 0.15,
                 floatB: 0.35 + Math.random() * 0.15,
-                freqA: 0.7 + Math.random() * 0.3 + i * 0.07,
-                freqB: 0.8 + Math.random() * 0.3 + i * 0.09,
+                freqA: 0.7 + Math.random() * 0.3 + idx * 0.07,
+                freqB: 0.8 + Math.random() * 0.3 + idx * 0.09,
                 moveStart: null,
                 rotationAxis,
                 rotationSpeed,
                 rotationPhase
             });
         });
+    }
+
+    // Фабрика для image
+    createImageMesh(cfg, idx, width, height, loader) {
+        let mesh = null;
+        let extra = {};
+        const size = cfg.size || { w: 1, h: 1 };
+        // Синхронно создаём mesh с прозрачным материалом, текстуру подгружаем асинхронно
+        const geometry = new THREE.PlaneGeometry(size.w, size.h);
+        const material = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0
+        });
+        mesh = new THREE.Mesh(geometry, material);
+        if (cfg.file && loader) {
+            loader.load(
+                cfg.file,
+                texture => {
+                    mesh.material.map = texture;
+                    mesh.material.needsUpdate = true;
+                },
+                undefined,
+                err => {
+                    console.error(`Failed to load texture for ${cfg.file}`);
+                }
+            );
+        }
+        return { mesh, extra };
+    }
+
+    // Фабрика для box
+    createBoxMesh(cfg, idx, width, height) {
+        const geometry = new THREE.BoxGeometry(cfg.size.w, cfg.size.h, cfg.size.d, 16, 4, 16);
+        const material = new THREE.MeshStandardMaterial({
+            color: cfg.color,
+            metalness: 0.1,
+            roughness: 0.7,
+            opacity: 1,
+            transparent: false
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        // Glossy overlay (опционально, если нужно)
+        // const glossGeometry = new THREE.PlaneGeometry(cfg.size.w * 0.8, cfg.size.d * 0.7);
+        // const glossMaterial = new THREE.MeshBasicMaterial({
+        //     color: 0xffffff,
+        //     transparent: true,
+        //     opacity: 0.18
+        // });
+        // const glossMesh = new THREE.Mesh(glossGeometry, glossMaterial);
+        // glossMesh.position.set(0, cfg.size.h / 2 + 0.01, 0);
+        // glossMesh.rotation.x = -Math.PI / 2;
+        // mesh.add(glossMesh);
+        return { mesh, extra: {} };
     }
 
     /**

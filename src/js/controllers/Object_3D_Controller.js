@@ -272,6 +272,13 @@ export class Object_3D_Controller {
             this.scene = null;
         }
 
+        if (this.lights) {
+            this.lights.forEach(light => {
+                light.dispose();
+            });
+            this.lights = null;
+        }
+
         if (this.cameraController) {
             this.cameraController.cleanup();
             this.cameraController = null;
