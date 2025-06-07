@@ -91,8 +91,8 @@ export class Glow extends Object_3D_Observer_Controller {
         }
     }
 
-    onResize() {
-        if (super.onResize) super.onResize();
+    async onResize() {
+        if (super.onResize) await super.onResize();
     }
 
     /**

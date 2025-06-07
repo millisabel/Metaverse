@@ -18,7 +18,8 @@ export class SectionObserver {
         this.isResizing = false;
         this.resizeTimeout = null;
         this.observer = null;
-
+        this.sectionInitTimeout = null;
+        this.sectionCleanupTimeout = null;
 
         this.init();
     }
@@ -82,30 +83,18 @@ export class SectionObserver {
                 this.isVisible = entry.isIntersecting;
 
                 if (!this.isVisible) {
-                    this.logMessage += 
-                    `----------------------------------------------------------\n` + 
-                    `isVisible: ${this.isVisible}\n` +
-                    `----------------------------------------------------------\n`;
-
-                    this.cleanup();
-
+                    if (this.sectionInitTimeout) clearTimeout(this.sectionInitTimeout);
+                    this.sectionCleanupTimeout = setTimeout(() => {
+                        this.cleanup();
+                    }, 200); // debounce cleanup
                 } else {
+                    if (this.sectionCleanupTimeout) clearTimeout(this.sectionCleanupTimeout);
                     if (!this.initialized) {
-                        this.logMessage += 
-                        `----------------------------------------------------------\n` + 
-                        `isVisible: ${this.isVisible}\n` +
-                        `----------------------------------------------------------\n` + 
-                        `initialized: ${this.initialized}\n` +
-                        `----------------------------------------------------------\n`;
-
-                        await this.initSection();
+                        this.sectionInitTimeout = setTimeout(async () => {
+                            await this.initSection();
+                        }, 200); // debounce initSection
                     }
                     if (!this.isResizing) {
-                        this.logMessage += 
-                        `----------------------------------------------------------\n` + 
-                        `isResizing: ${this.isResizing}\n` +
-                        `----------------------------------------------------------\n`;
-
                         this.update();
                     }
                 }

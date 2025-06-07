@@ -48,7 +48,7 @@ export class Object_3D_Observer_Controller extends Object_3D_Controller {
      * @description Handles the resize event
      * @returns {void}
      */ 
-    onResize() {
+    async onResize() {
         super.onResize();
     }
 

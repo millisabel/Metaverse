@@ -282,6 +282,11 @@ export class Object_3D_Controller {
             this.resizeTimeout = null;
         }
 
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+        }
+
         this.logMessage += 
             `${this.constructor.name}: this.renderer: ${this.renderer}\n` +
             `${this.constructor.name}: Scene: ${this.scene}\n` +
@@ -290,13 +295,6 @@ export class Object_3D_Controller {
             `${this.constructor.name}: observer: ${this.observer}\n` +
             `${this.constructor.name}: Completed cleanup in Object_3D_Controller\n`;
   
-    }
-
-    cleanupObserver() {
-        if (this.observer) {
-            this.observer.disconnect();
-            this.observer = null;
-        }
     }
     
     /**
@@ -471,6 +469,13 @@ export class Object_3D_Controller {
         this.stopAnimation();
         
         console.warn('WebGL context lost! Attempting to recover...');
+        
+        this.initScene();
+        if (this.isVisible && this.canAnimate()) {
+            this.animate();
+            this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextLost() success\n`;
+        }
+
         this.logger.log({
             message: 'WebGL context lost! Attempting to recover...',
             functionName: '_handleWebGLContextLost',
