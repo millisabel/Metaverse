@@ -28,15 +28,27 @@ const EXPLORE_DEFAULT_OPTIONS = {
         { color: 0xF00AFE, size: { w: 1.2, h: 0.5, d: 4 } },
         { color: 0x56FFEB, size: { w: 0.5, h: 0.1, d: 2 } },
         { color: 0xe6cf12, size: { w: 1.5, h: 0.5, d: 4 } },
-        { color: 0xff5722, size: { w: 0.4, h: 0.1, d: 2.5 } },
+        { color: 0xff5722, size: { w: 0.9, h: 0.2, d: 2.5 } },
     ],
     imageConfigs: [
-        { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 2.2, h: 2.2 } },
-        { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 2, h: 2 } },
-        { file: './assets/images/explore_3D/objects/object_money.png', size: { w: 1, h: 1 } },
+        { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 5.5, h: 2.5 } },
+        { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 7, h: 7 } },
+        { file: './assets/images/explore_3D/objects/object_money.png', size: { w: 2, h: 2 } },
         { file: './assets/images/explore_3D/objects/object_link.png', size: { w: 1.5, h: 1.5 } },
-        { file: './assets/images/explore_3D/objects/object_picture.png', size: { w: 1.8, h: 1.8 } }
+        { file: './assets/images/explore_3D/objects/object_picture.png', size: { w: 2.8, h: 2.8 } }
     ],
+    animationOptions: {
+        moveDuration: { box: [10, 20], image: [8, 28] },
+        floatA: [0.35, 2.5],
+        floatB: [0.35, 0.5],
+        freqA: [0.7, 1.0],
+        freqB: [0.8, 1.1],
+        endJitter: 0,
+        rotation: {
+            box: ['x', 'y', 'z'],
+            image: ['z']
+        }
+    }
 };
 
 export class ExploreScene extends Object_3D_Observer_Controller {
@@ -164,6 +176,7 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         const width = gridWidth;
         const height = gridHeight;
         const loader = type === 'image' ? new THREE.TextureLoader() : null;
+        const anim = this.options.animationOptions || EXPLORE_DEFAULT_OPTIONS.animationOptions;
 
         configs.forEach((cfg, idx) => {
             const { mesh, extra } = meshFactory(cfg, idx, width, height, loader);
@@ -176,12 +189,19 @@ export class ExploreScene extends Object_3D_Observer_Controller {
             mesh.name = cfg.name || `${type}_object_${idx}`;
             this.scene.add(mesh);
             if (type === 'image') mesh.scale.set(10, 10, 1);
-            const rotationAxis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
+            // Вращение: для image только 'z', для box — случайная ось
+            let rotationAxis;
+            if (type === 'image') {
+                rotationAxis = 'z';
+            } else {
+                const axes = anim.rotation.box;
+                rotationAxis = axes[Math.floor(Math.random() * axes.length)];
+            }
             const rotationSpeed = type === 'image'
                 ? 0.2 + Math.random() * 0.4
                 : 0.15 + Math.random() * 0.3;
             const rotationPhase = Math.random() * Math.PI * 2;
-            this.tunnelItems.push({
+            const obj = {
                 type,
                 mesh,
                 ...extra,
@@ -202,8 +222,50 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                 rotationAxis,
                 rotationSpeed,
                 rotationPhase
-            });
+            };
+            this._resetTunnelItem(obj, idx, width, height, worldCenter, anim, type);
+            this.tunnelItems.push(obj);
         });
+    }
+
+    /**
+     * Сброс параметров и траектории для объекта тоннеля
+     */
+    _resetTunnelItem(obj, i, width, height, worldCenter, anim, type) {
+        // Получаем опции
+        anim = anim || this.options.animationOptions || EXPLORE_DEFAULT_OPTIONS.animationOptions;
+        type = type || obj.type;
+        // Стартовая точка
+        obj.start = {
+            x: -width / 2,
+            y: -height / 2 + Math.random() * height,
+            z: 0
+        };
+        // Конечная точка с разбросом
+        const jitter = anim.endJitter || 2;
+        obj.end = {
+            x: worldCenter.x + (Math.random() - 0.5) * jitter,
+            y: worldCenter.y + (Math.random() - 0.5) * jitter,
+            z: worldCenter.z + (Math.random() - 0.5) * jitter
+        };
+        // Диапазоны
+        const dur = anim.moveDuration[type] || [8, 68];
+        obj.durationMove = dur[0] + Math.random() * (dur[1] - dur[0]);
+        const fA = anim.floatA || [0.35, 0.5];
+        obj.floatA = fA[0] + Math.random() * (fA[1] - fA[0]);
+        const fB = anim.floatB || [0.35, 0.5];
+        obj.floatB = fB[0] + Math.random() * (fB[1] - fB[0]);
+        const fqA = anim.freqA || [0.7, 1.0];
+        obj.freqA = fqA[0] + Math.random() * (fqA[1] - fqA[0]) + i * 0.07;
+        const fqB = anim.freqB || [0.8, 1.1];
+        obj.freqB = fqB[0] + Math.random() * (fqB[1] - fqB[0]) + i * 0.09;
+        // Вращение: для image только по Z, для box — как раньше
+        if (type === 'image') {
+            obj.rotationAxis = 'z';
+        } else {
+            const axes = anim.rotation.box;
+            obj.rotationAxis = axes[Math.floor(Math.random() * axes.length)];
+        }
     }
 
     // Фабрика для image
@@ -267,11 +329,14 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         if (!this.tunnelItems) return;
         const now = Date.now() * 0.001;
         const width = this.gridOptions.gridWidth * this.gridOptions.cellSize;
+        const height = this.gridOptions.gridHeight * this.gridOptions.cellSize;
+        const { worldCenter } = this._getTunnelDimensions();
         const rightWallX = width / 2;
         const margin = 0.3;
         for (let i = 0; i < this.tunnelItems.length; i++) {
             const obj = this.tunnelItems[i];
             obj.timer += delta;
+
             if (obj.state === 'waiting') {
                 obj.mesh.position.set(obj.start.x, obj.start.y, obj.start.z);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0 : 0;
@@ -304,21 +369,29 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                 let baseX = THREE.MathUtils.lerp(obj.moveStart.x, obj.end.x, t);
                 let baseY = THREE.MathUtils.lerp(obj.moveStart.y, obj.end.y, t);
                 let baseZ = THREE.MathUtils.lerp(obj.moveStart.z, obj.end.z, t);
-                if (baseX > rightWallX - margin) {
-                    const excess = baseX - (rightWallX - margin);
-                    baseX -= excess * 2;
-                }
-                obj.mesh.position.x = baseX + Math.sin(now * obj.freqA + i) * obj.floatA;
-                obj.mesh.position.y = baseY + Math.cos(now * obj.freqB + i * 0.5) * obj.floatB;
+
+                // Гарантированно плавное затухание колебаний
+                const phaseA = Math.PI * t;
+                const phaseB = Math.PI * t + Math.PI / 2;
+                const fade = 1 - t;
+                obj.mesh.position.x = baseX + Math.sin(phaseA) * obj.floatA * fade;
+                obj.mesh.position.y = baseY + Math.sin(phaseB) * obj.floatB * fade;
                 obj.mesh.position.z = baseZ;
+
                 const minScale = 0.7;
                 const maxScale = 2;
                 const scale = maxScale - (maxScale - minScale) * t;
                 obj.mesh.scale.set(scale, scale, 1);
                 obj.mesh.material.opacity = obj.type === 'box' ? 0.98 * (1 - t * 0.2) : 1 - t * 0.2;
-                if (obj.rotationAxis && obj.rotationSpeed) {
+                // Вращение: для image только по Z, для box — как раньше
+                if (obj.type === 'box' && obj.rotationAxis && obj.rotationSpeed) {
                     const angle = Math.sin(now * 0.7 + obj.rotationPhase) * 0.2 + (now * obj.rotationSpeed);
                     obj.mesh.rotation[obj.rotationAxis] = angle;
+                } else if (obj.type === 'image') {
+                    // Для image — только по Z, можно чуть-чуть покачивать
+                    obj.mesh.rotation.x = 0;
+                    obj.mesh.rotation.y = 0;
+                    obj.mesh.rotation.z = Math.sin(now * 0.5 + i) * 0.07;
                 }
                 for (let j = 0; j < this.tunnelItems.length; j++) {
                     if (i === j) continue;
@@ -342,6 +415,7 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                     obj.state = 'waiting';
                     obj.timer = 0;
                     obj.delay = obj.type === 'box' ? 10 + Math.random() * 10 : Math.random() * 2.0;
+                    this._resetTunnelItem(obj, i, width, height, worldCenter, this.options.animationOptions || EXPLORE_DEFAULT_OPTIONS.animationOptions, obj.type);
                 }
             }
         }
