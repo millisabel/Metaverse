@@ -24,26 +24,30 @@ const EXPLORE_DEFAULT_OPTIONS = {
     },
     boxConfigs: [
         { color: 0x7A42F4, size: { w: 1, h: 0.2, d: 3 } },
-        { color: 0x4642F4, size: { w: 0.7, h: 0.3, d: 2.5 } },
+        { color: 0x4642F4, size: { w: 1.7, h: 1.3, d: 2.5 } },
         { color: 0xF00AFE, size: { w: 1.2, h: 0.5, d: 4 } },
-        { color: 0x56FFEB, size: { w: 0.5, h: 0.1, d: 2 } },
-        { color: 0xe6cf12, size: { w: 1.5, h: 0.5, d: 4 } },
-        { color: 0xff5722, size: { w: 0.9, h: 0.2, d: 2.5 } },
+        { color: 0x56FFEB, size: { w: 5.5, h: 2.1, d: 2 } },
+        { color: 0xe6cf12, size: { w: 3.5, h: 1.5, d: 4 } },
+        { color: 0xff5722, size: { w: 2.9, h: 1.2, d: 2.5 } },
     ],
     imageConfigs: [
-        { file: './assets/images/explore_3D/objects/object_card1.png', size: { w: 5.5, h: 2.5 } },
-        { file: './assets/images/explore_3D/objects/object_card2.png', size: { w: 7, h: 7 } },
-        { file: './assets/images/explore_3D/objects/object_money.png', size: { w: 2, h: 2 } },
-        { file: './assets/images/explore_3D/objects/object_link.png', size: { w: 1.5, h: 1.5 } },
-        { file: './assets/images/explore_3D/objects/object_picture.png', size: { w: 2.8, h: 2.8 } }
+        { file: './assets/images/explore_3D/object_card1.png', size: { w: 5.5, h: 2.5 } },
+        { file: './assets/images/explore_3D/object_card2.png', size: { w: 7, h: 7 } },
+        { file: './assets/images/explore_3D/object_money.png', size: { w: 2, h: 2 } },
+        { file: './assets/images/explore_3D/object_link.png', size: { w: 2.5, h: 2.5 } },
+        { file: './assets/images/explore_3D/object_picture.png', size: { w: 2.8, h: 2.8 } }
     ],
     animationOptions: {
-        moveDuration: { box: [10, 20], image: [8, 28] },
+        moveDuration: { box: [10, 50], image: [8, 28] },
         floatA: [0.35, 2.5],
         floatB: [0.35, 0.5],
-        freqA: [0.7, 1.0],
+        freqA: [0.7, 2.0],
         freqB: [0.8, 1.1],
         endJitter: 0,
+        delay: { box: [1, 3], image: [2, 4] },
+        pauseAfter: { box: [1, 3], image: [2, 4] },
+        spawnInterval: { box: [5, 15], image: [2, 4] },
+        firstDelay: { box: [0, 1], image: [1, 3] },
         rotation: {
             box: ['x', 'y', 'z'],
             image: ['z']
@@ -177,6 +181,10 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         const height = gridHeight;
         const loader = type === 'image' ? new THREE.TextureLoader() : null;
         const anim = this.options.animationOptions || EXPLORE_DEFAULT_OPTIONS.animationOptions;
+        const delayRange = anim.delay && anim.delay[type] ? anim.delay[type] : [0, 2];
+        const pauseRange = anim.pauseAfter && anim.pauseAfter[type] ? anim.pauseAfter[type] : [1, 2];
+        const firstDelayRange = anim.firstDelay && anim.firstDelay[type] ? anim.firstDelay[type] : [0, 0];
+        const spawnRange = anim.spawnInterval && anim.spawnInterval[type] ? anim.spawnInterval[type] : [0, 0];
 
         configs.forEach((cfg, idx) => {
             const { mesh, extra } = meshFactory(cfg, idx, width, height, loader);
@@ -207,13 +215,15 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                 ...extra,
                 state: 'waiting',
                 timer: 0,
-                delay: idx === 0 ? 0 : (type === 'box' ? 15 + Math.random() * 50 : Math.random() * 30),
+                delay: idx === 0
+                    ? firstDelayRange[0] + Math.random() * (firstDelayRange[1] - firstDelayRange[0])
+                    : delayRange[0] + Math.random() * (delayRange[1] - delayRange[0]),
                 start: { ...pos },
                 end: { x: worldCenter.x, y: worldCenter.y, z: worldCenter.z },
                 durationFadeIn: 1.3 + Math.random() * 0.9,
                 durationMove: type === 'box' ? 40 + Math.random() * 30 : 8 + Math.random() * 60,
                 durationFadeOut: 1.3 + Math.random() * 0.3,
-                pauseAfter: type === 'box' ? 15 + Math.random() * 15 : 0.7 + Math.random() * 10,
+                pauseAfter: pauseRange[0] + Math.random() * (pauseRange[1] - pauseRange[0]),
                 floatA: 0.35 + Math.random() * 0.15,
                 floatB: 0.35 + Math.random() * 0.15,
                 freqA: 0.7 + Math.random() * 0.3 + idx * 0.07,
@@ -221,7 +231,8 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                 moveStart: null,
                 rotationAxis,
                 rotationSpeed,
-                rotationPhase
+                rotationPhase,
+                spawnInterval: spawnRange[0] + Math.random() * (spawnRange[1] - spawnRange[0]),
             };
             this._resetTunnelItem(obj, idx, width, height, worldCenter, anim, type);
             this.tunnelItems.push(obj);
@@ -411,11 +422,18 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                     obj.timer = 0;
                 }
             } else if (obj.state === 'pause') {
-                if (obj.timer >= obj.pauseAfter) {
+                if (obj.timer >= obj.pauseAfter + obj.spawnInterval) {
                     obj.state = 'waiting';
                     obj.timer = 0;
-                    obj.delay = obj.type === 'box' ? 10 + Math.random() * 10 : Math.random() * 2.0;
-                    this._resetTunnelItem(obj, i, width, height, worldCenter, this.options.animationOptions || EXPLORE_DEFAULT_OPTIONS.animationOptions, obj.type);
+                    // Генерируем новую задержку, паузу и spawnInterval из animationOptions
+                    const anim = this.options.animationOptions || EXPLORE_DEFAULT_OPTIONS.animationOptions;
+                    const delayRange = anim.delay && anim.delay[obj.type] ? anim.delay[obj.type] : [0, 2];
+                    const pauseRange = anim.pauseAfter && anim.pauseAfter[obj.type] ? anim.pauseAfter[obj.type] : [1, 2];
+                    const spawnRange = anim.spawnInterval && anim.spawnInterval[obj.type] ? anim.spawnInterval[obj.type] : [0, 0];
+                    obj.delay = delayRange[0] + Math.random() * (delayRange[1] - delayRange[0]);
+                    obj.pauseAfter = pauseRange[0] + Math.random() * (pauseRange[1] - pauseRange[0]);
+                    obj.spawnInterval = spawnRange[0] + Math.random() * (spawnRange[1] - spawnRange[0]);
+                    this._resetTunnelItem(obj, i, width, height, worldCenter, anim, obj.type);
                 }
             }
         }
