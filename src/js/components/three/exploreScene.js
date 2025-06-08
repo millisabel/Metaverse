@@ -48,9 +48,8 @@ const EXPLORE_DEFAULT_OPTIONS = {
             image: { x: [1.0, 1.5], y: [1.0, 1.5] }
         },
         tunnelEndSpread: 0,
-        delay: [1, 3],
+        delay: [3, 8],
         pauseAfter: [1, 3],
-        spawnInterval: [5, 15],
         scale: {
             box: { min: 0.3, max: 3 },
             image: { min: 0.2, max: 3 }
@@ -230,7 +229,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         const freqRange = anim.freq?.[type] || { x: [0.7, 1.0], y: [0.8, 1.1] };
         const delayRange = anim.delay || [0, 2];
         const pauseRange = anim.pauseAfter || [1, 2];
-        const spawnRange = anim.spawnInterval || [0, 0];
         const axes = ['x', 'y', 'z'];
         const rotationAxis = type === 'image' ? 'z' : axes[Math.floor(Math.random() * axes.length)];
         const rotationSpeed = type === 'image'
@@ -250,7 +248,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         const freqX = freqRange.x[0] + Math.random() * (freqRange.x[1] - freqRange.x[0]) + idx * 0.07;
         const freqY = freqRange.y[0] + Math.random() * (freqRange.y[1] - freqRange.y[0]) + idx * 0.09;
         const moveStart = null;
-        const spawnInterval = spawnRange[0] + Math.random() * (spawnRange[1] - spawnRange[0]);
 
         return {
             ...base,
@@ -271,7 +268,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
             rotationAxis,
             rotationSpeed,
             rotationPhase,
-            spawnInterval,
         };
     }
 
@@ -453,7 +449,7 @@ export class ExploreScene extends Object_3D_Observer_Controller {
     }
 
     _handlePauseState(obj, i, worldCenter) {
-        if (obj.timer >= obj.pauseAfter + obj.spawnInterval) {
+        if (obj.timer >= obj.pauseAfter) {
             obj.state = 'waiting';
             obj.timer = 0;
             const newParams = this._generateTunnelAnimationParams(obj, i, worldCenter);
