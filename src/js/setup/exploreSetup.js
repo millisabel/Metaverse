@@ -23,9 +23,64 @@ const CONFIG_EXPLORE = {
         zIndex: Z_INDEX.GLOW, 
         objectConfig: {
             objectOptions: {
+                positioning: {
+                    mode: 'element',
+                    targetSelector: '#explore-3d',
+                    align: 'center center',
+                    offset: { x: 140, y: 0 },
+                    initialPosition: { x: 0, y: 0, z: 0 },
+                },
                 movement: { enabled: false },
-                opacity: { min: 0.1, max: 0.9 }
-            }
+            },
+            shaderOptions: {
+                pulse: {
+                    enabled: true,
+                    intensity: 3,
+                }
+            },
+            individualOptions: [
+                {
+                    shaderOptions: {
+                        color: 0xf4de42,
+                        opacity: { min: 0.5, max: 0.8 },
+                        scale: { min: 0.6, max: 1.2 },
+                        pulse: {
+                            speed: { min: 0.1, max: 0.3 },
+                        }
+                    }
+                },
+                {
+                    shaderOptions: {
+                        color: 0x7A42F4,
+                        opacity: { min: 0.4, max: 0.8 },
+                        scale: { min: 1, max: 1.5 },
+                        pulse: {
+                            speed: { min: 0.2, max: 0.4 },
+                        }
+                    }
+                },
+                {
+                    shaderOptions: {
+                        color: 0xF00AFE,
+                        opacity: { min: 0.5, max: 0.9 },
+                        scale: { min: 1.4, max: 1.9 },
+                        pulse: {
+                            speed: { min: 0.3, max: 0.6 },
+                        }
+                    }
+                },
+                {
+                    shaderOptions: {
+                        color: 0x7A42F4,
+                        opacity: { min: 0.6, max: 1 },
+                        scale: { min: 1.8, max: 2 },
+                        pulse: {
+                            speed: { min: 0.4, max: 0.8 },
+                        }
+                    }
+                },
+                
+            ]
         }
     },
     EXPLORE_SCENE: {
@@ -41,6 +96,7 @@ const CONFIG_EXPLORE = {
 export class ExploreSetup extends SectionController {
     constructor() {
         super(SECTION_ID, CONFIG_EXPLORE, Z_INDEX.SECTION);   
+        console.log('ExploreSetup constructor', this);
 
         this.CONFIG_ANIMATED_SVG = {
             svgUrl: 'assets/images/explore_3D/grid_background.svg',

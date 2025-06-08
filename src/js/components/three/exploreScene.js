@@ -48,11 +48,11 @@ const EXPLORE_DEFAULT_OPTIONS = {
             image: { x: [1.0, 1.5], y: [1.0, 1.5] }
         },
         tunnelEndSpread: 0,
-        delay: [2, 2],
+        delay: [3, 3],
         pauseAfter: [1, 3],
         scale: {
-            box: { min: 0.3, max: 3 },
-            image: { min: 0.2, max: 3 }
+            box: { min: 1, max: 2 },
+            image: { min: 1, max: 2 }
         },
         opacity: {
             box: { min: 0, max: 0.98 },
@@ -60,7 +60,7 @@ const EXPLORE_DEFAULT_OPTIONS = {
         },
         rotationAmplitude: {
             box: 0.2,
-            image: 0.005
+            image: 0.05
         }
     }
 };
@@ -213,7 +213,17 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                 const scaleY = height / (cfg.size?.h || 1);
                 mesh.scale.set(scaleX, scaleY, 1);
             }
-            const newObj = { type, mesh, extra, idx, pos };
+            // Calculate collision radius (по максимальному размеру)
+            let w = 1, h = 1;
+            if (type === 'box') {
+                w = cfg.size?.w || 1;
+                h = cfg.size?.h || 1;
+            } else if (type === 'image') {
+                w = cfg.size?.w || 1;
+                h = cfg.size?.h || 1;
+            }
+            const collisionRadius = 0.5 * Math.max(w, h);
+            const newObj = { type, mesh, extra, idx, pos, collisionRadius };
             tempObjects.push(newObj);
         });
         this.objects.push(...tempObjects);
@@ -337,22 +347,28 @@ export class ExploreScene extends Object_3D_Observer_Controller {
 
         const now = Date.now() * 0.001;
         const { worldCenter } = this._getTunnelDimensions();
-        
+
+        // 1. Сначала инициализация параметров для новых объектов (как было)
         for (let i = 0; i < this.objects.length; i++) {
             const obj = this.objects[i];
             if (!obj.state) {
-                if (i === 0) {
-                    Object.assign(obj, this._generateTunnelAnimationParams(obj, i, worldCenter));
-                    obj.delay = 0;
-                } else {
-                    const prev = this.objects[i - 1];
-                    if (prev.state && prev.state !== 'waiting') {
-                        Object.assign(obj, this._generateTunnelAnimationParams(obj, i, worldCenter));
-                    } else {
-                        continue; 
-                    }
-                }
+                Object.assign(obj, this._generateTunnelAnimationParams(obj, i, worldCenter));
             }
+        }
+
+        // 2. Собрать все объекты в ожидании, у которых истёк delay
+        const waitingReady = this.objects.filter(obj => obj.state === 'waiting' && obj.timer >= obj.delay);
+        if (waitingReady.length > 0) {
+            // 3. Случайно выбрать один и активировать
+            const idx = Math.floor(Math.random() * waitingReady.length);
+            const obj = waitingReady[idx];
+            obj.state = 'fading-in';
+            obj.timer = 0;
+        }
+
+        // 4. Обновить таймеры и состояния всех объектов
+        for (let i = 0; i < this.objects.length; i++) {
+            const obj = this.objects[i];
             obj.timer += delta;
             switch (obj.state) {
                 case 'waiting':
@@ -429,17 +445,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         obj.mesh.material.opacity = opacityOpts.max - (opacityOpts.max - opacityOpts.min) * t * 0.2;
         obj.mesh.rotation[obj.rotationAxis] = angle;
 
-        for (let j = 0; j < this.objects.length; j++) {
-            if (i === j) continue;
-            const other = this.objects[j];
-            if (other.state !== 'moving') continue;
-            const dist = obj.mesh.position.distanceTo(other.mesh.position);
-            const threshold = 0.7;
-            if (dist < threshold && dist > 0.001) {
-                const dir = obj.mesh.position.clone().sub(other.mesh.position).normalize();
-                obj.mesh.position.add(dir.multiplyScalar(0.04 * (1 - dist / threshold)));
-            }
-        }
         if (t >= 1) {
             obj.mesh.material.opacity = opacityOpts.min;
             obj.mesh.scale.set(0, 0, 1);
