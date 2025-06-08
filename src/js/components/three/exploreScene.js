@@ -48,7 +48,7 @@ const EXPLORE_DEFAULT_OPTIONS = {
             image: { x: [1.0, 1.5], y: [1.0, 1.5] }
         },
         tunnelEndSpread: 0,
-        delay: [3, 8],
+        delay: [2, 2],
         pauseAfter: [1, 3],
         scale: {
             box: { min: 0.3, max: 3 },
