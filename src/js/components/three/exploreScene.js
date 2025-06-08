@@ -198,7 +198,11 @@ export class ExploreScene extends Object_3D_Observer_Controller {
         const loader = type === 'image' ? new THREE.TextureLoader() : null;
 
         const tempObjects = [];
+        let lastDelay = 0;
         configs.forEach((cfg, idx) => {
+            const randomAdd = 0.5 + Math.random() * 1.0;
+            const delay = lastDelay + randomAdd;
+            lastDelay = delay;
             const { mesh, extra } = meshFactory(cfg, idx, width, height, loader);
             let pos = cfg.position || {
                 x: -width / 2,
@@ -223,7 +227,7 @@ export class ExploreScene extends Object_3D_Observer_Controller {
                 h = cfg.size?.h || 1;
             }
             const collisionRadius = 0.5 * Math.max(w, h);
-            const newObj = { type, mesh, extra, idx, pos, collisionRadius };
+            const newObj = { type, mesh, extra, idx, pos, collisionRadius, delay };
             tempObjects.push(newObj);
         });
         this.objects.push(...tempObjects);
@@ -245,7 +249,7 @@ export class ExploreScene extends Object_3D_Observer_Controller {
             ? 0.2 + Math.random() * 0.4
             : 0.15 + Math.random() * 0.3;
         const rotationPhase = Math.random() * Math.PI * 2;
-        const delay = idx === 0 ? 0 : delayRange[0] + Math.random() * (delayRange[1] - delayRange[0]);
+        const delay = base.delay !== undefined ? base.delay : delayRange[0] + Math.random() * (delayRange[1] - delayRange[0]);
         const start = { ...base.pos };
         const end = { x: worldCenter.x, y: worldCenter.y, z: worldCenter.z };
         const durationFadeIn = 1.3 + Math.random() * 0.9;
