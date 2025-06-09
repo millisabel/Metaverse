@@ -1,13 +1,15 @@
 import { SectionController } from '../controllers/SectionController';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
+import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
 
 const SECTION_ID = 'explore';
 
 const Z_INDEX = {
     SECTION: 0,
-    GLOW: -1,
+    GLOW: -2,
     EXPLORE_SCENE: 1,
+    ANIMATED_SVG: -1,
 };
 const NAME_3D_OBJECTS = {
     GLOW: 'EXPLORE_GLOW',
@@ -42,7 +44,7 @@ const CONFIG_EXPLORE = {
                 {
                     shaderOptions: {
                         color: 0xf4de42,
-                        opacity: { min: 0.5, max: 0.8 },
+                        opacity: { min: 0.3, max: 0.8 },
                         scale: { min: 0.6, max: 1.2 },
                         pulse: {
                             speed: { min: 0.1, max: 0.3 },
@@ -88,27 +90,52 @@ const CONFIG_EXPLORE = {
         containerName: 'explore-3d',
         zIndex: Z_INDEX.EXPLORE_SCENE,
         objectConfig: {
-            
+        }
+    },
+    ANIMATED_SVG: {
+        classRef: AnimatedSVGScene,
+        containerName: 'explore-svg-3d',
+        zIndex: Z_INDEX.ANIMATED_SVG,
+        camera: {
+            type: 'orthographic',
+            position: { x: 0, y: 0, z: 5 }, 
+            lookAt: { x: 0, y: 0, z: 0 },
+        },
+        objectConfig: {
+            svgUrl: 'assets/images/explore_3D/grid_background.svg',
+            mode: 'dom',
+            targetElement: '#explore-3d',
+            color: 0xF00AFE,
+            opacity: 1,
+            position: { x: 0, y: 0, z: -10 },
+            scaleFactor: 0.008,
+            rotation: {
+                enabled: true,
+                direction: 'cw',
+                speed: 0.01
+            },
+            pulse: {
+                enabled: true,
+                min: 0.8,
+                max: 1.2,
+                speed: 0.01,
+                opacityPulse: true,
+                minOpacity: 0.1,
+                maxOpacity: 0.2
+            },
+            wave: {
+                amp: 15,
+                waveSpeed: 0.5,
+                smoothRadius: 5,
+                freq: 1
+            }
         }
     }
 };
 
 export class ExploreSetup extends SectionController {
     constructor() {
-        super(SECTION_ID, CONFIG_EXPLORE, Z_INDEX.SECTION);   
-        console.log('ExploreSetup constructor', this);
-
-        this.CONFIG_ANIMATED_SVG = {
-            svgUrl: 'assets/images/explore_3D/grid_background.svg',
-            svgOptions: {
-                color: 0x7A42F4,
-                opacity: 1,
-                amp: 15,
-                waveSpeed: 0.5,
-                smoothRadius: 5,
-                freq: 1
-            }
-        };
+        super(SECTION_ID, CONFIG_EXPLORE, Z_INDEX.SECTION); 
     }
 
     // setupScene() {

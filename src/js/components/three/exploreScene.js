@@ -4,6 +4,7 @@ import { createLogger } from '../../utils/logger';
 
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { Grid } from './grid';
+import { AnimatedSVGMesh } from './AnimatedSVGMesh';
 
 const EXPLORE_DEFAULT_OPTIONS = {
     gridOptions: {
@@ -19,7 +20,7 @@ const EXPLORE_DEFAULT_OPTIONS = {
         shrinkK: 1/3,
         cellSizeBack: 1,
         tunnelRotation: -Math.PI/8,
-        tunnelPosition: null,
+        tunnelPosition: {z: -60},
         borderColor: 0xA18FFF
     },
     boxConfigs: [
@@ -62,6 +63,31 @@ const EXPLORE_DEFAULT_OPTIONS = {
             box: 0.2,
             image: 0.05
         }
+    },
+    svgOptions: {
+        svgUrl: 'assets/images/explore_3D/grid_background.svg',
+        mode: 'scene',
+        color: 0xF00AFE,
+        opacity: 1,
+        position: { x: 0, y: 0, z: -1000 },
+        scaleFactor: 0.4,
+        rotation: {
+            enabled: true,
+            direction: 'ccw',
+            speed: 0.05
+        },
+        pulse: {
+            enabled: true,
+            min: 0.8,
+            max: 1.2,
+            speed: 0.02
+        },
+        wave: {
+            amp: 15,
+            waveSpeed: 0.5,
+            smoothRadius: 5,
+            freq: 1
+        }
     }
 };
 
@@ -90,7 +116,13 @@ export class ExploreScene extends Object_3D_Observer_Controller {
 
         this.addTunnelObjects(this.options.imageConfigs, 'image', this.createImageMesh.bind(this));
         this.addTunnelObjects(this.options.boxConfigs, 'box', this.createBoxMesh.bind(this));
-        console.log(this.objects);
+
+        this.animatedSVGMesh = new AnimatedSVGMesh(this.options.svgOptions.svgUrl, {
+            ...this.options.svgOptions,
+            container: this.container
+        });
+        await this.animatedSVGMesh.onSVGLoaded();
+        this.scene.add(this.animatedSVGMesh);
     }
 
     async onResize() {
@@ -100,6 +132,9 @@ export class ExploreScene extends Object_3D_Observer_Controller {
     update(delta) {
         if (this.objects && this.objects.length) {
             this.updateTunnelObjects(delta || 0.016);
+        }
+        if (this.animatedSVGMesh && this.animatedSVGMesh.update) {
+            this.animatedSVGMesh.update(delta);
         }
 
         super.update();
@@ -124,11 +159,17 @@ export class ExploreScene extends Object_3D_Observer_Controller {
 
         this.gridGroup.rotation.y = this.gridOptions.tunnelRotation;
         
+        const defaultX = -this.gridOptions.gridWidth * this.gridOptions.cellSize / 2;
+        const defaultY = -this.gridOptions.gridHeight * this.gridOptions.cellSize / 2;
+        const defaultZ = -160;
+
+        let x = defaultX, y = defaultY, z = defaultZ;
         if (this.gridOptions.tunnelPosition) {
-            this.gridGroup.position.set(...this.gridOptions.tunnelPosition);
-        } else {
-            this.gridGroup.position.set(-this.gridOptions.gridWidth * this.gridOptions.cellSize / 2, -this.gridOptions.gridHeight * this.gridOptions.cellSize / 2, -45);
+            if ('x' in this.gridOptions.tunnelPosition) x = this.gridOptions.tunnelPosition.x;
+            if ('y' in this.gridOptions.tunnelPosition) y = this.gridOptions.tunnelPosition.y;
+            if ('z' in this.gridOptions.tunnelPosition) z = this.gridOptions.tunnelPosition.z;
         }
+        this.gridGroup.position.set(x, y, z);
         this.scene.add(this.gridGroup);
     }
 

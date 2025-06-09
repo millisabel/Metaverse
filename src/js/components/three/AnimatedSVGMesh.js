@@ -18,75 +18,142 @@ export class AnimatedSVGMesh extends THREE.Group {
         this.time = 0;
         this._onResize = this.handleResize.bind(this);
         window.addEventListener('resize', this._onResize);
+        this._svgLoadedPromise = new Promise(resolve => {
+            this._onSVGLoaded = resolve;
+        });
         this._loadSVG(svgUrl);
-        this.opacity = 1;
         this.noise2D = createNoise2D();
-        
-        this.amp = options.amp !== undefined ? options.amp : 5; 
-        this.waveSpeed = options.waveSpeed !== undefined ? options.waveSpeed : 0.25; 
-        this.smoothRadius = options.smoothRadius !== undefined ? options.smoothRadius : 10; 
-        // If the smoothing radius is too large, all displacements are averaged and the contour hardly moves.
-        this.freq = options.freq !== undefined ? options.freq : 1; // count of waves
-    }
-
-    dispose() {
-        window.removeEventListener('resize', this._onResize);
-        // ... existing dispose logic ...
+        // wave параметры
+        this.wave = options.wave || {};
+        // rotation параметры
+        this.rotationOpts = options.rotation || { enabled: false };
+        // pulse параметры
+        this.pulseOpts = options.pulse || { enabled: false };
+        // opacity
+        this.baseOpacity = typeof options.opacity === 'number' ? options.opacity : 1;
+        // scaleFactor
+        this.baseScale = typeof options.scaleFactor === 'number' ? options.scaleFactor : 1.0;
+        // color
+        this.color = options.color;
+        // position
+        this.basePosition = options.position || { x: 0, y: 0, z: 0 };
+        this._pulsePhase = 0;
     }
 
     handleResize() {
-        this.fitToContainer();
+        this.fitToContainer(this.options.mode);
     }
 
-    fitToContainer() {
+    /**
+     * Fits SVG to container, supporting both 3D scene and DOM element modes
+     * @param {'scene'|'dom'} mode - Fit mode: 'scene' (3D) or 'dom' (DOM)
+     */
+    fitToContainer(mode = 'scene') {
         if (!this.meshes.length) return;
 
-        // 1. Сбросить позицию и масштаб перед пересчётом
+        // Сбросить позицию и масштаб перед пересчётом
         this.position.set(0, 0, 0);
         this.scale.set(1, 1, 1);
 
-        // 2. Получить bounding box SVG
-        const box = new THREE.Box3().setFromObject(this);
+        // Получить bounding box SVG
+        let box = new THREE.Box3().setFromObject(this);
         const width = box.max.x - box.min.x;
         const height = box.max.y - box.min.y;
 
-        // 3. Получить размеры канваса
-        let canvasWidth = 800;
-        let canvasHeight = 600;
-        if (this.options && this.options.container) {
-            const canvas = this.options.container.querySelector('canvas');
-            if (canvas) {
-                const rect = canvas.getBoundingClientRect();
-                canvasWidth = rect.width;
-                canvasHeight = rect.height;
-            } else {
+        if (mode === 'scene') {
+            // === 3D-сцена: старый подход ===
+            let targetWidth = 800;
+            let targetHeight = 600;
+            if (this.options && this.options.sceneSize) {
+                targetWidth = this.options.sceneSize.width;
+                targetHeight = this.options.sceneSize.height;
+            } else if (this.options && this.options.container && this.options.container.getBoundingClientRect) {
                 const rect = this.options.container.getBoundingClientRect();
-                canvasWidth = rect.width;
-                canvasHeight = rect.height;
+                targetWidth = rect.width;
+                targetHeight = rect.height;
             }
+            const targetAspect = targetWidth / targetHeight;
+            const svgAspect = width / height;
+            let scale;
+            if (svgAspect > targetAspect) {
+                scale = targetWidth / width;
+            } else {
+                scale = targetHeight / height;
+            }
+            const scaleFactor = (typeof this.options.scaleFactor === 'number') ? this.options.scaleFactor : 1.0;
+            scale *= scaleFactor;
+            this.scale.set(scale, scale, scale);
+            box = new THREE.Box3().setFromObject(this);
+            const dx = (box.max.x + box.min.x) / 2;
+            const dy = (box.max.y + box.min.y) / 2;
+            const dz = (this.options.position && this.options.position.z) ? this.options.position.z : 0;
+            this.position.set(-dx, -dy, dz);
+        } else if (mode === 'dom') {
+            // === DOM-режим: позиционирование по DOM-элементу ===
+            const camera = this.options.camera; // Ожидается OrthoCamera
+            const renderer = this.options.renderer;
+            const domElement = this.options.targetElement || (this.options.container && this.options.container);
+            if (!camera || !renderer || !domElement) return;
+
+            // 1. Get DOM element and canvas rects
+            const elemRect = domElement.getBoundingClientRect();
+            const canvas = renderer.domElement;
+            const canvasRect = canvas.getBoundingClientRect();
+            console.log(canvasRect);
+
+            // 2. Center and size of element relative to canvas
+            const elemCenterX = elemRect.left + elemRect.width / 2 - canvasRect.left;
+            const elemCenterY = elemRect.top + elemRect.height / 2 - canvasRect.top;
+            const elemWidth = elemRect.width;
+            const elemHeight = elemRect.height;
+
+            // 3. Convert to NDC [-1, 1]
+            const ndcX = (elemCenterX / canvasRect.width) * 2 - 1;
+            const ndcY = -((elemCenterY / canvasRect.height) * 2 - 1);
+
+            // 4. Ortho camera visible area
+            const orthoWidth = camera.right - camera.left;
+            const orthoHeight = camera.top - camera.bottom;
+
+            // 5. Scene coordinates for center
+            const sceneX = camera.left + (ndcX + 1) / 2 * orthoWidth;
+            const sceneY = camera.bottom + (ndcY + 1) / 2 * orthoHeight;
+
+            // 6. Mesh bounding box
+            const meshBox = new THREE.Box3().setFromObject(this);
+            const meshWidth = meshBox.max.x - meshBox.min.x;
+            const meshHeight = meshBox.max.y - meshBox.min.y;
+
+            // 7. Target size in scene units
+            const sceneElemWidth = (elemWidth / canvasRect.width) * orthoWidth;
+            const sceneElemHeight = (elemHeight / canvasRect.height) * orthoHeight;
+
+            // 8. Scale mesh to fit element (без искажения)
+            const scaleX = (sceneElemWidth / meshWidth) * (this.options.scaleFactor || 1);
+            const scaleY = (sceneElemHeight / meshHeight) * (this.options.scaleFactor || 1);
+            const uniformScale = Math.min(scaleX, scaleY);
+            this.scale.set(uniformScale, uniformScale, 1);
+
+            // 9. Center mesh
+            const newBox = new THREE.Box3().setFromObject(this);
+            const meshCenterX = (newBox.max.x + newBox.min.x) / 2;
+            const meshCenterY = (newBox.max.y + newBox.min.y) / 2;
+            this.position.set(
+                sceneX - meshCenterX,
+                sceneY - meshCenterY,
+                0
+            );
         }
 
-        // 4. Aspect ratio
-        const canvasAspect = canvasWidth / canvasHeight;
-        const svgAspect = width / height;
+        // 1. Вычислить bounding box всех мешей (используем ту же переменную)
+        box = new THREE.Box3().setFromObject(this);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
 
-        // 5. Calculate scale
-        let scale;
-        if (svgAspect > canvasAspect) {
-            scale = canvasWidth / width;
-        } else {
-            scale = canvasHeight / height;
-        }
-        scale *= 0.9;
-        this.scale.set(scale, scale, scale);
-
-        // 6. Пересчитать bounding box после масштабирования
-        box.setFromObject(this);
-
-        // 7. Центрировать SVG
-        const dx = (box.max.x + box.min.x) / 2;
-        const dy = (box.max.y + box.min.y) / 2;
-        this.position.set(-dx, -dy, 0);
+        // 2. Сместить все меши так, чтобы центр оказался в (0,0,0)
+        this.meshes.forEach(mesh => {
+            mesh.position.sub(center);
+        });
     }
 
     /**
@@ -94,7 +161,8 @@ export class AnimatedSVGMesh extends THREE.Group {
      * @param {string} url
      * @private
      */
-    _loadSVG(url) {
+    async _loadSVG(url) {
+        console.log('loadSVG', url);
         const loader = new SVGLoader();
         loader.load(
             url,
@@ -104,7 +172,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                     const shapes = SVGLoader.createShapes(path);
                     shapes.forEach(shape => {
                         const geometry = new ShapeGeometry(shape, 64);
-                        let color = this.options.color || path.color || 0xff00ff;
+                        let color = this.color || path.color || 0xff00ff;
                         if (typeof color === 'string' && color.startsWith('url(')) {
                             color = 0xff00ff;
                         }
@@ -112,7 +180,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                             color,
                             side: THREE.DoubleSide,
                             transparent: true,
-                            opacity: this.options.opacity || 1,
+                            opacity: this.baseOpacity,
                         });
                         const mesh = new THREE.Mesh(geometry, material);
                         mesh.userData.originalPositions = geometry.attributes.position.array.slice();
@@ -121,14 +189,28 @@ export class AnimatedSVGMesh extends THREE.Group {
                     });
                 });
 
+                // === Центрирование SVG по центру группы ===
+                const box = new THREE.Box3().setFromObject(this);
+                const center = new THREE.Vector3();
+                box.getCenter(center);
+                this.meshes.forEach(mesh => {
+                    mesh.position.sub(center);
+                });
+
                 // === Центрирование и масштабирование SVG ===
-                this.fitToContainer();
+                this.fitToContainer(this.options.mode);
+                this._onSVGLoaded();
             },
             undefined,
             err => {
                 console.error('SVG load error:', err);
+                this._onSVGLoaded();
             }
         );
+    }
+
+    onSVGLoaded() {
+        return this._svgLoadedPromise;
     }
 
     /**
@@ -137,52 +219,81 @@ export class AnimatedSVGMesh extends THREE.Group {
      */
     update(delta = 0.016) {
         this.time += delta;
+        let pulseScale = 1;
+        let pulseOpacity = this.baseOpacity;
+        if (this.pulseOpts.enabled) {
+            const min = typeof this.pulseOpts.min === 'number' ? this.pulseOpts.min : 0.9;
+            const max = typeof this.pulseOpts.max === 'number' ? this.pulseOpts.max : 1.1;
+            const speed = typeof this.pulseOpts.speed === 'number' ? this.pulseOpts.speed : 1.0;
+            this._pulsePhase += delta * speed * Math.PI * 2;
+            // Сглаженная пульсация
+            const rawT = 0.5 * (1 + Math.sin(this._pulsePhase));
+            const t = -(Math.cos(Math.PI * rawT) - 1) / 2;
+            pulseScale = min + (max - min) * t;
+
+            if (this.pulseOpts.opacityPulse) {
+                const minO = typeof this.pulseOpts.minOpacity === 'number' ? this.pulseOpts.minOpacity : 0.5;
+                const maxO = typeof this.pulseOpts.maxOpacity === 'number' ? this.pulseOpts.maxOpacity : 1.0;
+                pulseOpacity = minO + (maxO - minO) * t;
+            }
+        }
+        // --- Rotation ---
+        if (this.rotationOpts.enabled) {
+            const dir = this.rotationOpts.direction === 'ccw' ? -1 : 1;
+            const speed = typeof this.rotationOpts.speed === 'number' ? this.rotationOpts.speed : 0.5;
+            this.rotation.z += dir * speed * delta;
+        }
+        // --- Opacity ---
+        this.meshes.forEach(mesh => {
+            mesh.material.opacity = pulseOpacity;
+        });
+        // --- Scale ---
+        const scale = this.baseScale * pulseScale;
+        this.scale.set(scale, scale, scale);
+        // --- Wave (анимация контура) ---
         this.meshes.forEach(mesh => {
             const pos = mesh.geometry.attributes.position;
             const orig = mesh.userData.originalPositions;
             const count = pos.count;
-    
+            // Wave параметры
+            const amp = this.wave.amp !== undefined ? this.wave.amp : 5;
+            const waveSpeed = this.wave.waveSpeed !== undefined ? this.wave.waveSpeed : 0.25;
+            const smoothRadius = this.wave.smoothRadius !== undefined ? this.wave.smoothRadius : 10;
+            const freq = this.wave.freq !== undefined ? this.wave.freq : 1;
             // "Running wave" along the contour
             const offsets = new Array(count);
             for (let i = 0; i < count; i++) {
-                // Shift phase over time to make wave move along the contour
-                const phase = (i / count) * Math.PI * 2 * this.freq + this.time * this.waveSpeed;
-                // Use noise for smoothness
+                const phase = (i / count) * Math.PI * 2 * freq + this.time * waveSpeed;
                 const noiseVal = this.noise2D(Math.cos(phase), Math.sin(phase) + this.time * 0.1);
-                offsets[i] = noiseVal * this.amp;
+                offsets[i] = noiseVal * amp;
             }
-    
-            // Smooth with radius set in options
+            // Smooth with radius
             const smoothOffsets = new Array(count);
             for (let i = 0; i < count; i++) {
                 let sum = 0, n = 0;
-                for (let k = -this.smoothRadius; k <= this.smoothRadius; k++) {
+                for (let k = -smoothRadius; k <= smoothRadius; k++) {
                     const idx = (i + k + count) % count;
                     sum += offsets[idx];
                     n++;
                 }
                 smoothOffsets[i] = sum / n;
             }
-    
             // Apply smoothed offsets to the normal
             for (let i = 0; i < count; i++) {
                 const x0 = orig[i * 3];
                 const y0 = orig[i * 3 + 1];
                 const z0 = orig[i * 3 + 2];
-    
                 const prev = ((i - 1) + count) % count;
                 const next = (i + 1) % count;
                 const xPrev = orig[prev * 3];
                 const yPrev = orig[prev * 3 + 1];
                 const xNext = orig[next * 3];
                 const yNext = orig[next * 3 + 1];
-    
                 const tx = xNext - xPrev;
                 const ty = yNext - yPrev;
                 const len = Math.sqrt(tx * tx + ty * ty) || 1;
                 const nx = -ty / len;
                 const ny = tx / len;
-    
                 const offset = smoothOffsets[i];
                 pos.setXYZ(i, x0 + nx * offset, y0 + ny * offset, z0);
             }
