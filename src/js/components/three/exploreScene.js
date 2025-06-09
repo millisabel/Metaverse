@@ -64,31 +64,6 @@ const EXPLORE_DEFAULT_OPTIONS = {
             image: 0.05
         }
     },
-    svgOptions: {
-        svgUrl: 'assets/images/explore_3D/grid_background.svg',
-        mode: 'scene',
-        color: 0xF00AFE,
-        opacity: 1,
-        position: { x: 0, y: 0, z: -1000 },
-        scaleFactor: 0.4,
-        rotation: {
-            enabled: true,
-            direction: 'ccw',
-            speed: 0.05
-        },
-        pulse: {
-            enabled: true,
-            min: 0.8,
-            max: 1.2,
-            speed: 0.02
-        },
-        wave: {
-            amp: 15,
-            waveSpeed: 0.5,
-            smoothRadius: 5,
-            freq: 1
-        }
-    }
 };
 
 export class ExploreScene extends Object_3D_Observer_Controller {
@@ -116,13 +91,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
 
         this.addTunnelObjects(this.options.imageConfigs, 'image', this.createImageMesh.bind(this));
         this.addTunnelObjects(this.options.boxConfigs, 'box', this.createBoxMesh.bind(this));
-
-        this.animatedSVGMesh = new AnimatedSVGMesh(this.options.svgOptions.svgUrl, {
-            ...this.options.svgOptions,
-            container: this.container
-        });
-        await this.animatedSVGMesh.onSVGLoaded();
-        this.scene.add(this.animatedSVGMesh);
     }
 
     async onResize() {
@@ -132,9 +100,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
     update(delta) {
         if (this.objects && this.objects.length) {
             this.updateTunnelObjects(delta || 0.016);
-        }
-        if (this.animatedSVGMesh && this.animatedSVGMesh.update) {
-            this.animatedSVGMesh.update(delta);
         }
 
         super.update();

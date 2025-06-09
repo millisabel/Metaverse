@@ -1,7 +1,7 @@
 import { SectionController } from '../controllers/SectionController';
 import { ExploreScene } from '../components/three/exploreScene';
 import { Glow } from '../components/three/glow';
-import { AnimatedSVGScene } from '../components/three/AnimatedSVGScene';
+import { DecorativeLayerExploreScene } from '../components/three/DecorativeLayerExploreScene';
 
 const SECTION_ID = 'explore';
 
@@ -93,42 +93,112 @@ const CONFIG_EXPLORE = {
         }
     },
     ANIMATED_SVG: {
-        classRef: AnimatedSVGScene,
-        containerName: 'explore-svg-3d',
+        classRef: DecorativeLayerExploreScene,
         zIndex: Z_INDEX.ANIMATED_SVG,
         camera: {
             type: 'orthographic',
-            position: { x: 0, y: 0, z: 5 }, 
+            position: { x: 0, y: 0, z: 5 },
             lookAt: { x: 0, y: 0, z: 0 },
         },
         objectConfig: {
-            svgUrl: 'assets/images/explore_3D/grid_background.svg',
-            mode: 'dom',
-            targetElement: '#explore-3d',
-            color: 0xF00AFE,
-            opacity: 1,
-            position: { x: 0, y: 0, z: -10 },
-            scaleFactor: 0.008,
-            rotation: {
-                enabled: true,
-                direction: 'cw',
-                speed: 0.01
-            },
-            pulse: {
-                enabled: true,
-                min: 0.8,
-                max: 1.2,
-                speed: 0.01,
-                opacityPulse: true,
-                minOpacity: 0.1,
-                maxOpacity: 0.2
-            },
-            wave: {
-                amp: 15,
-                waveSpeed: 0.5,
-                smoothRadius: 5,
-                freq: 1
-            }
+            svg: [
+                {
+                    svgUrl: 'assets/images/explore_3D/grid_background.svg',
+                    targetElement: '#explore-3d',
+                    mode: 'dom',
+                    color: 0x7b42f7,
+                    opacity: 1,
+                    scaleFactor: 0.006,
+                    position: { x: 0, y: 0, z: 0 },
+                    rotation: {
+                        enabled: true,
+                        direction: 'right',
+                        speed: 0.05
+                    },
+                    pulse: { 
+                        enabled: false, 
+                        min: 0.8, 
+                        max: 1.2, 
+                        speed: 0.03, 
+                    },
+                    opacityPulse: {
+                        enabled: false,
+                        min: 1,
+                        max: 1,
+                        base: 1
+                    },
+                    wave: { 
+                        amp: 25, 
+                        waveSpeed: 0.7, 
+                        smoothRadius: 5, 
+                        freq: 1 
+                    }
+                },
+                {
+                    svgUrl: 'assets/images/explore_3D/grid_background.svg',
+                    mode: 'dom',
+                    targetElement: '#explore-3d',
+                    color: 0xF00AFE,
+                    opacity: 1,
+                    scaleFactor: 0.007,
+                    position: { x: 0, y: 0, z: -2 },
+                    rotation: {
+                        enabled: true,
+                        direction: 'left',
+                        speed: 0.06
+                    },
+                    pulse: { 
+                        enabled: false, 
+                        min: 0.8, 
+                        max: 1.2, 
+                        speed: 0.02, 
+                    },
+                    opacityPulse: {
+                        enabled: true,
+                        min: 0,
+                        max: 0.2,
+                        base: 0.1
+                    },
+                    wave: { 
+                        amp: 20, 
+                        waveSpeed: 0.6, 
+                        smoothRadius: 5, 
+                        freq: 3 
+                    }
+                },
+                {
+                    svgUrl: 'assets/images/explore_3D/grid_background.svg',
+                    mode: 'dom',
+                    targetElement: '#explore-3d',
+                    color: 0x4642F4,
+                    opacity: 1,
+                    scaleFactor: 0.008,
+                    position: { x: 0, y: 0, z: -3 },
+                    rotation: {
+                        enabled: true,
+                        direction: 'left',
+                        speed: 0.04
+                    },
+                    pulse: { 
+                        enabled: false, 
+                        min: 0.8, 
+                        max: 1.2, 
+                        speed: 0.01, 
+                    },
+                    opacityPulse: {
+                        enabled: true,
+                        min: 0,
+                        max: 0.1,
+                        base: 0.1
+                    },
+                    wave: { 
+                        amp: 15, 
+                        waveSpeed: 0.5, 
+                        smoothRadius: 5, 
+                        freq: 2 
+                    }
+                }
+            ],
         }
     }
 };

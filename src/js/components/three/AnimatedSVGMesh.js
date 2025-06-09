@@ -10,6 +10,7 @@ export class AnimatedSVGMesh extends THREE.Group {
     /**
      * @param {string} svgUrl - Path to SVG file
      * @param {Object} options - Options (color, animation speed, etc.)
+     * @param {Object} options.opacity - Opacity options: { enabled, base, min, max }
      */
     constructor(svgUrl, options = {}) {
         super();
@@ -29,8 +30,8 @@ export class AnimatedSVGMesh extends THREE.Group {
         this.rotationOpts = options.rotation || { enabled: false };
         // pulse параметры
         this.pulseOpts = options.pulse || { enabled: false };
-        // opacity
-        this.baseOpacity = typeof options.opacity === 'number' ? options.opacity : 1;
+        // opacity параметры
+        this.opacityOpts = options.opacityPulse || { enabled: false };
         // scaleFactor
         this.baseScale = typeof options.scaleFactor === 'number' ? options.scaleFactor : 1.0;
         // color
@@ -88,18 +89,21 @@ export class AnimatedSVGMesh extends THREE.Group {
             const dy = (box.max.y + box.min.y) / 2;
             const dz = (this.options.position && this.options.position.z) ? this.options.position.z : 0;
             this.position.set(-dx, -dy, dz);
+
         } else if (mode === 'dom') {
             // === DOM-режим: позиционирование по DOM-элементу ===
             const camera = this.options.camera; // Ожидается OrthoCamera
             const renderer = this.options.renderer;
-            const domElement = this.options.targetElement || (this.options.container && this.options.container);
+            let domElement = this.options.targetElement;
+            if (typeof domElement === 'string') {
+                domElement = document.querySelector(domElement);
+            }
             if (!camera || !renderer || !domElement) return;
 
             // 1. Get DOM element and canvas rects
             const elemRect = domElement.getBoundingClientRect();
             const canvas = renderer.domElement;
             const canvasRect = canvas.getBoundingClientRect();
-            console.log(canvasRect);
 
             // 2. Center and size of element relative to canvas
             const elemCenterX = elemRect.left + elemRect.width / 2 - canvasRect.left;
@@ -138,10 +142,11 @@ export class AnimatedSVGMesh extends THREE.Group {
             const newBox = new THREE.Box3().setFromObject(this);
             const meshCenterX = (newBox.max.x + newBox.min.x) / 2;
             const meshCenterY = (newBox.max.y + newBox.min.y) / 2;
+            const basePos = this.options.position || { x: 0, y: 0, z: 0 };
             this.position.set(
                 sceneX - meshCenterX,
                 sceneY - meshCenterY,
-                0
+                basePos.z
             );
         }
 
@@ -180,7 +185,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                             color,
                             side: THREE.DoubleSide,
                             transparent: true,
-                            opacity: this.baseOpacity,
+                            opacity: this.opacityOpts.enabled ? 1 : this.opacityOpts.base,
                         });
                         const mesh = new THREE.Mesh(geometry, material);
                         mesh.userData.originalPositions = geometry.attributes.position.array.slice();
@@ -214,13 +219,14 @@ export class AnimatedSVGMesh extends THREE.Group {
     }
 
     /**
-     * Animates contours (e.g., pulsation)
+     * Animates contours (e.g., pulsation, opacity)
      * @param {number} delta - Time between frames
      */
     update(delta = 0.016) {
         this.time += delta;
         let pulseScale = 1;
-        let pulseOpacity = this.baseOpacity;
+        let pulseOpacity;
+        // --- Pulsation (scale) ---
         if (this.pulseOpts.enabled) {
             const min = typeof this.pulseOpts.min === 'number' ? this.pulseOpts.min : 0.9;
             const max = typeof this.pulseOpts.max === 'number' ? this.pulseOpts.max : 1.1;
@@ -230,16 +236,27 @@ export class AnimatedSVGMesh extends THREE.Group {
             const rawT = 0.5 * (1 + Math.sin(this._pulsePhase));
             const t = -(Math.cos(Math.PI * rawT) - 1) / 2;
             pulseScale = min + (max - min) * t;
-
-            if (this.pulseOpts.opacityPulse) {
-                const minO = typeof this.pulseOpts.minOpacity === 'number' ? this.pulseOpts.minOpacity : 0.5;
-                const maxO = typeof this.pulseOpts.maxOpacity === 'number' ? this.pulseOpts.maxOpacity : 1.0;
-                pulseOpacity = minO + (maxO - minO) * t;
+        }
+        // --- Opacity ---
+        if (this.opacityOpts.enabled) {
+            const minO = typeof this.opacityOpts.min === 'number' ? this.opacityOpts.min : 0.5;
+            const maxO = typeof this.opacityOpts.max === 'number' ? this.opacityOpts.max : 1.0;
+            const t = 0.5 * (1 + Math.sin(this._pulsePhase));
+            pulseOpacity = minO + (maxO - minO) * t;
+        } else {
+            if (typeof this.opacityOpts.base === 'number') {
+                pulseOpacity = this.opacityOpts.base;
+            } else {
+                const minO = typeof this.opacityOpts.min === 'number' ? this.opacityOpts.min : 0.5;
+                const maxO = typeof this.opacityOpts.max === 'number' ? this.opacityOpts.max : 1.0;
+                pulseOpacity = (minO + maxO) / 2;
             }
         }
         // --- Rotation ---
         if (this.rotationOpts.enabled) {
-            const dir = this.rotationOpts.direction === 'ccw' ? -1 : 1;
+            let dir = 1;
+            if (this.rotationOpts.direction === 'left') dir = -1;
+            if (this.rotationOpts.direction === 'right') dir = 1;
             const speed = typeof this.rotationOpts.speed === 'number' ? this.rotationOpts.speed : 0.5;
             this.rotation.z += dir * speed * delta;
         }
