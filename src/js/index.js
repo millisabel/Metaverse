@@ -41,6 +41,7 @@ if(process.env.NODE_ENV === 'development') {
     Logger.disableLoggerFor('Dynamics3D');
     Logger.disableLoggerFor('SocialCard');
     Logger.disableLoggerFor('SingleGlow');
+    Logger.disableLoggerFor('DecorativeLayerExploreScene');
 
     Logger.disableLoggerFor('GUARDIANS_CARD');
     Logger.disableLoggerFor('METAVERSE_CARD');

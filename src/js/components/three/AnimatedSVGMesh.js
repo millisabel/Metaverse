@@ -1,10 +1,14 @@
 import * as THREE from 'three';
-import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 import { ShapeGeometry } from 'three';
 import { createNoise2D } from 'simplex-noise';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
 /**
- * Class for loading and animating SVG contours in Three.js
+ * @class AnimatedSVGMesh
+ * @description Class for loading and animating SVG contours in Three.js
+ * @extends THREE.Group
+ * @param {string} svgUrl - Path to SVG file
+ * @param {Object} options - Options (color, animation speed, etc.)
  */
 export class AnimatedSVGMesh extends THREE.Group {
     /**
@@ -15,9 +19,14 @@ export class AnimatedSVGMesh extends THREE.Group {
     constructor(svgUrl, options = {}) {
         super();
         this.options = options;
+        this.camera = options.camera;
+        this.renderer = options.renderer;
+        this.container = options.container;
+        
         this.meshes = [];
         this.time = 0;
-        this._onResize = this.handleResize.bind(this);
+
+        this._onResize = this._handleResize.bind(this);
         window.addEventListener('resize', this._onResize);
         this._svgLoadedPromise = new Promise(resolve => {
             this._onSVGLoaded = resolve;
@@ -39,9 +48,15 @@ export class AnimatedSVGMesh extends THREE.Group {
         // position
         this.basePosition = options.position || { x: 0, y: 0, z: 0 };
         this._pulsePhase = 0;
+        console.log('this.options:', this.options);
     }
 
-    handleResize() {
+    /**
+     * @private
+     * @description Handles window resize event
+     * @returns {void}
+     */
+    _handleResize() {
         this.fitToContainer(this.options.mode);
     }
 
@@ -52,17 +67,14 @@ export class AnimatedSVGMesh extends THREE.Group {
     fitToContainer(mode = 'scene') {
         if (!this.meshes.length) return;
 
-        // Сбросить позицию и масштаб перед пересчётом
         this.position.set(0, 0, 0);
         this.scale.set(1, 1, 1);
 
-        // Получить bounding box SVG
         let box = new THREE.Box3().setFromObject(this);
         const width = box.max.x - box.min.x;
         const height = box.max.y - box.min.y;
 
         if (mode === 'scene') {
-            // === 3D-сцена: старый подход ===
             let targetWidth = 800;
             let targetHeight = 600;
             if (this.options && this.options.sceneSize) {
@@ -83,7 +95,7 @@ export class AnimatedSVGMesh extends THREE.Group {
             }
             const scaleFactor = (typeof this.options.scaleFactor === 'number') ? this.options.scaleFactor : 1.0;
             scale *= scaleFactor;
-            this.scale.set(scale, scale, scale);
+            // this.scale.set(scale, scale, scale);
             box = new THREE.Box3().setFromObject(this);
             const dx = (box.max.x + box.min.x) / 2;
             const dy = (box.max.y + box.min.y) / 2;
@@ -91,18 +103,15 @@ export class AnimatedSVGMesh extends THREE.Group {
             this.position.set(-dx, -dy, dz);
 
         } else if (mode === 'dom') {
-            // === DOM-режим: позиционирование по DOM-элементу ===
-            const camera = this.options.camera; // Ожидается OrthoCamera
-            const renderer = this.options.renderer;
             let domElement = this.options.targetElement;
             if (typeof domElement === 'string') {
                 domElement = document.querySelector(domElement);
             }
-            if (!camera || !renderer || !domElement) return;
+            if (!this.camera || !this.renderer || !domElement) return;
 
             // 1. Get DOM element and canvas rects
             const elemRect = domElement.getBoundingClientRect();
-            const canvas = renderer.domElement;
+            const canvas = this.renderer.domElement;
             const canvasRect = canvas.getBoundingClientRect();
 
             // 2. Center and size of element relative to canvas
@@ -110,18 +119,19 @@ export class AnimatedSVGMesh extends THREE.Group {
             const elemCenterY = elemRect.top + elemRect.height / 2 - canvasRect.top;
             const elemWidth = elemRect.width;
             const elemHeight = elemRect.height;
+            
 
             // 3. Convert to NDC [-1, 1]
             const ndcX = (elemCenterX / canvasRect.width) * 2 - 1;
             const ndcY = -((elemCenterY / canvasRect.height) * 2 - 1);
 
             // 4. Ortho camera visible area
-            const orthoWidth = camera.right - camera.left;
-            const orthoHeight = camera.top - camera.bottom;
+            const orthoWidth = this.camera.right - this.camera.left;
+            const orthoHeight = this.camera.top - this.camera.bottom;
 
             // 5. Scene coordinates for center
-            const sceneX = camera.left + (ndcX + 1) / 2 * orthoWidth;
-            const sceneY = camera.bottom + (ndcY + 1) / 2 * orthoHeight;
+            const sceneX = this.camera.left + (ndcX + 1) / 2 * orthoWidth;
+            const sceneY = this.camera.bottom + (ndcY + 1) / 2 * orthoHeight;
 
             // 6. Mesh bounding box
             const meshBox = new THREE.Box3().setFromObject(this);
@@ -133,10 +143,17 @@ export class AnimatedSVGMesh extends THREE.Group {
             const sceneElemHeight = (elemHeight / canvasRect.height) * orthoHeight;
 
             // 8. Scale mesh to fit element (без искажения)
-            const scaleX = (sceneElemWidth / meshWidth) * (this.options.scaleFactor || 1);
-            const scaleY = (sceneElemHeight / meshHeight) * (this.options.scaleFactor || 1);
-            const uniformScale = Math.min(scaleX, scaleY);
-            this.scale.set(uniformScale, uniformScale, 1);
+            let scaleFactorX = 1;
+            let scaleFactorY = 1;
+            if (typeof this.options.scaleFactor === 'object') {
+                scaleFactorX = this.options.scaleFactor.x ?? 1;
+                scaleFactorY = this.options.scaleFactor.y ?? 1;
+            } else if (typeof this.options.scaleFactor === 'number') {
+                scaleFactorX = scaleFactorY = this.options.scaleFactor;
+            }
+            const scaleX = (sceneElemWidth / meshWidth) * scaleFactorX;
+            const scaleY = (sceneElemHeight / meshHeight) * scaleFactorY;
+            this.scale.set(scaleX, scaleY, 1);
 
             // 9. Center mesh
             const newBox = new THREE.Box3().setFromObject(this);
@@ -148,6 +165,9 @@ export class AnimatedSVGMesh extends THREE.Group {
                 sceneY - meshCenterY,
                 basePos.z
             );
+
+            this.baseScaleX = scaleX;
+            this.baseScaleY = scaleY;
         }
 
         // 1. Вычислить bounding box всех мешей (используем ту же переменную)
@@ -167,7 +187,6 @@ export class AnimatedSVGMesh extends THREE.Group {
      * @private
      */
     async _loadSVG(url) {
-        console.log('loadSVG', url);
         const loader = new SVGLoader();
         loader.load(
             url,
@@ -200,6 +219,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                 box.getCenter(center);
                 this.meshes.forEach(mesh => {
                     mesh.position.sub(center);
+                    mesh.renderOrder = this.options.position.z;
                 });
 
                 // === Центрирование и масштабирование SVG ===
@@ -264,10 +284,11 @@ export class AnimatedSVGMesh extends THREE.Group {
         this.meshes.forEach(mesh => {
             mesh.material.opacity = pulseOpacity;
         });
-        // --- Scale ---
-        const scale = this.baseScale * pulseScale;
-        this.scale.set(scale, scale, scale);
+        const scaleX = this.baseScaleX * pulseScale;
+        const scaleY = this.baseScaleY * pulseScale;
+        this.scale.set(scaleX, scaleY, 1);
         // --- Wave (анимация контура) ---
+        if (this.wave.enabled) {
         this.meshes.forEach(mesh => {
             const pos = mesh.geometry.attributes.position;
             const orig = mesh.userData.originalPositions;
@@ -314,7 +335,8 @@ export class AnimatedSVGMesh extends THREE.Group {
                 const offset = smoothOffsets[i];
                 pos.setXYZ(i, x0 + nx * offset, y0 + ny * offset, z0);
             }
-            pos.needsUpdate = true;
-        });
+                pos.needsUpdate = true;
+            });
+        }
     }
 }

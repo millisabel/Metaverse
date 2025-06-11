@@ -68,11 +68,11 @@ const CONFIG = {
                 1200: {
                     count: 3000,
                     size: {
-                        min: 2,
+                        min: 3,
                         max: 6,
                     },
                     depth: {
-                        range: 800,
+                        range: 700,
                     },
                 },
             }

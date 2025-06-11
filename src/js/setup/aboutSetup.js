@@ -112,7 +112,7 @@ const CONFIG = {
             },
             responsive: {
                 768: {
-                    countConstellations: 30,
+                    countConstellations: Math.floor(constellationsData.length / 2),
                     constellation: {
                         distance: {
                             max: -100,

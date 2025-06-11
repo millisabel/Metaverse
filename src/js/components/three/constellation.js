@@ -466,7 +466,7 @@ export class Constellation extends Object_3D_Observer_Controller {
 
         const count = this.options.countConstellations || constellationsData.length;
         const dataToUse = constellationsData.slice(0, count);
-        
+        console.log('data:', dataToUse.length);
         dataToUse.forEach((data) => {
             const constellationGroup = new ConstellationGroup(data, this.starTexture, this.options.constellation, this.options.stars);
             this.scene.add(constellationGroup.group);

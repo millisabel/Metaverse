@@ -4,7 +4,6 @@ import { createLogger } from '../../utils/logger';
 
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { Grid } from './grid';
-import { AnimatedSVGMesh } from './AnimatedSVGMesh';
 
 const EXPLORE_DEFAULT_OPTIONS = {
     gridOptions: {

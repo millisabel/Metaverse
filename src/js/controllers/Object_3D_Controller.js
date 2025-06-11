@@ -414,9 +414,11 @@ export class Object_3D_Controller {
 
         let currentBreakpoint = null;
         for (const bp of breakpoints) {
-            mergeOptions(this.options, responsive[bp]);
+            const x = mergeOptions(this.options, responsive[bp]);
+            console.log(`${this.constructor.name}: x:`, x);
             currentBreakpoint = bp;
         }
+
         this._currentBreakpoint = currentBreakpoint;
 
         this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions() success\n`;
@@ -533,7 +535,6 @@ export class Object_3D_Controller {
     }
 }
 
-// --- mergeOptions: поверхностное слияние только по ключам responsive ---
 function mergeOptions(target, source) {
     for (const key in source) {
         if (
@@ -541,13 +542,27 @@ function mergeOptions(target, source) {
             source[key] !== null &&
             !Array.isArray(source[key])
         ) {
-            if (!target[key] || typeof target[key] !== 'object') {
+            if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) {
                 target[key] = {};
             }
             mergeOptions(target[key], source[key]);
+        } else if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+            for (let i = 0; i < source[key].length; i++) {
+                if (
+                    typeof source[key][i] === 'object' &&
+                    source[key][i] !== null &&
+                    typeof target[key][i] === 'object' &&
+                    target[key][i] !== null
+                ) {
+                    mergeOptions(target[key][i], source[key][i]);
+                } else {
+                    target[key][i] = source[key][i];
+                }
+            }
         } else {
             target[key] = source[key];
         }
     }
+    return target;
 }
 
