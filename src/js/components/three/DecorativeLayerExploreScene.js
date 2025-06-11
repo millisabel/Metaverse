@@ -48,7 +48,10 @@ export class DecorativeLayerExploreScene extends Object_3D_Observer_Controller {
     }
 
     cleanup() {
-        this.svgMeshes.forEach(mesh => this.scene.remove(mesh));
+        this.svgMeshes.forEach(mesh => {
+            mesh.cleanup && mesh.cleanup();
+            this.scene.remove(mesh);
+        });
         this.svgMeshes = [];
         super.cleanup();
     }

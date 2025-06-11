@@ -33,22 +33,59 @@ export class AnimatedSVGMesh extends THREE.Group {
         });
         this._loadSVG(svgUrl);
         this.noise2D = createNoise2D();
-        // wave параметры
         this.wave = options.wave || {};
-        // rotation параметры
         this.rotationOpts = options.rotation || { enabled: false };
-        // pulse параметры
         this.pulseOpts = options.pulse || { enabled: false };
-        // opacity параметры
         this.opacityOpts = options.opacityPulse || { enabled: false };
-        // scaleFactor
         this.baseScale = typeof options.scaleFactor === 'number' ? options.scaleFactor : 1.0;
-        // color
         this.color = options.color;
-        // position
         this.basePosition = options.position || { x: 0, y: 0, z: 0 };
         this._pulsePhase = 0;
-        console.log('this.options:', this.options);
+    }
+
+    /**
+     * @description Returns the promise for the SVG loaded event
+     * @returns {Promise} The promise for the SVG loaded event
+     */
+    onSVGLoaded() {
+        return this._svgLoadedPromise;
+    }
+
+    /**
+     * Updates the animation state (pulse, opacity, rotation, wave)
+     * @param {number} delta - Time between frames
+     */
+    update(delta = 0.016) {
+        this._updatePulseScale(delta);
+        this._updateOpacity(delta);
+        this._updateRotation(delta);
+        this._applyScaleAndPosition();
+        this._updateWave(delta);
+    }
+
+    /**
+     * @description Cleans up all resources, removes event listeners and disposes meshes/materials
+     */
+    cleanup() {
+        window.removeEventListener('resize', this._onResize);
+        this.meshes.forEach(mesh => {
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach(mat => mat.dispose && mat.dispose());
+                } else {
+                    mesh.material.dispose && mesh.material.dispose();
+                }
+            }
+            this.remove(mesh);
+        });
+        this.meshes = [];
+        this.camera = null;
+        this.renderer = null;
+        this.container = null;
+        if (this.parent) {
+            this.parent.remove(this);
+        }
     }
 
     /**
@@ -57,14 +94,14 @@ export class AnimatedSVGMesh extends THREE.Group {
      * @returns {void}
      */
     _handleResize() {
-        this.fitToContainer(this.options.mode);
+        this._fitToContainer(this.options.mode);
     }
 
     /**
      * Fits SVG to container, supporting both 3D scene and DOM element modes
      * @param {'scene'|'dom'} mode - Fit mode: 'scene' (3D) or 'dom' (DOM)
      */
-    fitToContainer(mode = 'scene') {
+    _fitToContainer(mode = 'scene') {
         if (!this.meshes.length) return;
 
         this.position.set(0, 0, 0);
@@ -170,12 +207,10 @@ export class AnimatedSVGMesh extends THREE.Group {
             this.baseScaleY = scaleY;
         }
 
-        // 1. Вычислить bounding box всех мешей (используем ту же переменную)
         box = new THREE.Box3().setFromObject(this);
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        // 2. Сместить все меши так, чтобы центр оказался в (0,0,0)
         this.meshes.forEach(mesh => {
             mesh.position.sub(center);
         });
@@ -213,7 +248,6 @@ export class AnimatedSVGMesh extends THREE.Group {
                     });
                 });
 
-                // === Центрирование SVG по центру группы ===
                 const box = new THREE.Box3().setFromObject(this);
                 const center = new THREE.Vector3();
                 box.getCenter(center);
@@ -222,8 +256,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                     mesh.renderOrder = this.options.position.z;
                 });
 
-                // === Центрирование и масштабирование SVG ===
-                this.fitToContainer(this.options.mode);
+                this._fitToContainer(this.options.mode);
                 this._onSVGLoaded();
             },
             undefined,
@@ -234,30 +267,31 @@ export class AnimatedSVGMesh extends THREE.Group {
         );
     }
 
-    onSVGLoaded() {
-        return this._svgLoadedPromise;
-    }
-
     /**
-     * Animates contours (e.g., pulsation, opacity)
-     * @param {number} delta - Time between frames
+     * Updates the pulse scale factor
+     * @param {number} delta
+     * @private
      */
-    update(delta = 0.016) {
-        this.time += delta;
-        let pulseScale = 1;
-        let pulseOpacity;
-        // --- Pulsation (scale) ---
+    _updatePulseScale(delta) {
+        this.pulseScale = 1;
         if (this.pulseOpts.enabled) {
             const min = typeof this.pulseOpts.min === 'number' ? this.pulseOpts.min : 0.9;
             const max = typeof this.pulseOpts.max === 'number' ? this.pulseOpts.max : 1.1;
             const speed = typeof this.pulseOpts.speed === 'number' ? this.pulseOpts.speed : 1.0;
             this._pulsePhase += delta * speed * Math.PI * 2;
-            // Сглаженная пульсация
             const rawT = 0.5 * (1 + Math.sin(this._pulsePhase));
             const t = -(Math.cos(Math.PI * rawT) - 1) / 2;
-            pulseScale = min + (max - min) * t;
+            this.pulseScale = min + (max - min) * t;
         }
-        // --- Opacity ---
+    }
+
+    /**
+     * Updates the opacity of all meshes
+     * @param {number} delta
+     * @private
+     */
+    _updateOpacity(delta) {
+        let pulseOpacity;
         if (this.opacityOpts.enabled) {
             const minO = typeof this.opacityOpts.min === 'number' ? this.opacityOpts.min : 0.5;
             const maxO = typeof this.opacityOpts.max === 'number' ? this.opacityOpts.max : 1.0;
@@ -272,7 +306,17 @@ export class AnimatedSVGMesh extends THREE.Group {
                 pulseOpacity = (minO + maxO) / 2;
             }
         }
-        // --- Rotation ---
+        this.meshes.forEach(mesh => {
+            mesh.material.opacity = pulseOpacity;
+        });
+    }
+
+    /**
+     * Updates the rotation of the group
+     * @param {number} delta
+     * @private
+     */
+    _updateRotation(delta) {
         if (this.rotationOpts.enabled) {
             let dir = 1;
             if (this.rotationOpts.direction === 'left') dir = -1;
@@ -280,32 +324,40 @@ export class AnimatedSVGMesh extends THREE.Group {
             const speed = typeof this.rotationOpts.speed === 'number' ? this.rotationOpts.speed : 0.5;
             this.rotation.z += dir * speed * delta;
         }
-        // --- Opacity ---
-        this.meshes.forEach(mesh => {
-            mesh.material.opacity = pulseOpacity;
-        });
-        const scaleX = this.baseScaleX * pulseScale;
-        const scaleY = this.baseScaleY * pulseScale;
+    }
+
+    /**
+     * Applies the calculated scale and position to the group
+     * @private
+     */
+    _applyScaleAndPosition() {
+        const scaleX = this.baseScaleX * (this.pulseScale || 1);
+        const scaleY = this.baseScaleY * (this.pulseScale || 1);
         this.scale.set(scaleX, scaleY, 1);
-        // --- Wave (анимация контура) ---
-        if (this.wave.enabled) {
+    }
+
+    /**
+     * Updates the wave animation for all meshes
+     * @param {number} delta
+     * @private
+     */
+    _updateWave(delta) {
+        if (!this.wave.enabled) return;
+        this.time += delta;
         this.meshes.forEach(mesh => {
             const pos = mesh.geometry.attributes.position;
             const orig = mesh.userData.originalPositions;
             const count = pos.count;
-            // Wave параметры
             const amp = this.wave.amp !== undefined ? this.wave.amp : 5;
             const waveSpeed = this.wave.waveSpeed !== undefined ? this.wave.waveSpeed : 0.25;
             const smoothRadius = this.wave.smoothRadius !== undefined ? this.wave.smoothRadius : 10;
             const freq = this.wave.freq !== undefined ? this.wave.freq : 1;
-            // "Running wave" along the contour
             const offsets = new Array(count);
             for (let i = 0; i < count; i++) {
                 const phase = (i / count) * Math.PI * 2 * freq + this.time * waveSpeed;
                 const noiseVal = this.noise2D(Math.cos(phase), Math.sin(phase) + this.time * 0.1);
                 offsets[i] = noiseVal * amp;
             }
-            // Smooth with radius
             const smoothOffsets = new Array(count);
             for (let i = 0; i < count; i++) {
                 let sum = 0, n = 0;
@@ -316,7 +368,6 @@ export class AnimatedSVGMesh extends THREE.Group {
                 }
                 smoothOffsets[i] = sum / n;
             }
-            // Apply smoothed offsets to the normal
             for (let i = 0; i < count; i++) {
                 const x0 = orig[i * 3];
                 const y0 = orig[i * 3 + 1];
@@ -335,8 +386,7 @@ export class AnimatedSVGMesh extends THREE.Group {
                 const offset = smoothOffsets[i];
                 pos.setXYZ(i, x0 + nx * offset, y0 + ny * offset, z0);
             }
-                pos.needsUpdate = true;
-            });
-        }
+            pos.needsUpdate = true;
+        });
     }
 }
