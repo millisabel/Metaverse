@@ -63,16 +63,29 @@ const DEFAULT_ANIMATION_PARAMS = {
 };
 
 const DEFAULT_LIGHTS_CONFIG = {
-    ambientIntensity: 0.3,
-    pointIntensity: 0.6,
-    pointPosition: { x: 2, y: 2, z: 2 },
-    directionalEnabled: true,
-    directionalIntensity: 1.5,
-    directionalPosition: { x: 10, y: 10, z: 10 },
-    hemiEnabled: true,
-    hemiSkyColor: 0xffffff,
-    hemiGroundColor: 0x222233,
-    hemiIntensity: 0.5
+    ambient: {
+        enabled: true,
+        color: 0xffffff,
+        intensity: 0.3,
+    },
+    point: {
+        enabled: true,
+        color: 0xffffff,
+        intensity: 0.6,
+        position: { x: 2, y: 2, z: 2 },
+    },
+    directional: {
+        enabled: true,
+        color: 0xffffff,
+        intensity: 1.5,
+        position: { x: 10, y: 10, z: 10 },
+    },
+    hemisphere: {   
+        enabled: true,
+        skyColor: 0xffffff,
+        groundColor: 0x222233,
+        intensity: 0.5,
+    },
 };
 
 export class Dynamics3D extends Object_3D_Observer_Controller {

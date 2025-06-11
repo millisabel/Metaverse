@@ -65,6 +65,26 @@ const EXPLORE_DEFAULT_OPTIONS = {
     },
 };
 
+export const LIGHTS_CONFIG_TEMPLATE = {
+    ambient: {
+        enabled: true,
+        color: 0xffffff,
+        intensity: 0.4,
+    },
+    directional: (gridWidth, gridHeight, gridDepth) => ({
+        enabled: true,
+        color: 0xffffff,
+        intensity: 1.2,
+        position: { x: gridWidth / 2, y: gridHeight * 1.2, z: gridDepth * 0.7 },
+    }),
+    spot: (gridWidth, gridHeight) => ({
+        enabled: true,
+        color: 0xffffff,
+        intensity: 0.7,
+        position: { x: gridWidth / 2, y: gridHeight / 2, z: 10 },
+    }),
+};
+
 export class ExploreScene extends Object_3D_Observer_Controller {
     /**
      * @param {HTMLElement} container - DOM-element for rendering
@@ -155,39 +175,13 @@ export class ExploreScene extends Object_3D_Observer_Controller {
     _addLights() {
         const { gridWidth, gridHeight, gridDepth } = this._getTunnelDimensions();
 
-        const tunnelCenter = new THREE.Vector3(
-        gridWidth / 2,
-        gridHeight / 2,
-        -gridDepth / 2
-        );
+        const lightConfig = {
+            ambient: LIGHTS_CONFIG_TEMPLATE.ambient,
+            directional: LIGHTS_CONFIG_TEMPLATE.directional(gridWidth, gridHeight, gridDepth),
+            spot: LIGHTS_CONFIG_TEMPLATE.spot(gridWidth, gridHeight),
+        };
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        dirLight.position.set(
-        gridWidth / 2,        
-        gridHeight * 1.2,      
-        gridDepth * 0.7        
-        );
-        dirLight.target.position.copy(tunnelCenter);
-
-        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
-
-        this.scene.add(dirLight);
-        this.scene.add(dirLight.target);
-        this.scene.add(ambient);
-
-        const numLights = 4;
-        for (let i = 0; i < numLights; i++) {
-            const z = -gridDepth * (i / (numLights - 1));
-            const pointLight = new THREE.PointLight(0xffffff, 0.8, gridDepth * 1.2, 2);
-            pointLight.position.set(gridWidth / 2, gridHeight / 2, z);
-            this.scene.add(pointLight);
-        }
-
-        const spotLight = new THREE.SpotLight(0xffffff, 0.7, gridDepth * 1.5, Math.PI / 6, 0.3, 1);
-        spotLight.position.set(gridWidth / 2, gridHeight / 2, 10);
-        spotLight.target.position.set(gridWidth / 2, gridHeight / 2, -gridDepth);
-        this.scene.add(spotLight);
-        this.scene.add(spotLight.target);
+        this.setupLights(lightConfig);
     }
 
     /**

@@ -92,34 +92,27 @@ export class SocialCard extends Object_3D_Observer_Controller {
         const camera = this.cameraController.camera;
         if (!camera.isPerspectiveCamera) return;
 
-        // Расстояние от камеры до меша
         const cameraZ = camera.position.z;
         const meshZ = this.mesh.position.z;
         const distance = Math.abs(cameraZ - meshZ);
 
-        // Видимая высота и ширина на этом расстоянии
         const vFOV = THREE.MathUtils.degToRad(camera.fov);
         const visibleHeight = 2 * Math.tan(vFOV / 2) * distance;
         const visibleWidth = visibleHeight * camera.aspect;
 
-        // Пропорция DOM → world units
         const widthRatio = rect.width / canvasRect.width;
         const heightRatio = rect.height / canvasRect.height;
 
-        // Исходное соотношение сторон
         const aspect = this.options.size.width / this.options.size.height || 1;
 
-        // Вычисляем размеры с сохранением aspect ratio
         let meshWidth = visibleWidth * widthRatio;
         let meshHeight = meshWidth / aspect;
 
-        // Если высота превышает допустимую — ограничиваем по высоте
         if (!isFinite(meshHeight) || meshHeight <= 0) {
             meshHeight = visibleHeight * heightRatio;
             meshWidth = meshHeight * aspect;
         }
 
-        // Ограничиваем максимальный размер
         const maxWidth = defaultOptions.size.width;
         const maxHeight = defaultOptions.size.height;
         const widthScale = meshWidth > maxWidth ? maxWidth / meshWidth : 1;
@@ -131,17 +124,14 @@ export class SocialCard extends Object_3D_Observer_Controller {
             meshHeight *= scale;
         }
 
-        // Если meshWidth или meshHeight NaN или <= 0, не пересоздавай геометрию
         if (!isFinite(meshWidth) || !isFinite(meshHeight) || meshWidth <= 0 || meshHeight <= 0) {
             console.warn('Invalid mesh size:', meshWidth, meshHeight);
             return;
         }
 
-        // Пересоздаём геометрию
         this.mesh.geometry.dispose();
         this.mesh.geometry = new THREE.PlaneGeometry(meshWidth, meshHeight);
 
-        // Обновляем options.size
         this.options.size.width = meshWidth;
         this.options.size.height = meshHeight;
 
@@ -152,10 +142,6 @@ export class SocialCard extends Object_3D_Observer_Controller {
      * Main animation cycle
      */
     update() {
-      if (!this.container.isConnected || !this.mesh) {
-          this.stopAnimation();
-          return;
-      }
         const time = Date.now() * 0.001;
         const amplitude = this.options.amplitude; 
         const rotationAmplitude = this.options.rotationAmplitude;
@@ -185,7 +171,7 @@ export class SocialCard extends Object_3D_Observer_Controller {
         if (this.renderer) {
             this.renderer.dispose();
         }
-        // Remove event handlers
+        
         this.container.removeEventListener('mouseenter', this._handleMouseEnter);
         this.container.removeEventListener('mouseleave', this._handleMouseLeave);
         this.container.removeEventListener('click', this._handleClick);

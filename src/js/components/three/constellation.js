@@ -370,7 +370,6 @@ export class Constellation extends Object_3D_Observer_Controller {
     async setupScene() {
         this.logMessage = `${this.constructor.name} setupScene \n`;
         this._createConstellations();
-        this.setupLights(this.options.lights);
         this.logMessage = `${this.constructor.name} setupScene completed \n`;
     }
 
