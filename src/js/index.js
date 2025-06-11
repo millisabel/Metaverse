@@ -8,7 +8,7 @@ import { RoadmapSetup } from './setup/roadmapSetup';
 import { DynamicsSetup } from './setup/dynamicsSetup';
 import { VRMarketSetup } from './setup/vrMarketSetup';
 import { ExploreSetup } from './setup/exploreSetup';
-// import { initSocial } from './setup/socialSetup';
+import { SocialSetup } from './setup/socialSetup';
 
 // Common components
 import { initNavbar } from './setup/NavbarSetup';
@@ -85,9 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
     new DynamicsSetup();
     new VRMarketSetup();
     new ExploreSetup();
-    // initSocial();
+    new SocialSetup();
 
-    // Initialize UI components
     initModal();
     updateCopyrightYear('[data-year="currentYear"]');
 

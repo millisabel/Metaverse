@@ -10,11 +10,39 @@ import { deepMergeOptions } from '../utils/utils';
  * @property {number} ambientIntensity - The intensity of the ambient light
  */
 export const DEFAULT_LIGHTS = {
-    ambientColor: 0xffffff,
-    ambientIntensity: 0.5,
-    pointColor: 0xffffff,
-    pointIntensity: 1,
-    pointPosition: { x: 0, y: 2, z: 0 }
+    ambient: {
+        enabled: true,
+        color: 0xffffff,
+        intensity: 1,
+    },
+    point: {
+        enabled: false,
+        color: 0xffffff,
+        intensity: 1,
+        distance: 0,
+        decay: 1,
+        position: { x: 0, y: 2, z: 0 },
+    },
+    directional: {
+        enabled: false,
+        color: 0xffffff,
+        intensity: 1,
+        direction: { x: 1, y: 1, z: 1 },
+        position: { x: 1, y: 1, z: 1 },
+    },
+    spot: {
+        enabled: false,
+        color: 0xffffff,
+        intensity: 1,
+        direction: { x: 0, y: 0, z: 2 },
+        position: { x: 0, y: 0, z: 0 },
+    },
+    hemisphere: {
+        enabled: false,
+        skyColor: 0xffffff,
+        groundColor: 0x444444,
+        intensity: 1,
+    },
 };
 
 /**
@@ -26,11 +54,13 @@ export const DEFAULT_LIGHTS = {
  */
 export function addLightsToScene(scene, config = {}) {
     const lights = deepMergeOptions(DEFAULT_LIGHTS, config);
-    lights.ambient = addAmbientLight(scene, lights);
-    lights.point = addPointLight(scene, lights);
-    lights.directional = addDirectionalLight(scene, lights);
-    lights.spot = addSpotLight(scene, lights);
-    lights.hemisphere = addHemisphereLight(scene, lights);
+
+    lights.ambient = addAmbientLight(scene, lights.ambient);
+    lights.point = addPointLight(scene, lights.point);
+    lights.directional = addDirectionalLight(scene, lights.directional);
+    lights.spot = addSpotLight(scene, lights.spot);
+    lights.hemisphere = addHemisphereLight(scene, lights.hemisphere);
+    
     return lights;
 }
 
@@ -42,7 +72,8 @@ export function addLightsToScene(scene, config = {}) {
  * @returns {Object} - The ambient light
  */
 export function addAmbientLight(scene, config) {
-    const ambient = new THREE.AmbientLight(config.ambientColor, config.ambientIntensity);
+    if (!config.enabled) return null;
+    const ambient = new THREE.AmbientLight(config.color, config.intensity);
     scene.add(ambient);
     return ambient;
 }
@@ -55,16 +86,17 @@ export function addAmbientLight(scene, config) {
  * @returns {Object} - The point light
  */
 export function addPointLight(scene, config) {
+    if (!config.enabled) return null;
     const point = new THREE.PointLight(
-        config.pointColor,
-        config.pointIntensity,
-        config.pointDistance || 0,
-        config.pointDecay || 1
+        config.color,
+        config.intensity,
+        config.distance || 0,
+        config.decay || 1
     );
     point.position.set(
-        config.pointPosition.x,
-        config.pointPosition.y,
-        config.pointPosition.z
+        config.position.x,
+        config.position.y,
+        config.position.z
     );
     scene.add(point);
     return point;
@@ -78,13 +110,13 @@ export function addPointLight(scene, config) {
  * @returns {Object} - The directional light
  */
 export function addDirectionalLight(scene, config) {
-    if (!config.directionalEnabled) return null;
-    const dir = new THREE.DirectionalLight(config.directionalColor || 0xffffff, config.directionalIntensity || 1);
-    if (config.directionalPosition) {
+    if (!config.enabled) return null;
+    const dir = new THREE.DirectionalLight(config.color, config.intensity);
+    if (config.position) {
         dir.position.set(
-            config.directionalPosition.x,
-            config.directionalPosition.y,
-            config.directionalPosition.z
+            config.position.x,
+            config.position.y,
+            config.position.z
         );
     }
     scene.add(dir);
@@ -99,13 +131,13 @@ export function addDirectionalLight(scene, config) {
  * @returns {Object} - The spot light
  */
 export function addSpotLight(scene, config) {
-    if (!config.spotEnabled) return null;
-    const spot = new THREE.SpotLight(config.spotColor || 0xffffff, config.spotIntensity || 1);
-    if (config.spotPosition) {
+    if (!config.enabled) return null;
+    const spot = new THREE.SpotLight(config.color, config.intensity);
+    if (config.position) {
         spot.position.set(
-            config.spotPosition.x,
-            config.spotPosition.y,
-            config.spotPosition.z
+            config.position.x,
+            config.position.y,
+            config.position.z
         );
     }
     scene.add(spot);
@@ -120,11 +152,11 @@ export function addSpotLight(scene, config) {
  * @returns {Object} - The hemisphere light
  */
 export function addHemisphereLight(scene, config) {
-    if (!config.hemiEnabled) return null;
+    if (!config.enabled) return null;
     const hemi = new THREE.HemisphereLight(
-        config.hemiSkyColor || 0xffffff,
-        config.hemiGroundColor || 0x444444,
-        config.hemiIntensity || 1
+        config.skyColor,
+        config.groundColor,
+        config.intensity
     );
     scene.add(hemi);
     return hemi;

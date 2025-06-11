@@ -1,13 +1,48 @@
 import * as THREE from 'three';
 import { createLogger } from '../../utils/logger';
-import { AnimationController } from '../../controllers/animationController_3D';
+import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
+
+const defaultOptions = {
+    type: null,
+    texture: null,
+    color: 0xFFFFFF,
+    opacity: 1,
+    amplitude: 0.1,
+    rotationAmplitude: 0.2,
+    amplitudeZ: 0.1,
+    size: {
+        width: 2,
+        height: 3,
+    },
+};
+
+const defaultLights = {
+    ambient: {
+        enabled: true,
+        color: 0xffffff,
+        intensity: 5,
+    },
+    directional: {
+        enabled: false,
+        color: 0xffffff,
+        intensity: 1,
+        direction: { x: 1, y: 1, z: 1 },
+        position: { x: 2, y: 4, z: 2 },
+    },
+    point: {
+        enabled: false,
+        color: 0xffffff,
+        intensity: 3,
+        position: { x: 0, y: 0, z: 5 }
+    }
+};
 
 /**
  * SocialCard - 3D card for social section
  * @class
  * @extends AnimationController
  */
-export class SocialCard extends AnimationController {
+export class SocialCard extends Object_3D_Observer_Controller {
     /**
      * @param {HTMLElement} container - DOM element for rendering card
      * @param {Object} options - card parameters (data, size, etc.)
@@ -16,115 +51,115 @@ export class SocialCard extends AnimationController {
      * @param {number} options.cardHeight - card height
      */
     constructor(container, options = {}) {
-        super(container, options);
-        this.container = container;
-        this.options = options;
-        this.data = options.data;
+        super(container, options, defaultOptions);
+        this.name = this.constructor.name;
+        this.logger = createLogger(this.name);
+
         this.isHovered = false;
         this.animationOffset = Math.random() * Math.PI * 2;
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
-        this.mesh = null;
-        this.animationFrameId = null;
-        this.initialized = false;
-
-        this.logger = createLogger('SocialCard');
-        this.name = this.data.name;
         
-        this.handleMouseEnter = this.handleMouseEnter.bind(this);
-        this.handleMouseLeave = this.handleMouseLeave.bind(this);
-        this.handleClick = this.handleClick.bind(this);
-        this.animate = this.animate.bind(this);
-
-        this.amplitude = 0.1;
-        this.rotationAmplitude = 0.1;
-        this.amplitudeZ = 0.1;
+        this._handleMouseEnter = this._handleMouseEnter.bind(this);
+        this._handleMouseLeave = this._handleMouseLeave.bind(this);
     }
 
-    setupScene() {
-      const loader = new THREE.TextureLoader();
-      loader.load(this.data.texture, (texture) => {
-          texture.colorSpace = THREE.SRGBColorSpace;
-          texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-  
-          const material = new THREE.MeshBasicMaterial({
-              map: texture,
-              transparent: true,
-              opacity: 1,
-              side: THREE.FrontSide,
-          });
+    async setupScene() {
+        await this._createMeshWithTexture();
+        this.setupLights(defaultLights);
 
-          const geometry = new THREE.PlaneGeometry(2, 3);
-          this.mesh = new THREE.Mesh(geometry, material);
-          this.scene.add(this.mesh);
-          this.setupLight();
-  
-          this.container.addEventListener('mouseenter', this.handleMouseEnter);
-          this.container.addEventListener('mouseleave', this.handleMouseLeave);
-          this.container.addEventListener('click', this.handleClick);
-  
-          this.initialized = true;
-          this.name = this.data.name;
-          this.logger.log({ conditions: ['init'], message: `SocialCard ${this.data.name} initialized` });
-          this.startAnimation();
-      });
-  }
-
-    setupLight() {
-      const ambientLight = new THREE.AmbientLight(0xffffff, 2);
-      this.scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
-      directionalLight.position.set(1, 1, 1);
-      this.scene.add(directionalLight);
-      const pointLight = new THREE.PointLight(this.data.color, 10, 300);
-      pointLight.position.set(0, 0, 50);
-      this.scene.add(pointLight);
+        this.container.addEventListener('mouseenter', this._handleMouseEnter);
+        this.container.addEventListener('mouseleave', this._handleMouseLeave);
+        this.container.addEventListener('click', this._handleClick);
     }
 
     /**
-     * Loading texture as Promise
-     * @param {string} url
-     * @returns {Promise<THREE.Texture>}
+     * @description Handles the resize event
+     * @returns {void}
      */
-    loadTexture(url) {
-        return new Promise((resolve, reject) => {
-            const loader = new THREE.TextureLoader();
-            loader.load(url, resolve, undefined, reject);
-        });
-    }
+    onResize() {
+        if (!this.mesh || !this.container || !this.cameraController) return;
 
-    /**
-     * Start card animation
-     */
-    startAnimation() {
-        if (!this.animationFrameId) {
-            this.animate();
+        const rect = this.container.getBoundingClientRect();
+        const canvas = this.renderer.domElement;
+        const canvasRect = canvas.getBoundingClientRect();
+
+        if (
+            rect.width < 10 || rect.height < 10 ||
+            canvasRect.width < 10 || canvasRect.height < 10
+        ) {
+            return;
         }
-    }
 
-    /**
-     * Stop card animation
-     */
-    stopAnimation() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
+        const camera = this.cameraController.camera;
+        if (!camera.isPerspectiveCamera) return;
+
+        // Расстояние от камеры до меша
+        const cameraZ = camera.position.z;
+        const meshZ = this.mesh.position.z;
+        const distance = Math.abs(cameraZ - meshZ);
+
+        // Видимая высота и ширина на этом расстоянии
+        const vFOV = THREE.MathUtils.degToRad(camera.fov);
+        const visibleHeight = 2 * Math.tan(vFOV / 2) * distance;
+        const visibleWidth = visibleHeight * camera.aspect;
+
+        // Пропорция DOM → world units
+        const widthRatio = rect.width / canvasRect.width;
+        const heightRatio = rect.height / canvasRect.height;
+
+        // Исходное соотношение сторон
+        const aspect = this.options.size.width / this.options.size.height || 1;
+
+        // Вычисляем размеры с сохранением aspect ratio
+        let meshWidth = visibleWidth * widthRatio;
+        let meshHeight = meshWidth / aspect;
+
+        // Если высота превышает допустимую — ограничиваем по высоте
+        if (!isFinite(meshHeight) || meshHeight <= 0) {
+            meshHeight = visibleHeight * heightRatio;
+            meshWidth = meshHeight * aspect;
         }
+
+        // Ограничиваем максимальный размер
+        const maxWidth = defaultOptions.size.width;
+        const maxHeight = defaultOptions.size.height;
+        const widthScale = meshWidth > maxWidth ? maxWidth / meshWidth : 1;
+        const heightScale = meshHeight > maxHeight ? maxHeight / meshHeight : 1;
+        const scale = Math.min(widthScale, heightScale);
+
+        if (scale < 1) {
+            meshWidth *= scale;
+            meshHeight *= scale;
+        }
+
+        // Если meshWidth или meshHeight NaN или <= 0, не пересоздавай геометрию
+        if (!isFinite(meshWidth) || !isFinite(meshHeight) || meshWidth <= 0 || meshHeight <= 0) {
+            console.warn('Invalid mesh size:', meshWidth, meshHeight);
+            return;
+        }
+
+        // Пересоздаём геометрию
+        this.mesh.geometry.dispose();
+        this.mesh.geometry = new THREE.PlaneGeometry(meshWidth, meshHeight);
+
+        // Обновляем options.size
+        this.options.size.width = meshWidth;
+        this.options.size.height = meshHeight;
+
+        super.onResize();
     }
 
     /**
      * Main animation cycle
      */
-    animate() {
+    update() {
       if (!this.container.isConnected || !this.mesh) {
           this.stopAnimation();
           return;
       }
         const time = Date.now() * 0.001;
-        const amplitude = this.amplitude; 
-        const rotationAmplitude = this.rotationAmplitude;
-        const amplitudeZ = this.amplitudeZ;
+        const amplitude = this.options.amplitude; 
+        const rotationAmplitude = this.options.rotationAmplitude;
+        const amplitudeZ = this.options.amplitudeZ;
 
         if (!this.isHovered) {
             this.mesh.rotation.y = Math.sin(time * 0.5 + this.animationOffset) * rotationAmplitude;
@@ -135,34 +170,13 @@ export class SocialCard extends AnimationController {
             this.mesh.position.y += (0 - this.mesh.position.y) * 0.1;
             this.mesh.position.z += (0 - this.mesh.position.z) * 0.1;
         }
-        this.renderer.render(this.scene, this.camera);
-        this.animationFrameId = requestAnimationFrame(this.animate);
+        super.update();
     }
-
-    handleResize() {
-      if (!this.renderer || !this.camera || !this.mesh) return;
-  
-      // Get new container sizes
-      const rect = this.container.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
-  
-      this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(window.devicePixelRatio);
-  
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-  
-      // (Optional) Recreate geometry if needed
-      // this.mesh.geometry.dispose();
-      // this.mesh.geometry = new THREE.PlaneGeometry(2, 3); // or other sizes
-  }
 
     /**
      * Cleaning up card resources
      */
-    dispose() {
-        this.stopAnimation();
+    cleanup() {
         if (this.mesh) {
             this.mesh.geometry.dispose();
             if (this.mesh.material.map) this.mesh.material.map.dispose();
@@ -171,36 +185,60 @@ export class SocialCard extends AnimationController {
         if (this.renderer) {
             this.renderer.dispose();
         }
-        // Remove canvas from DOM
-        if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode) {
-            this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
-        }
         // Remove event handlers
-        this.container.removeEventListener('mouseenter', this.handleMouseEnter);
-        this.container.removeEventListener('mouseleave', this.handleMouseLeave);
-        this.container.removeEventListener('click', this.handleClick);
-        this.logger.log({ conditions: ['dispose'], message: `SocialCard ${this.data.name} disposed` });
+        this.container.removeEventListener('mouseenter', this._handleMouseEnter);
+        this.container.removeEventListener('mouseleave', this._handleMouseLeave);
+        this.container.removeEventListener('click', this._handleClick);
+        super.cleanup();
     }
+
+    /**
+     * @private
+     * @description Loads texture and creates mesh for the social card
+     * @returns {void}
+     */
+    async _createMeshWithTexture() {
+        const texture = await this._loadTextureAsync(this.options.texture);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+
+        const material = new THREE.MeshStandardMaterial({
+            map: texture,
+            transparent: true,
+            opacity: this.options.opacity,
+            side: THREE.FrontSide,
+        });
+
+        const geometry = new THREE.PlaneGeometry(this.options.size.width, this.options.size.height);
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.scene.add(this.mesh);
+    }
+
+    /**
+     * @private
+     * @description Loads a texture asynchronously
+     * @param {string} url
+     * @returns {Promise<THREE.Texture>}
+     */
+    _loadTextureAsync(url) {
+        return new Promise((resolve, reject) => {
+            const loader = new THREE.TextureLoader();
+            loader.load(url, resolve, undefined, reject);
+        });
+    }
+
 
     /**
      * Mouseenter handler
      */
-    handleMouseEnter() {
+    _handleMouseEnter() {
         this.isHovered = true;
     }
 
     /**
      * Mouseleave handler
      */
-    handleMouseLeave() {
+    _handleMouseLeave() {
         this.isHovered = false;
-    }
-
-    /**
-     * Click handler
-     */
-    handleClick() {
-        // You can add a link transition or other logic
-        this.logger.log({ conditions: ['click'], message: `Clicked ${this.data.name}` });
     }
 } 

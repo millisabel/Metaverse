@@ -150,24 +150,39 @@
     &-social{
         .carousel{
 
-            &-inner{
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-            }
-
             &-item{
                 width: 100%;
                 height: 100%;
 
-                opacity: 1 !important;
-                transition: none !important;
-            }
+                font-size: 0;
 
-            &-link{
-                display: block;
-                width: 100%;
-                height: 100%;
+                &#TWITTER{
+                    --item-color: #2b87a3;
+                }
+                &#TELEGRAM{
+                    --item-color: #763295;
+                }
+                &#YOUTUBE{  
+                    --item-color: #4885a6;
+                    
+                }
+                &#DISCORD{
+                    --item-color: #7e3f92;
+                }
+
+                & canvas{
+                    opacity: 0;
+
+                    transition: opacity 0.3s ease-in-out;
+                }
+
+                &.active{
+                    & canvas{
+                        opacity: 1;
+
+                        transition: opacity 0.3s ease-in-out;
+                    }
+                }
             }
 
             &-control{
@@ -272,6 +287,20 @@
                     display: none !important;
                 }
                 
+            }
+        }
+    }
+}
+
+@include desktop{
+    .carousel{
+        &-social{
+            .carousel{
+                &-item{
+                    & canvas{
+                        opacity: 1;
+                    }
+                }
             }
         }
     }

@@ -12,7 +12,7 @@ import { ThreeDContainerController } from './ThreeDContainerController';
 export class SectionController extends SectionObserver {
     constructor(containerId, objects3DConfig, zIndex) {
         super(containerId);
-
+        
         this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
         this.logMessage = '';
@@ -64,6 +64,23 @@ export class SectionController extends SectionObserver {
     }
 
     /**
+     * @description Get the container element
+     * @param {string} containerId - ID of the container element
+     * @returns {HTMLElement}
+     */
+    getContainer(containerId) {
+        this.logMessage += `${this.constructor.name} (SectionController): getContainer()\n`;
+        
+        const container = document.getElementById(containerId);
+        if (!container) {
+            throw new Error(`Container with id ${containerId} not found`);
+        }
+
+        this.logMessage += `${this.constructor.name} (SectionController): getContainer() success\n`;
+        return container;
+    }
+
+    /**
      * @description Update the controllers
      * @returns {void}
      */
@@ -109,23 +126,6 @@ export class SectionController extends SectionObserver {
         await this._initControllers();
 
         this.logMessage += `${this.constructor.name} (SectionController): setupControllers() success\n`;
-    }
-
-    /**
-     * @description Get the container element
-     * @param {string} containerId - ID of the container element
-     * @returns {HTMLElement}
-     */
-    _getContainer(containerId) {
-        this.logMessage += `${this.constructor.name} (SectionController): _getContainer()\n`;
-
-        const container = document.getElementById(containerId);
-        if (!container) {
-            throw new Error(`Container with id ${containerId} not found`);
-        }
-
-        this.logMessage += `${this.constructor.name} (SectionController): _getContainer() success\n`;
-        return container;
     }
 
     /**
@@ -195,7 +195,7 @@ export class SectionController extends SectionObserver {
 
         for (const [key, params] of Object.entries(this.objects3DConfig)) {
             const containerName = params.containerName || key;
-
+            console.log('this._3dContainers[containerName:', this._3dContainers[containerName]);
             if(!this._controllersCreated) {
                 this.controllers[key] = new params.classRef(this._3dContainers[containerName], {
                     ...params, 

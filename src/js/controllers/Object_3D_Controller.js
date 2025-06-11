@@ -415,7 +415,6 @@ export class Object_3D_Controller {
         let currentBreakpoint = null;
         for (const bp of breakpoints) {
             const x = mergeOptions(this.options, responsive[bp]);
-            console.log(`${this.constructor.name}: x:`, x);
             currentBreakpoint = bp;
         }
 

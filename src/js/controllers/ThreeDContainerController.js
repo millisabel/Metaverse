@@ -49,11 +49,11 @@ export class ThreeDContainerController {
      * @returns {HTMLElement}
      */
     init() {
+        console.log('this:', this);
         if (!this.parentContainer) {
             throw new Error(`Parent container not found`);
         }
 
-        this._applyParentContainerStyles(this.parentContainer, this.parentZIndex);
 
         if (!this.container) {
             this._getContainer();
@@ -66,6 +66,7 @@ export class ThreeDContainerController {
         if (!this.container) {
             throw new Error(`Container with name "${key}" not found und kann nicht erstellt werden.`);
         }
+        this._applyParentContainerStyles(this.parentContainer, this.parentZIndex);
 
         return this.container;
 
@@ -78,12 +79,8 @@ export class ThreeDContainerController {
      * @returns {void}
      */
     _applyParentContainerStyles(container, zIndex) {
-        if(container.style.position === 'static') {
-            container.style.position = 'relative';
-        }
-        if(container.style.zIndex !== zIndex) {
-            container.style.zIndex = zIndex;
-        }
+        container.style.position = 'relative';
+        container.style.zIndex = zIndex;
     }
 
     /**

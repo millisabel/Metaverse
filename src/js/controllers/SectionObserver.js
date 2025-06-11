@@ -10,8 +10,7 @@ export class SectionObserver {
         this.name = `${this.constructor.name}`;
         this.logger = createLogger(this.name);
         this.logMessage += `${this.constructor.name} (SectionObserver): constructor()\n`;
-
-        this.container = this._getContainer(containerId);
+        this.container = this.getContainer(containerId);
 
         this.initialized = false;
         this.isVisible = false;
