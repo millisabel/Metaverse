@@ -49,7 +49,6 @@ export class ThreeDContainerController {
      * @returns {HTMLElement}
      */
     init() {
-        console.log('this:', this);
         if (!this.parentContainer) {
             throw new Error(`Parent container not found`);
         }

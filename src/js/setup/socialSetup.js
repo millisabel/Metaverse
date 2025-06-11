@@ -96,7 +96,7 @@ const CONFIG_SOCIAL_GLOW = {
             },
             shaderOptions: {
                 opacity: {
-                    min: 0.7,
+                    min: 0.2,
                     max: 0.9
                 },
                 scale: {

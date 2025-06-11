@@ -42,7 +42,7 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
         opacity: { min: 0.5, max: 1 },
         scale: { min: 1, max: 2 },
         pulse: {
-            enabled: true,
+            enabled: false,
             speed: { min: 0.1, max: 0.3 },
             intensity: 2,
             randomize: false,
@@ -53,6 +53,12 @@ export const SINGLE_GLOW_DEFAULT_OPTIONS = {
             scale: false,
             opacity: false,
         },
+        hover: {
+            enabled: false,
+            scale: { min: 0, max: 1 },
+            opacity: { min: 0, max: 1 },
+            speed: 0.15, 
+        }
     },
 };
 
@@ -93,6 +99,12 @@ export class SingleGlow {
         this._currentColor = null;
         this._targetColor = null;
 
+        this._hoverActive = false;
+        this._hoverTargetScale = this.options.shaderOptions.hover?.scale?.min ?? this.options.shaderOptions.scale.min ?? 0;
+        this._hoverTargetOpacity = this.options.shaderOptions.hover?.opacity?.min ?? this.options.shaderOptions.opacity.min ?? 0;
+        this._hoverCurrentScale = this._hoverTargetScale;
+        this._hoverCurrentOpacity = this._hoverTargetOpacity;
+
         this._initPositionAndMovement();
         this._initPulseSettings();
         this._initIntersectionColors();
@@ -118,6 +130,7 @@ export class SingleGlow {
         this._updatePulse(time);
         this._updateMovement(time);
         this._updateIntersectionColor();
+        this._updateHoverAnimation();
     }
 
     /**
@@ -170,6 +183,51 @@ export class SingleGlow {
 
         if (syncOptions.scale) this._setShaderScale(finalScale);
         if (syncOptions.opacity) this._setOpacity(finalOpacity);
+    }
+
+    /**
+     * @description Updates the position of the glow by the card
+     * @param {THREE.Camera} [camera] - Optional camera for accurate projection
+     * @returns {void}
+     */
+    updatePositionByCard(camera) {
+        const targetSelector = this.options.objectOptions?.positioning?.targetSelector;
+        const align = this.options.objectOptions?.positioning?.align || 'center center';
+        const container = this.options.container;
+        const offset = this.options.objectOptions?.positioning?.offset || { x: 0, y: 0 };
+        const z = this.options.objectOptions?.positioning?.z || 0;
+
+        const options = {
+            positioning: {
+                targetSelector,
+                container,
+                align,
+                offset,
+                z,
+            },
+            camera: camera || null
+        };
+
+        const position = getPositionByElement(options);
+
+        this._setPosition(position)
+    }
+
+    /**
+     * @description Sets the highlight intensity of the glow
+     * @param {boolean} isHighlighted - Whether the glow is highlighted
+     */
+    setHighlight(isHighlighted) {
+        this._hoverActive = !!isHighlighted;
+        const hoverOpts = this.options.shaderOptions.hover || {};
+        this._hoverTargetScale = isHighlighted
+            ? (hoverOpts.scale?.max ?? this.options.shaderOptions.scale.max ?? 2)
+            : (hoverOpts.scale?.min ?? this.options.shaderOptions.scale.min ?? 0);
+        this._hoverTargetOpacity = isHighlighted
+            ? (hoverOpts.opacity?.max ?? this.options.shaderOptions.opacity.max ?? 1)
+            : (hoverOpts.opacity?.min ?? this.options.shaderOptions.opacity.min ?? 0);
+
+        console.log(this.options);
     }
 
     /**
@@ -276,7 +334,7 @@ export class SingleGlow {
         if (syncEnabled) {
             return this.options.shaderOptions.scale?.min ?? 0;
         }
-        return this.options.shaderOptions.scale?.max ?? 1.0;
+        return this.options.shaderOptions.scale?.min ?? 1.0;
     }
 
     /**
@@ -286,9 +344,6 @@ export class SingleGlow {
      * @private
      */
     _getInitialOpacity(syncEnabled) {
-        // if (syncEnabled) {
-        //     return this.options.shaderOptions.opacity?.min ?? 0;
-        // }
         return this.options.shaderOptions.opacity?.min ?? 0;
     }
 
@@ -468,31 +523,18 @@ export class SingleGlow {
         this.mesh.material.uniforms.syncScale.value = scale;
     }
 
-    /**
-     * @description Updates the position of the glow by the card
-     * @param {THREE.Camera} [camera] - Optional camera for accurate projection
-     * @returns {void}
-     */
-    updatePositionByCard(camera) {
-        const targetSelector = this.options.objectOptions?.positioning?.targetSelector;
-        const align = this.options.objectOptions?.positioning?.align || 'center center';
-        const container = this.options.container;
-        const offset = this.options.objectOptions?.positioning?.offset || { x: 0, y: 0 };
-        const z = this.options.objectOptions?.positioning?.z || 0;
+    _updateHoverAnimation() {
+        if (!this.options.shaderOptions.hover?.enabled) return;
 
-        const options = {
-            positioning: {
-                targetSelector,
-                container,
-                align,
-                offset,
-                z,
-            },
-            camera: camera || null
-        };
+        const speed = this.options.shaderOptions.hover?.speed ?? 0.15;
+        this._hoverCurrentScale += (this._hoverTargetScale - this._hoverCurrentScale) * speed;
+        this._hoverCurrentOpacity += (this._hoverTargetOpacity - this._hoverCurrentOpacity) * speed;
 
-        const position = getPositionByElement(options);
-
-        this._setPosition(position)
+        if (this.mesh && this.mesh.material?.uniforms?.syncScale) {
+            this.mesh.material.uniforms.syncScale.value = this._hoverCurrentScale;
+        }
+        if (this.mesh && this.mesh.material?.uniforms?.opacity) {
+            this.mesh.material.uniforms.opacity.value = this._hoverCurrentOpacity;
+        }
     }
 } 

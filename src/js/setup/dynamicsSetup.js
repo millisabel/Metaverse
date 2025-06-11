@@ -262,9 +262,6 @@ const CONFIG = {
 export class DynamicsSetup extends SectionController {
     constructor() {
         super(SECTION_ID, CONFIG, Z_INDEX.SECTION);
-        /**
-         * @type {Object3DSyncManager|null}
-         */
         this.syncManager = null;
     }
 

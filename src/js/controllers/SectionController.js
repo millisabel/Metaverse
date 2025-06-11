@@ -195,7 +195,6 @@ export class SectionController extends SectionObserver {
 
         for (const [key, params] of Object.entries(this.objects3DConfig)) {
             const containerName = params.containerName || key;
-            console.log('this._3dContainers[containerName:', this._3dContainers[containerName]);
             if(!this._controllersCreated) {
                 this.controllers[key] = new params.classRef(this._3dContainers[containerName], {
                     ...params, 

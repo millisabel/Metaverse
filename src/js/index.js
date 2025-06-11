@@ -9,6 +9,7 @@ import { DynamicsSetup } from './setup/dynamicsSetup';
 import { VRMarketSetup } from './setup/vrMarketSetup';
 import { ExploreSetup } from './setup/exploreSetup';
 import { SocialSetup } from './setup/socialSetup';
+import { TeamSetup } from './setup/teamSetup';
 
 // Common components
 import { initNavbar } from './setup/NavbarSetup';
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new DynamicsSetup();
     new VRMarketSetup();
     new ExploreSetup();
+    new TeamSetup();
     new SocialSetup();
 
     initModal();
