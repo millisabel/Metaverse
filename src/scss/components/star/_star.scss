@@ -1,12 +1,22 @@
 .star {
+    --star-animation-duration: 1.5s;
+    --star-animation-duration-after: 2s;
+    --star-animation-duration-before: 1s;
+    --star-width: 5rem;
+    --star-height: 5rem;
+    --star-margin: 0.5rem;
+
     position: relative;
+
     display: inline-block;
-    width: 1.5em;
-    height: 1.5em;
-    margin: 0 0.5em;
+    width: var(--star-width);
+    height: var(--star-height);
+    margin: 0 var(--star-margin);
     vertical-align: middle;
+
     will-change: transform;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: starPulse var(--star-animation-duration) infinite ease-in-out;
 
     &::before {
         content: '';
@@ -21,7 +31,7 @@
         background-repeat: no-repeat;
         background-position: center;
         filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-        animation: starPulse 2s infinite ease-in-out;
+        animation: starGlow var(--star-animation-duration) infinite ease-in-out;
     }
 
     &::after {
@@ -34,31 +44,7 @@
         border-radius: 50%;
         transform: translate(-50%, -50%);
         background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
-        animation: starGlow 2s infinite ease-in-out;
-    }
-
-    // Modifiers position
-    &--left {
-        margin-right: auto;
-        margin-left: 0;
-        animation: moveStarLeft 3s ease-in-out infinite;
-    }
-
-    &--right {
-        margin-left: auto;
-        margin-right: 0;
-        animation: moveStarRight 3s ease-in-out infinite;
-    }
-
-    // Modifiers size
-    &--sm {
-        width: 1em;
-        height: 1em;
-    }
-
-    &--lg {
-        width: 2em;
-        height: 2em;
+        animation: starGlow var(--star-animation-duration-after) infinite ease-in-out;
     }
 
     // Modifiers color
@@ -96,7 +82,7 @@
         opacity: 1;
     }
     50% {
-        transform: translate(-50%, -50%) scale(1.1);
+        transform: translate(-50%, -50%) scale(2);
         opacity: 0.8;
     }
 }
@@ -111,21 +97,3 @@
         opacity: 0.3;
     }
 }
-
-@keyframes moveStarLeft {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    50% {
-        transform: translateX(30px);
-    }
-}
-
-@keyframes moveStarRight {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    50% {
-        transform: translateX(-30px);
-    }
-} 

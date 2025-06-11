@@ -1,0 +1,69 @@
+// teletype component
+
+.teletype{
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    height: 5rem;
+    margin-bottom: 2rem;
+    transform: rotate(5deg);
+    
+    background: transparent;
+    overflow: hidden;
+  
+    &__inner {
+      display: flex;
+
+      white-space: nowrap;
+      will-change: transform;
+      animation: faq-marquee-move-left 18s linear infinite;
+      align-items: center;
+    }
+  
+        & span {
+            display: inline-flex;
+            align-items: center;
+
+            background: var(--bs-body-bg);
+
+            span {
+                display: inline-block;
+                margin: 0 3rem;
+
+                font-size: 3rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                color: #fff;
+
+                background: linear-gradient(90deg, #7A42F4, #56FFEB, #F00AFE, #7A42F4);
+                background-size: 200% auto;
+                filter: drop-shadow(0 0 8px #7A42F4) drop-shadow(0 0 16px #56FFEB);
+                animation: faq-marquee-glow 2s linear infinite alternate;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+        }
+
+        .star {
+            --star-width: 3rem;
+            --star-height: 3rem;
+            --star-margin: 1rem;
+        }
+  }
+
+  @keyframes faq-marquee-move-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  
+  @keyframes faq-marquee-move-right {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+  
+  @keyframes faq-marquee-glow {
+    0% { filter: drop-shadow(0 0 8px #7A42F4) drop-shadow(0 0 16px #56FFEB); }
+    100% { filter: drop-shadow(0 0 16px #F00AFE) drop-shadow(0 0 32px #56FFEB); }
+}
