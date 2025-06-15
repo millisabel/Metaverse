@@ -1,6 +1,7 @@
 import { SectionController } from '../controllers/SectionController';
 import { Dynamics3D } from '../components/three/dynamics3d';
 import { Glow } from '../components/three/glow';
+import { dynamicStar } from '../components/ui/DynamicStarEffect';
 
 import { Object3DSyncManager } from '../utilsThreeD/Object3DSyncManager';
 
@@ -258,11 +259,15 @@ const CONFIG = {
     CARD_METAVERSE: CONFIG_CARDS.METAVERSE,
     CARD_SANKOPA: CONFIG_CARDS.SANKOPA,
 };
+const CONFIG_STAR_DYNAMICS = {
+    size: '3rem',
+};
 
 export class DynamicsSetup extends SectionController {
     constructor() {
         super(SECTION_ID, CONFIG, Z_INDEX.SECTION);
         this.syncManager = null;
+        this.dynamicStarEffect = null;
     }
 
     /**
@@ -272,6 +277,8 @@ export class DynamicsSetup extends SectionController {
      */
     async initSection() {
         await super.initSection();
+
+        this.dynamicStarEffect = dynamicStar(SECTION_ID, CONFIG_STAR_DYNAMICS);
 
         const cardKeys = ['CARD_GUARDIANS', 'CARD_METAVERSE', 'CARD_SANKOPA'];
         const cards = cardKeys
@@ -326,6 +333,10 @@ export class DynamicsSetup extends SectionController {
     }
 
     cleanup() {
+        if (this.dynamicStarEffect) {
+            this.dynamicStarEffect.destroy();
+            this.dynamicStarEffect = null;
+        }
         if (this.syncManager && typeof this.syncManager.cleanup === 'function') {
             this.syncManager.cleanup();
             this.syncManager = null;

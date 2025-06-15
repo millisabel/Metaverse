@@ -1,12 +1,23 @@
 .star {
-    --star-animation-duration: 1.5s;
-    --star-animation-duration-after: 2s;
-    --star-animation-duration-before: 1s;
-    --star-width: 5rem;
-    --star-height: 5rem;
-    --star-margin: 0.5rem;
+    --star-position: relative;
+    --star-width: 1.5rem;
+    --star-height: 1.5rem;
+    --star-margin: 1rem;
 
-    position: relative;
+    --star-animation-duration: 5s;
+    --star-animation-delay: 0s;
+    --star-scale-opacity-start: 0.5;
+    --star-scale-opacity-end: 1;
+    --star-scale-start: 1;
+    --star-scale-end: 1.5;
+
+    --star-glow-animation-duration-after: 5s;
+    --star-glow-opacity-start: 0.2;
+    --star-glow-opacity-end: 0.4;
+    --star-glow-scale-start: 1;
+    --star-glow-scale-end: 1.3;
+
+    position: var(--star-position);
 
     display: inline-block;
     width: var(--star-width);
@@ -14,37 +25,56 @@
     margin: 0 var(--star-margin);
     vertical-align: middle;
 
+    font-size: 0;
+
+    pointer-events: none;
     will-change: transform;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: starPulse var(--star-animation-duration) infinite ease-in-out;
 
     &::before {
         content: '';
         position: absolute;
         top: 50%;
+        z-index: 100;
+
         left: 50%;
         width: 100%;
         height: 100%;
+
         transform: translate(-50%, -50%);
         background-image: url('../assets/svg/star/star.svg');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
+
         filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-        animation: starGlow var(--star-animation-duration) infinite ease-in-out;
+        
     }
 
     &::after {
         content: '';
+
         position: absolute;
         top: 50%;
         left: 50%;
+        z-index: 99;
+
         width: 120%;
         height: 120%;
+
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
-        animation: starGlow var(--star-animation-duration-after) infinite ease-in-out;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 70%);
+        
+    }
+
+    &--pulse {
+        &::before {
+            animation: starGlow var(--star-animation-duration) infinite ease-in-out;
+        }
+        &::after {
+            animation: starGlow var(--star-glow-animation-duration-after) infinite ease-in-out;
+        }
     }
 
     // Modifiers color
@@ -78,22 +108,52 @@
 
 @keyframes starPulse {
     0%, 100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
+        transform: scale(var(--star-scale-start));
+        opacity: var(--star-scale-opacity-start);
     }
     50% {
-        transform: translate(-50%, -50%) scale(2);
-        opacity: 0.8;
+        transform: scale(var(--star-scale-end));
+        opacity: var(--star-scale-opacity-end);
     }
 }
 
 @keyframes starGlow {
     0%, 100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(var(--star-glow-scale-start));
+        opacity: var(--star-glow-opacity-start);
     }
     50% {
-        transform: translate(-50%, -50%) scale(1.2);
-        opacity: 0.3;
+        transform: translate(-50%, -50%) scale(var(--star-glow-scale-end));
+        opacity: var(--star-glow-opacity-end);
     }
 }
+
+@include tablet {           
+    .star {
+        --star-width: 2rem;
+        --star-height: 2rem;
+        --star-margin: 1rem;
+    }
+}
+
+@include desktop {
+    .star {
+        --star-width: 3rem;
+        --star-height: 3rem;
+        --star-margin: 2rem;
+    }
+}
+
+@keyframes dynamicStarPulse {
+    0%, 100% {
+      transform: scale(0.7);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+  }
+  
+
+
