@@ -23,6 +23,10 @@
 
             --bg-color: #000;
 
+            @supports (background-image: url("../assets/images/bg/BG-hero.webp")) {
+                --bg-img: url("../assets/images/bg/BG-hero.webp");
+            }
+
             @include tablet {
                 --bg-img-size: 90%;
             }
@@ -34,10 +38,16 @@
 
         &-about {
             --bg-img: url("../assets/images/bg/BG-about.png");
+            @supports (background-image: url("../assets/images/bg/BG-about.webp")) {
+                --bg-img: url("../assets/images/bg/BG-about.webp");
+            }
         }
 
         &-vr-market {
             --bg-img: url("../assets/images/bg/BG-Game.png");
+            @supports (background-image: url("../assets/images/bg/BG-Game.webp")) {
+                --bg-img: url("../assets/images/bg/BG-Game.webp");
+            }
         }
     }
 }
