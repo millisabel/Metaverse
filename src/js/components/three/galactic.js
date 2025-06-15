@@ -5,8 +5,11 @@ import { ShaderController } from '../../controllers/ShaderController';
 
 import vertexShader from '../../shaders/galacticCore.vert';
 import fragmentShader from '../../shaders/galacticCore.frag';
+import { canUseWebP } from '../../utilsThreeD/utilsThreeD';
 
-const galacticTexture = './assets/images/galaxy-texture.png';
+const galacticTexture = canUseWebP()
+? './assets/images/galaxy-texture.webp'
+: './assets/images/galaxy-texture.png';
 
 /**
  * @description The default options for galactic cloud

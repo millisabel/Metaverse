@@ -2,6 +2,24 @@ import { SectionController } from '../controllers/SectionController';
 import { SocialCard } from '../components/three/socialCards';
 import { Glow } from "../components/three/glow";
 
+import { canUseWebP } from '../utilsThreeD/utilsThreeD';
+
+const twitter = canUseWebP()
+? './assets/images/social/twitter.webp'
+: './assets/images/social/twitter.png';
+
+const telegram = canUseWebP()
+? './assets/images/social/telegram.webp'
+: './assets/images/social/telegram.png';
+
+const youtube = canUseWebP()
+? './assets/images/social/youtube.webp'
+: './assets/images/social/youtube.png';
+
+const discord = canUseWebP()
+? './assets/images/social/discord.webp'
+: './assets/images/social/discord.png';
+
 const SECTION_ID = 'social';
 const NAME_3D_OBJECTS = {
     SOCIAL_CARDS: {
@@ -24,7 +42,7 @@ const CONFIG_SOCIAL_CARDS = {
         zIndex: Z_INDEX.SOCIAL_CARDS,
         objectConfig: {
             type: 'twitter',
-            texture: 'assets/images/social/twitter.png',
+            texture: twitter,
             color: 0x7A42F4,
         },
     },
@@ -34,7 +52,7 @@ const CONFIG_SOCIAL_CARDS = {
         zIndex: Z_INDEX.SOCIAL_CARDS,
         objectConfig: {
             type: 'telegram',
-            texture: 'assets/images/social/telegram.png',
+            texture: telegram,
             color: 0x4642F4,    
         },
     },
@@ -44,7 +62,7 @@ const CONFIG_SOCIAL_CARDS = {
         zIndex: Z_INDEX.SOCIAL_CARDS,
         objectConfig: {
             type: 'youtube',
-            texture: 'assets/images/social/youtube.png',
+            texture: youtube,
             color: 0xF00AFE,
         },
     },
@@ -54,7 +72,7 @@ const CONFIG_SOCIAL_CARDS = {
         zIndex: Z_INDEX.SOCIAL_CARDS,
         objectConfig: {
             type: 'discord',
-            texture: 'assets/images/social/discord.png',
+            texture: discord,
             color: 0x56FFEB,
         },
     },

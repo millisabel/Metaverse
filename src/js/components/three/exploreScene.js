@@ -3,6 +3,28 @@ import * as THREE from 'three';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { Grid } from './grid';
 
+import { canUseWebP } from '../../utilsThreeD/utilsThreeD';
+
+const img_1 = canUseWebP()
+? './assets/images/explore_3D/object_card1.webp'
+: './assets/images/explore_3D/object_card1.png';
+
+const img_2 = canUseWebP()
+? './assets/images/explore_3D/object_card2.webp'
+: './assets/images/explore_3D/object_card2.png';
+
+const img_3 = canUseWebP()
+? './assets/images/explore_3D/object_money.webp'
+: './assets/images/explore_3D/object_money.png';
+
+const img_4 = canUseWebP()
+? './assets/images/explore_3D/object_link.webp'
+: './assets/images/explore_3D/object_link.png';
+
+const img_5 = canUseWebP()
+? './assets/images/explore_3D/object_picture.webp'
+: './assets/images/explore_3D/object_picture.png';
+
 const EXPLORE_DEFAULT_OPTIONS = {
     gridOptions: {
         gridWidth: 4,
@@ -29,11 +51,11 @@ const EXPLORE_DEFAULT_OPTIONS = {
         { color: 0xff5722, size: { w: 2.9, h: 1.2, d: 2.5 } },
     ],
     imageConfigs: [
-        { file: './assets/images/explore_3D/object_card1.png', size: { w: 5.5, h: 2.5 } },
-        { file: './assets/images/explore_3D/object_card2.png', size: { w: 7, h: 7 } },
-        { file: './assets/images/explore_3D/object_money.png', size: { w: 2, h: 2 } },
-        { file: './assets/images/explore_3D/object_link.png', size: { w: 2.5, h: 2.5 } },
-        { file: './assets/images/explore_3D/object_picture.png', size: { w: 2.8, h: 2.8 } }
+        { file: img_1, size: { w: 5.5, h: 2.5 } },
+        { file: img_2, size: { w: 7, h: 7 } },
+        { file: img_3, size: { w: 2, h: 2 } },
+        { file: img_4, size: { w: 2.5, h: 2.5 } },
+        { file: img_5, size: { w: 2.8, h: 2.8 } }
     ],
     animationOptions: {
         moveDuration: { box: [5, 50], image: [8, 28] },
