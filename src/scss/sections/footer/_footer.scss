@@ -1,0 +1,22 @@
+.footer{
+    a {
+        color: var(--bs-secondary);
+        text-decoration: none;
+        transition: color 0.2s, transform 0.2s;
+
+        &:hover,
+        &:focus {
+            color: var(--bs-white);
+            transform: scale(1.1);
+        }
+    }
+
+    .bi {
+        transition: color 0.2s, transform 0.2s;
+        &:hover,
+        &:focus {
+            color: var(--bs-white);
+            transform: scale(1.2);
+        }
+    }
+}
