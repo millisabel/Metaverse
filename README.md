@@ -1,6 +1,6 @@
 # Metaverse Landing Page
 
-Modern landing page for the metaverse with interactive elements and animations.
+Modern landing page for the metaverse with interactive elements, 3D-объектами и современными анимациями.
 
 ## 🚀 Technologies
 
@@ -9,9 +9,12 @@ Modern landing page for the metaverse with interactive elements and animations.
 - JavaScript (ES6+)
 - Webpack 5
 - Bootstrap 5
+- Intersection Observer API
 - AOS (Animate On Scroll)
-- Three.js (for starry background)
+- Three.js (3D, WebGL)
+- WebGL (for 3D rendering)
 - GitHub Actions (for automatic deployment)
+- Design Patterns: Singleton, Observer, Template Method
 
 ## 🛠 Project Structure
 
@@ -20,24 +23,23 @@ src/
 ├── assets/
 │   ├── icons/          # Icons and logos
 │   ├── images/         # Images
-│   └── svg/            # SVG files
-│       └── circle/     # SVG for animated circles
+│   └── svg/            # SVG files (star, circle, etc.)
 ├── js/
-│   ├── components/     # JavaScript components
-│   │   ├── roadmap.js # Roadmap section logic
-│   │   └── galaxy.js  # Galaxy animation
-│   ├── utils/         # Utilities
-│   │   └── animationObserver.js # Universal animation observer
-│   └── index.js       # Main JavaScript file
+│   ├── components/
+│   │   ├── ui/         # UI components (DynamicStarEffect, etc.)
+│   │   ├── three/      # Three.js/3D components
+│   ├── controllers/    # Controllers (logic, managers)
+│   ├── setup/          # Section/component setup scripts
+│   ├── utils/          # Utilities (helpers, logger, animationObserver_CSS, etc.)
+│   ├── data/           # Static/config data
+│   └── index.js        # Main JavaScript file
 ├── scss/
-│   ├── components/    # Component styles
-│   │   ├── _roadmap.scss
-│   │   └── _navbar.scss
-│   ├── base/         # Base styles
-│   │   ├── _reset.scss
-│   │   └── _typography.scss
-│   └── style.scss    # Main SCSS file
-└── index.html        # Main HTML page
+│   ├── components/     # Component styles
+│   ├── sections/       # Section styles (footer, hero, etc.)
+│   ├── abstracts/      # Abstracts/mixins
+│   ├── _variables.scss # SCSS variables
+│   └── main.scss       # Main SCSS file (imports all others)
+└── index.html          # Main HTML page
 ```
 
 ## ✨ Key Features
@@ -47,17 +49,24 @@ src/
 - Mobile navigation with dropdown menu
 - Optimized images and animations
 
-### 2. Animations and Interactivity
+### 2. Animations, 3D & Interactivity
 - Smooth scroll animations (AOS)
-- Animated galaxy background (Three.js)
+- Animated galaxy/star backgrounds (Three.js, WebGL)
+- Dynamic animated stars (JS + CSS)
 - Interactive roadmap with animated circles
 - Animated buttons and hover effects
+- Accessibility: semantic HTML, aria-labels, keyboard navigation
 
 ### 3. Performance Optimization
 - Lazy loading of images
-- Optimized animations
+- Optimized animations (requestAnimationFrame, Intersection Observer)
 - CSS and JavaScript minification
 - Resource caching
+
+### 4. Architecture & Patterns
+- Modular SCSS and JS structure
+- Design patterns: Singleton (managers), Observer (IntersectionObserver, AnimationObserverCSS), Template Method (abstract base classes)
+- Separation of concerns: UI, logic, data, setup
 
 ## 🚀 Deployment
 
@@ -109,6 +118,7 @@ npm run build
 - Firefox (latest 2 versions)
 - Safari (latest 2 versions)
 - Edge (latest 2 versions)
+- Mobile browsers (iOS, Android)
 
 ## 📄 License
 

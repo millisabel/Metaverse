@@ -118,7 +118,6 @@ class DynamicStarEffect {
     _getPosition() {
         const { mode, x, y, anchorElement, offset, initial } = this.options.position;
         const parentRect = this.parentEl.getBoundingClientRect();
-        console.log('anchorElement', anchorElement);
         if (mode === 'fixed') {
             return {
                 x: initial.x,
