@@ -9,23 +9,6 @@ export const DEFAULT_LIGHTS = {
   };
 
 /**
- * @description Adds default ambient and point lights to the scene
- * @param {THREE.Scene} scene - The scene to add lights to
- * @param {Object} options - Light options
- * @returns {void}
- */
-export function addDefaultLights(scene, options = {}) {
-    const config = { ...DEFAULT_LIGHTS, ...options };
-    // ambient
-    const ambient = new THREE.AmbientLight(config.ambientColor, config.ambientIntensity);
-    scene.add(ambient);
-    // point
-    const point = new THREE.PointLight(config.pointColor, config.pointIntensity);
-    point.position.set(config.pointPosition.x, config.pointPosition.y, config.pointPosition.z);
-    scene.add(point);
-}
-
-/**
  * @description Returns a random number with normal (Gaussian) distribution
  * @param {number} [mean=0] - Mean value
  * @param {number} [stdev=1] - Standard deviation
@@ -53,21 +36,6 @@ export function setupGeometry(geometry, positions, colors, sizes) {
 }
 
 /**
- * @description Linear interpolation between two vectors (3D)
- * @param {number[]} a - Vector 1 [x, y, z]
- * @param {number[]} b - Vector 2 [x, y, z]
- * @param {number} t - Interpolation parameter (0..1)
- * @returns {number[]} Resulting vector
- */
-export function lerpVec3(a, b, t) {
-    return [
-        a[0] + (b[0] - a[0]) * t,
-        a[1] + (b[1] - a[1]) * t,
-        a[2] + (b[2] - a[2]) * t
-    ];
-}
-
-/**
  * @description Projects a point (x, y) onto the back face with perspective
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
@@ -84,42 +52,18 @@ export function projectToBack(x, y, x_c, y_c, shrinkK) {
 }
 
 /**
- * @description Deep merges two objects
- * @param {Object} target - Target object
- * @param {Object} source - Source object
- * @returns {Object} Merged object
+ * @description Linear interpolation between two vectors (3D)
+ * @param {number[]} a - Vector 1 [x, y, z]
+ * @param {number[]} b - Vector 2 [x, y, z]
+ * @param {number} t - Interpolation parameter (0..1)
+ * @returns {number[]} Resulting vector
  */
-export function deepMerge(target, source) {
-    for (const key in source) {
-      if (
-        source[key] &&
-        typeof source[key] === 'object' &&
-        !Array.isArray(source[key])
-      ) {
-        if (!target[key]) target[key] = {};
-        deepMerge(target[key], source[key]);
-      } else {
-        target[key] = source[key];
-      }
-    }
-    return target;
-  }
-
-  /**
-   * @description Deep clones an object
-   * @param {Object} obj - The object to clone
-   * @returns {Object} Cloned object
-   */
-  export function deepClone(obj) {
-    if (obj === null || typeof obj !== 'object') return obj;
-    if (Array.isArray(obj)) return obj.map(deepClone);
-    const cloned = {};
-    for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            cloned[key] = deepClone(obj[key]);
-        }
-    }
-    return cloned;
+export function lerpVec3(a, b, t) {
+    return [
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t,
+        a[2] + (b[2] - a[2]) * t
+    ];
 }
 
 /**
@@ -135,56 +79,4 @@ export function lerpColor(colorA, colorB, t) {
         colorA.g + (colorB.g - colorA.g) * t,
         colorA.b + (colorB.b - colorA.b) * t
     );
-}
-
-/**
- * @description Averages an array of colors
- * @param {THREE.Color[]} colors - The colors to average
- * @returns {THREE.Color} The averaged color
- */
-export function averageColors(colors) {
-    if (!colors.length) return new THREE.Color(0,0,0);
-    let r = 0, g = 0, b = 0;
-    colors.forEach(c => { r += c.r; g += c.g; b += c.b; });
-    r /= colors.length;
-    g /= colors.length;
-    b /= colors.length;
-    return new THREE.Color(r, g, b);
-}
-
-/**
- * @description Checks if a point is inside a rectangle
- * @param {number} x - The x coordinate of the point
- * @param {number} y - The y coordinate of the point
- * @param {Object} rect - The rectangle to check against
- * @returns {boolean} True if the point is inside the rectangle, false otherwise
- */
-export function isPointInRect(x, y, rect) {
-    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-}
-
-/**
- * @description Initializes the current color of a glow
- * @param {Object} glow - The glow to initialize
- * @param {THREE.Color} color - The color to initialize the glow with
- * @returns {void}
- */
-export function initGlowCurrentColor(glow, color) {
-    glow.currentColor = new THREE.Color(color);
-}
-
-/**
- * @description Converts a desired size in screen pixels to world units for a given camera and z-position.
- * @param {number} sizePx - Desired size in pixels on the screen
- * @param {THREE.PerspectiveCamera} camera - The camera used for rendering
- * @param {number} [z=0] - Z position of the object in world coordinates
- * @returns {number} Scale in world units to achieve the desired pixel size
- */
-export function getWorldScaleForPixelSize(sizePx, camera, z = 0) {
-    if (!camera || typeof camera.fov !== 'number') return 1;
-    const vFOV = THREE.MathUtils.degToRad(camera.fov); // vertical fov in radians
-    const distance = Math.abs(camera.position.z - z);
-    const height = 2 * Math.tan(vFOV / 2) * distance;
-    const pxPerUnit = window.innerHeight / height;
-    return sizePx / pxPerUnit;
 }

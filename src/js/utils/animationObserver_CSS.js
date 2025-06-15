@@ -1,51 +1,18 @@
-import {createLogger} from "./logger";
-
 /**
- * AnimationObserverCSS
- *
- * Universal class for observing visibility and animation state of DOM elements.
- * - Accepts an array of selectors (strings) or DOM elements to track CSS animations.
- * - Pauses animation when elements are out of viewport, resumes when visible.
- * - Supports dynamic DOM changes via MutationObserver.
- * - Can track active sections for navigation highlighting (e.g., navbar).
- * - Supports pseudo-element animations tracking through CSS classes
- *
- * @class
- * @example
- * new AnimationObserverCSS([
- *   '.star', '.game-character--badge',
- *   { selector: '.roadmap-quarter', pseudo: 'before' }
- * ], (activeSectionId) => {
- *   // Highlight nav link logic
- * });
+ * @description Universal class for observing visibility and animation state of DOM elements.
+ * @param {Array<string|HTMLElement|Object>} targets - Array of selectors (strings), DOM elements, or objects with pseudo-element config
+ * @param {function(string):void} [onActiveSectionChange] - Callback for active section change (optional).
+ * @param {NodeList|Element[]} [sections] - Sections for section observer (optional, defaults to all <section>).
  */
 export class AnimationObserverCSS {
-    /**
-     * @constructor
-     * @param {Array<string|HTMLElement|Object>} targets - Array of selectors (strings), DOM elements, or objects with pseudo-element config
-     * @param {function(string):void} [onActiveSectionChange] - Callback for active section change (optional).
-     * @param {NodeList|Element[]} [sections] - Sections for section observer (optional, defaults to all <section>).
-     */
     constructor(targets = [], onActiveSectionChange = null, sections = null) {
-        /** @type {string} */
-        this.name = 'AnimationObserverCSS';
-        /** @type {ReturnType<typeof createLogger>} */
-        this.logger = createLogger(this.name);
-
-        /** @type {Array<string|HTMLElement|Object>} */
         this.targets = targets;
-        /** @type {function(string):void|null} */
         this.onActiveSectionChange = onActiveSectionChange;
-        /** @type {Set<HTMLElement>} */
         this.observedElements = new Set();
-        /** @type {HTMLElement[]} */
         this.elements = [];
-        /** @type {Map<HTMLElement, string>} */
         this.pseudoElements = new Map();
 
-        /** @type {HTMLElement[]} */
         this.sections = Array.from(sections || document.querySelectorAll('section'));
-        /** @type {string} */
         this.currentSection = '';
 
         this._initStyles();
@@ -55,8 +22,9 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Initialize required styles for animation control
+     * @description Initialize required styles for animation control
      * @private
+     * @returns {void}
      */
     _initStyles() {
         const styleId = 'animation-observer-styles';
@@ -79,7 +47,8 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Initializes the observer: collects elements, sets up IntersectionObserver, MutationObserver, and section observer.
+     * @description Initializes the observer: collects elements, sets up IntersectionObserver, MutationObserver, and section observer.
+     * @returns {void}
      */
     init() {
         this.collectElements();
@@ -88,24 +57,12 @@ export class AnimationObserverCSS {
         this.setupSectionObserver();
 
         window.addEventListener('resize', this.handleResize);
-
-        this.logger.log({
-            conditions: ['init'],
-            functionName: 'init'
-        });
-        this.logger.log(this.targets, {
-            type: 'success',
-            conditions: ['init'],
-            functionName: 'init',
-            customData: {
-                elements: this.elements
-            }
-        });
     }
 
     /**
-     * Collects all elements to be observed based on selectors or direct DOM elements.
-     * Now supports pseudo-element configurations.
+     * @description Collects all elements to be observed based on selectors or direct DOM elements.
+     * @description Now supports pseudo-element configurations.
+     * @returns {void}
      */
     collectElements() {
         let elements = [];
@@ -129,7 +86,8 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Sets up IntersectionObserver for all tracked elements to pause/resume animation based on visibility.
+     * @description Sets up IntersectionObserver for all tracked elements to pause/resume animation based on visibility.
+     * @returns {void}
      */
     setupIntersectionObserver() {
         this.intersectionObserver = new IntersectionObserver(this.handleIntersect.bind(this), {
@@ -140,31 +98,25 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Handles IntersectionObserver events for tracked elements.
+     * @description Handles IntersectionObserver events for tracked elements.
      * @param {IntersectionObserverEntry[]} entries
+     * @returns {void}
      */
     handleIntersect(entries) {
         entries.forEach(entry => {
             const el = entry.target;
             if (entry.isIntersecting) {
                 this.startAnimation(el);
-                this.logger.log(el, { 
-                    conditions: ['visible', 'running'], 
-                    functionName: 'handleIntersect' 
-                });
             } else {
                 this.pauseAnimation(el);
-                this.logger.log(el, { 
-                    conditions: ['hidden', 'paused'], 
-                    functionName: 'handleIntersect' 
-                });
             }
         });
     }
 
     /**
-     * Sets animation state to running for the element and its pseudo-elements if configured
+     * @description Sets animation state to running for the element and its pseudo-elements if configured
      * @param {HTMLElement} el
+     * @returns {void}
      */
     startAnimation(el) {
         if (this.pseudoElements.has(el)) {
@@ -178,8 +130,9 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Sets animation state to paused for the element and its pseudo-elements if configured
+     * @description Sets animation state to paused for the element and its pseudo-elements if configured
      * @param {HTMLElement} el
+     * @returns {void}
      */
     pauseAnimation(el) {
         if (this.pseudoElements.has(el)) {
@@ -193,7 +146,8 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Sets up MutationObserver to track new elements added to the DOM that match the tracked selectors.
+     * @description Sets up MutationObserver to track new elements added to the DOM that match the tracked selectors.
+     * @returns {void}
      */
     setupMutationObserver() {
         this.mutationObserver = new MutationObserver(mutations => {
@@ -214,7 +168,8 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Sets up IntersectionObserver for sections to track which section is currently active (for navigation highlighting).
+     * @description Sets up IntersectionObserver for sections to track which section is currently active (for navigation highlighting).
+     * @returns {void}
      */
     setupSectionObserver() {
         this.sectionObserver = new IntersectionObserver(this.handleSectionIntersect.bind(this), {
@@ -224,8 +179,9 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Handles IntersectionObserver events for sections, determines the most visible section and triggers callback.
+     * @description Handles IntersectionObserver events for sections, determines the most visible section and triggers callback.
      * @param {IntersectionObserverEntry[]} entries
+     * @returns {void}
      */
     handleSectionIntersect(entries) {
         let maxRatio = 0;
@@ -238,11 +194,6 @@ export class AnimationObserverCSS {
         });
         if (activeId && activeId !== this.currentSection) {
             this.currentSection = activeId;
-            this.logger.log({
-                conditions: ['active-section'],
-                functionName: 'handleSectionIntersect',
-                customData: { activeId }
-            });
             if (typeof this.onActiveSectionChange === 'function') {
                 this.onActiveSectionChange(activeId);
             }
@@ -250,18 +201,19 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Handles window resize events to clean up and reinitialize observers.
+     * @description Handles window resize events to clean up and reinitialize observers.
+     * @returns {void}
      */
     handleResize() {
         this.cleanupObservers();
         this.collectElements();
         this.setupIntersectionObserver();
         this.setupSectionObserver();
-        this.logger.log({ conditions: ['resize'], functionName: 'handleResize' });
     }
 
     /**
-     * Cleans up all observers.
+     * @description Cleans up all observers.
+     * @returns {void}
      */
     cleanupObservers() {
         if (this.intersectionObserver) this.intersectionObserver.disconnect();
@@ -269,7 +221,8 @@ export class AnimationObserverCSS {
     }
 
     /**
-     * Disposes of all observers.
+     * @description Disposes of all observers.
+     * @returns {void}
      */
     dispose() {
         window.removeEventListener('resize', this.handleResize);

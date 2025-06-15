@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { createLogger } from "../../utils/logger";
 
 import vertexShader from '../../shaders/glow.vert';
 import fragmentShader from '../../shaders/glow.frag';
@@ -85,8 +84,6 @@ const SHADER_UNIFORMS = {
  */
 export class SingleGlow {
     constructor(options = {}) {
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
 
         this.options = options;
         this.index = options.index ?? 0;
@@ -226,8 +223,6 @@ export class SingleGlow {
         this._hoverTargetOpacity = isHighlighted
             ? (hoverOpts.opacity?.max ?? this.options.shaderOptions.opacity.max ?? 1)
             : (hoverOpts.opacity?.min ?? this.options.shaderOptions.opacity.min ?? 0);
-
-        console.log(this.options);
     }
 
     /**

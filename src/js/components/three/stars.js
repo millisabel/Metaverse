@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { createLogger } from "../../utils/logger";
 import { getRandomValue } from '../../utils/utils';
 import { gaussianRandom, setupGeometry } from '../../utilsThreeD/utilsThreeD';
 import { createStarTexture } from '../../utilsThreeD/textureUtils';
@@ -68,9 +67,6 @@ const defaultOptions = {
 export class Stars extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options, defaultOptions);
-
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.container.dataset.containerName);
         
         this.stars = null;
         this.phases = null;
@@ -111,19 +107,12 @@ export class Stars extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     cleanup() {
-        this.logMessage += 
-            `----------------------------------------------------------\n` + 
-            `${this.constructor.name}: starting cleanup\n` +
-            `----------------------------------------------------------\n`;
-
         if (this.stars) {
             this.stars.geometry?.dispose();
             this.stars.material?.dispose();
             this.stars = null;
-            this.logMessage += `${this.constructor.name} disposed: ${this.stars}\n`;
         }
         
-        // Dispose star texture
         if (this.starTexture) {
             this.starTexture.dispose();
             this.starTexture = null;
@@ -136,16 +125,7 @@ export class Stars extends Object_3D_Observer_Controller {
         this.flickerAmplitudes = null;
         this.baseSizes = null;
 
-        this.logMessage += `${this.constructor.name} phases: ${this.phases}\n` +
-                       `${this.constructor.name} isMoving: ${this.isMoving}\n` +
-                       `${this.constructor.name} movePhases: ${this.movePhases}\n` +
-                       `${this.constructor.name} flickerSpeeds: ${this.flickerSpeeds}\n` +
-                       `${this.constructor.name} flickerAmplitudes: ${this.flickerAmplitudes}\n` +
-                       `-----------------------------------\n`;
-
         super.cleanup();
-
-        this.logMessage += `${this.constructor.name} cleanup completed\n`;
     }
 
     /**

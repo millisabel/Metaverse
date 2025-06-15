@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { SingleGlow } from './singleGlow';
 
-import { createLogger } from "../../utils/logger";
 import { SINGLE_GLOW_DEFAULT_OPTIONS } from './singleGlow';
 import { 
     resolveGlowColor, 
@@ -72,8 +71,6 @@ export const GLOWS_DEFAULT_OPTIONS = {
 export class Glow extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options, GLOWS_DEFAULT_OPTIONS);
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
 
         this.glows = [];
     }

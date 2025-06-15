@@ -1,28 +1,5 @@
-import { createLogger } from "../../utils/logger";
 import { isMobile } from "../../utils/utils";
 
-/**
- * Configuration for character badge animation
- * @typedef {Object} BadgeAnimationConfig
- * @property {Object} movement - Movement configuration
- * @property {number} movement.speed - Base movement speed (pixels per frame)
- * @property {number} movement.amplitude - Movement amplitude (pixels)
- * @property {number} movement.frequency - Movement frequency multiplier
- * @property {Object} horizontalMovement - Horizontal movement along section
- * @property {number} horizontalMovement.speed - Speed of horizontal movement
- * @property {number} horizontalMovement.padding - Padding from section edges (px)
- * @property {Object} rotation - Rotation configuration
- * @property {number} rotation.speed - Base rotation speed (degrees per frame)
- * @property {number} rotation.amplitude - Maximum rotation angle (degrees)
- * @property {Object} scale - Scale configuration
- * @property {number} scale.min - Minimum scale factor
- * @property {number} scale.max - Maximum scale factor
- * @property {number} scale.speed - Scale change speed
- */
-
-/**
- * Default animation configuration
- */
 const DEFAULT_CONFIG = {
     movement: {
         enabled: false,
@@ -95,14 +72,12 @@ const DEFAULT_CONFIG = {
 };
 
 /**
- * Class for animating floating character badge
+ * @description Class for animating floating character badge
+ * @param {HTMLElement} element - Badge element to animate
+ * @param {HTMLElement} section - Parent section element
+ * @param {Object} config - Animation configuration
  */
 export class CharacterFloatingBadge {
-    /**
-     * @param {HTMLElement} element - Badge element to animate
-     * @param {HTMLElement} section - Parent section element
-     * @param {BadgeAnimationConfig} config - Animation configuration
-     */
     constructor(element, section, config = {}) {
         this.element = element;
         this.section = section;
@@ -158,7 +133,7 @@ export class CharacterFloatingBadge {
             if (isMobile()) {
                 this.element.style.right = `${this.config.mobilePosition.right}px`;
                 this.element.style.bottom = `${this.config.mobilePosition.bottom}px`;
-                this.element.style.left = 'auto'; // Сбрасываем left позицию
+                this.element.style.left = 'auto'; 
             } else {
                 this.element.style.left = '0';
                 this.element.style.bottom = '0';

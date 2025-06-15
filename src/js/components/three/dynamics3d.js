@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
-import { createLogger } from '../../utils/logger';
 import { deepMergeOptions } from '../../utils/utils';
 
 
@@ -91,9 +90,6 @@ const DEFAULT_LIGHTS_CONFIG = {
 export class Dynamics3D extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options);
-        
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
 
         this.mesh = null;
         this.decorationMesh = null;
@@ -148,8 +144,6 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
      * @returns {void}
      */
     cleanup() {
-        this.logMessage += `${this.constructor.name} starting cleanup\n`;
-
         if (this.decorationMesh) {
             if (this.decorationMesh.material) {
                 if (this.decorationMesh.material.map) {
@@ -183,8 +177,6 @@ export class Dynamics3D extends Object_3D_Observer_Controller {
         this.group = null;
 
         super.cleanup();
-
-        this.logMessage += `${this.constructor.name} cleanup completed\n`;
     }
     
     /**

@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-import { createLogger } from '../../utils/logger';
-
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { Grid } from './grid';
 
@@ -92,9 +90,6 @@ export class ExploreScene extends Object_3D_Observer_Controller {
      */
     constructor(container, options = {}) {
         super(container, options, EXPLORE_DEFAULT_OPTIONS);
-        
-        this.logger = createLogger('ExploreScene');
-        this.logger.log('ExploreScene constructor', { options });
         
         this.gridGroup = null;
         this.gridOptions = this.options.gridOptions;

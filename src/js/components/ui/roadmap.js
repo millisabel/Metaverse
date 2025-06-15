@@ -1,4 +1,3 @@
-import { createLogger } from '../../utils/logger';
 import AnimationObserverCSS from '../../utils/animationObserver_CSS';
 import { getRandomValue, getColors, deepMergeOptions, getClassSelector } from '../../utils/utils';
 
@@ -38,9 +37,6 @@ const DEFAULT_OPTIONS = {
  */
 export class Roadmap {
     constructor(container, options = {}) {
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
-
         this.container = container;
         this.initialized = false;
 
@@ -52,15 +48,6 @@ export class Roadmap {
 
         this.options = deepMergeOptions(DEFAULT_OPTIONS, options);
 
-        this.animationObserver = new AnimationObserverCSS(
-            [{ 
-                selector: getClassSelector(this.options.classes.quarters),
-                pseudo: 'before'
-            }], 
-            null,
-            null
-        );
-
         this.init();
     }
 
@@ -70,11 +57,6 @@ export class Roadmap {
      */
     init() {
         if (!this.container || this.initialized) return;
-    
-        this.logger.log({
-            conditions: 'init',
-            functionName: 'init'
-        });
 
         this.parentSVG = this.container.querySelector(getClassSelector(this.options.classes.timeline));
         this.SVG = this._createSVG();

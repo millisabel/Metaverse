@@ -130,7 +130,6 @@ export class TeamSetup extends SectionController {
         this.cards.forEach((card, i) => {
             const glow = glows[i];
             if (!glow) return;
-            console.log(glow);
             card.addEventListener('mouseenter', () => glow.setHighlight(true));
             card.addEventListener('mouseleave', () => glow.setHighlight(false));
         });

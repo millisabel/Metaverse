@@ -46,7 +46,7 @@ class DynamicStarEffect {
     }
 
     /**
-     * Создать DOM-элемент звезды
+         * Создать DOM-элемент звезды
      * @private
      */
     _createStarElement() {
@@ -74,6 +74,11 @@ class DynamicStarEffect {
         }
     }
 
+    /**
+     * @description Set the size of the star
+     * @private
+     * @param {string} size - size in px
+     */
     _setStarSize(size) {
         if (size) {
             this.starEl.style.width = size;

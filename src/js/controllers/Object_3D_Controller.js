@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { createLogger } from '../utils/logger';
 import { deepMergeOptions,  deepClone } from '../utils/utils';
 
 import { RendererController } from './RendererController';
@@ -11,8 +10,6 @@ import { addLightsToScene } from '../utilsThreeD/lightsUtils';
 export class Object_3D_Controller {
     constructor(container, customOptions = {}, defaultOptions = {}) {
         this.name = `${this.constructor.name}`;
-        this.logger = createLogger(this.name);
-        this.logMessage = '';
 
         this.container = container;
         this.containerZIndex = customOptions.zIndex;
@@ -32,32 +29,11 @@ export class Object_3D_Controller {
         this._currentBreakpoint = null;
     }
 
-    _logMessage() {
-        const message = 
-        `----------------------------------------------------------\n` +
-        `STATUS:\n` +
-        `----------------------------------------------------------\n` +
-        `renderer: ${this.renderer}\n` +
-        `Scene: ${this.scene}\n` +  
-        `cameraController: ${this.cameraController}\n` +
-        `animationFrameId: ${this.animationFrameId}\n` +
-        `Resize timeout: ${this.resizeTimeout}\n` +
-        `isVisible: ${this.isVisible}\n` +
-        `isInitialized: ${this.initialized}\n` +
-        `isResizing: ${this.isResizing}\n` +
-        `isContextLost: ${this.isContextLost}\n` +
-        `success\n` + 
-        `----------------------------------------------------------\n`;
-
-        return message;
-    }
-
     /**
      * @description Initializes the controller
      * @returns {void}
      */
     async init() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): init()\n`;
         
         if (this.container && !this._isElementVisible(this.container)) {
             this.cleanup();
@@ -67,9 +43,6 @@ export class Object_3D_Controller {
         this._applyResponsiveOptions();
         this._initDependencies();
         this._initResizeHandler();
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): init() success\n` + 
-        `----------------------------------------------------------\n`;
     }
 
     /**
@@ -77,9 +50,6 @@ export class Object_3D_Controller {
      * @returns {Promise<void>}
      */
     async initScene() {
-        this.logMessage += 
-            `${this.constructor.name} (Object_3D_Controller): initScene()\n` + 
-            `----------------------------------------------------------\n`;
 
         if (!this.renderer) {
             this._initDependencies(); 
@@ -92,9 +62,6 @@ export class Object_3D_Controller {
         await this.setupScene();
 
         this.initialized = true;
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): initScene() success\n` + 
-        `----------------------------------------------------------\n`;
     }
 
     /**
@@ -131,38 +98,21 @@ export class Object_3D_Controller {
      * @returns {boolean} Whether animation should continue
      */
     canAnimate() {  
-        if (!this.isVisible) {
-            this.logMessage += `canAnimate: isVisible is ${this.isVisible}\n`;
+        const checks = [
+            this.isVisible,
+            !this.isResizing,
+            !this.isContextLost,
+            this.initialized,
+            this.scene,
+            this.cameraController,
+            this.cameraController && this.cameraController.camera,
+            this.renderer
+        ];
+        
+        if (!checks.every(Boolean)) {
             return false;
         }
-        if (this.isResizing) {
-            this.logMessage += `canAnimate: isResizing is ${this.isResizing}\n`;
-            return false;
-        }
-        if (this.isContextLost) {
-            this.logMessage += `canAnimate: isContextLost is ${this.isContextLost}\n`;
-            return false;
-        }
-        if (!this.initialized) {
-            this.logMessage += `canAnimate: initialized is ${this.initialized}\n`;
-            return false;
-        }
-        if (!this.scene) {
-            this.logMessage += `canAnimate: scene is ${this.scene}\n`;
-            return false;
-        }
-        if (!this.cameraController) {
-            this.logMessage += `canAnimate: cameraController is ${this.cameraController}\n`;
-            return false;
-        }
-        if(!this.cameraController.camera) {
-            this.logMessage += `canAnimate: camera is ${this.cameraController.camera}\n`;
-            return false;
-        }
-        if (!this.renderer) {
-            this.logMessage += `canAnimate: renderer is ${this.renderer}\n`;
-            return false;
-        }
+
         return true;
     }
 
@@ -172,14 +122,10 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     stopAnimation() {
-        this.logMessage += `${this.constructor.name} Object_3D_Controller: stopAnimation()\n`;
-
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
         }
-
-        this.logMessage += `${this.constructor.name} Object_3D_Controller: this.animationFrameId: ${this.animationFrameId}\n`;
     }
 
     /**
@@ -250,19 +196,12 @@ export class Object_3D_Controller {
     cleanup() {
         if (!this.initialized) return;
 
-        this.logMessage += 
-            `----------------------------------------------------------\n` + 
-            `${this.constructor.name}: starting cleanup in Object_3D_Controller\n` +
-            `----------------------------------------------------------\n`;
-
         this.stopAnimation();
 
         if (this.renderer) {
             this.renderer.dispose();
-            this.logMessage += `renderer disposed\n`;
             if (this.renderer.domElement && this.container.contains(this.renderer.domElement)) {
                 this.container.removeChild(this.renderer.domElement);
-                this.logMessage += `renderer dom element removed\n`;
             }
             RendererController.getInstance().removeRenderer(this.container.id);
             this.renderer = null;
@@ -293,15 +232,6 @@ export class Object_3D_Controller {
             this.observer.disconnect();
             this.observer = null;
         }
-
-        this.logMessage += 
-            `${this.constructor.name}: this.renderer: ${this.renderer}\n` +
-            `${this.constructor.name}: Scene: ${this.scene}\n` +
-            `${this.constructor.name}: this.cameraController: ${this.cameraController}\n` +
-            `${this.constructor.name}: Resize timeout: ${this.resizeTimeout}\n` +
-            `${this.constructor.name}: observer: ${this.observer}\n` +
-            `${this.constructor.name}: Completed cleanup in Object_3D_Controller\n`;
-  
     }
     
     /**
@@ -336,8 +266,6 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     _initDependencies() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initDependencies()\n`;
-
         this.cameraController = new CameraController(this.cameraOptions);
         this.renderer = RendererController.getInstance().getRenderer(this.container.id, this.options.renderer);
 
@@ -348,8 +276,6 @@ export class Object_3D_Controller {
         if (!this.cameraController) {
             throw new Error('Camera controller not found');
         }
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initDependencies() success\n`;
     }
 
     /**
@@ -358,8 +284,6 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     _initResizeHandler() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initResizeHandler()\n`;
-
         window.addEventListener('resize', () => {
             if (!this.isResizing) {
                 this.isResizing = true;
@@ -397,8 +321,6 @@ export class Object_3D_Controller {
      * @returns {number|null} Текущий брейкпоинт или null, если responsive не задан
      */
     _applyResponsiveOptions() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions()\n`;
-
         Object.assign(this.options, deepClone(this.baseOptions));
 
         const responsive = this.baseOptions.responsive;
@@ -414,13 +336,11 @@ export class Object_3D_Controller {
 
         let currentBreakpoint = null;
         for (const bp of breakpoints) {
-            const x = mergeOptions(this.options, responsive[bp]);
+            mergeOptions(this.options, responsive[bp]);
             currentBreakpoint = bp;
         }
 
         this._currentBreakpoint = currentBreakpoint;
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _applyResponsiveOptions() success\n`;
         return currentBreakpoint;
     }
 
@@ -430,9 +350,6 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     _setupRenderer() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _setupRenderer()\n`;
-
-
         RendererController.getInstance().updateThreeRendererSize(
             this.renderer,
             this.container,
@@ -444,8 +361,6 @@ export class Object_3D_Controller {
             containerName: this.options.containerName,
             canvasName: this.name,
         });
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _setupRenderer() success\n`;
     }
 
     /**
@@ -453,15 +368,12 @@ export class Object_3D_Controller {
      * @private
      */
     _initWebGLContextHandlers() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initWebGLContextHandlers()\n`;
 
         if (!this.renderer) return;
         RendererController.getInstance()._initWebGLContextHandlers(this.renderer, {
             onLost: this._handleWebGLContextLost.bind(this),
             onRestored: this._handleWebGLContextRestored.bind(this)
         });
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _initWebGLContextHandlers() success\n`;
     }
 
     /**
@@ -470,8 +382,6 @@ export class Object_3D_Controller {
      * @private
      */
     _handleWebGLContextLost(event) {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextLost()\n`;
-
         event.preventDefault();
         this.isContextLost = true;
         this.stopAnimation();
@@ -481,14 +391,7 @@ export class Object_3D_Controller {
         this.initScene();
         if (this.isVisible && this.canAnimate()) {
             this.animate();
-            this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextLost() success\n`;
         }
-
-        this.logger.log({
-            message: 'WebGL context lost! Attempting to recover...',
-            functionName: '_handleWebGLContextLost',
-            level: 'warn'
-        });
     }
 
     /**
@@ -497,15 +400,11 @@ export class Object_3D_Controller {
      * @private
      */
     _handleWebGLContextRestored() {
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextRestored()\n`;
-
         this.isContextLost = false;
         this.initScene();
         if (this.isVisible && this.canAnimate()) {
             this.animate();
         }
-
-        this.logMessage += `${this.constructor.name} (Object_3D_Controller): _handleWebGLContextRestored() success\n`;
     }
 
     /**
@@ -514,10 +413,6 @@ export class Object_3D_Controller {
      * @returns {void}
      */
     _softCleanup() {
-        this.logMessage +=
-            `----------------------------------------------------------\n` + 
-            `starting soft cleanup\n` +
-            `----------------------------------------------------------\n`;
         if (this.scene) {
             this.scene.traverse((object) => {
                 if (object.geometry) object.geometry.dispose();

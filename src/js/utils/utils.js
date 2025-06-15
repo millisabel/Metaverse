@@ -227,13 +227,11 @@ export function shuffleArray(array) {
     return arr;
 }
 
-
-
-
-
-
-
-
+/**
+ * @description Gets the size of a container
+ * @param {HTMLElement} container - The container element
+ * @returns {Object} The size of the container
+ */
 export function getSizeContainer(container) {
     const rect = container.getBoundingClientRect();
     return {
@@ -241,6 +239,7 @@ export function getSizeContainer(container) {
         height: rect.height
     };
 }
+
 /**
  * @description Gets the aspect ratio of a container
  * @param {HTMLElement} container - The container element
@@ -252,14 +251,6 @@ export function getAspectRatio(container) {
 }
 
 /**
- * @description Generates a random color
- * @returns {string} A random color in hex format
- */
-export function getRandomColor() {
-    return '#' + Math.floor(Math.random()*16777215).toString(16);
-}
-
-/**
  * @description Generates a random number between min and max values
  * @param {number} min - Minimum value (inclusive)
  * @param {number} max - Maximum value (exclusive)
@@ -268,77 +259,6 @@ export function getRandomColor() {
 export function getRandomValue(min, max) {
     return Math.random() * (max - min) + min;
 }
-
-
-
-/**
- * @description Extracts RGB values from a color string
- * @param {string} colorStr - The color string to extract RGB values from
- * @returns {string} The extracted RGB values
- */
-export function extractRGB(colorStr) {
-    // rgba(255, 255, 255, 0.05) или rgb(255, 255, 255)
-    const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    if (match) {
-        return `rgb(${match[1]}, ${match[2]}, ${match[3]})`;
-    }
-    return colorStr; 
-}
-
-/**
- * @description Gets the color from the quarter's CSS variable
- * @param {HTMLElement} quarter - The quarter element
- * @returns {string} The color in RGB format
- */
-export function getQuarterColorFromVar(quarter) {
-    const rgb = getComputedStyle(quarter).getPropertyValue('--roamap-color-rgb').trim();
-    if (rgb) {
-        return `rgb(${rgb})`;
-    }
-    return null;
-}
-
-/**
- * @description Merges default options, options, and objectConfig into a single options object.
- * @param {Object} defaultOptions - Default options.
- * @param {Object} options - User options.
- * @param {Object} [objectConfig] - Additional object config.
- * @returns {Object} - Merged options.
- */
-// export function mergeOptionsWithObjectConfig(defaultOptions, options = {}, objectConfig = {}) {
-//     const { objectConfig: _ignored, ...restOptions } = options;
-//     const mergedOptions = {
-//         ...restOptions,
-//         ...(objectConfig || {})
-//     };
-//     return mergeOptions(defaultOptions, mergedOptions);
-// }
-
-/**
- * @description Deeply merges two objects (used for options).
- * @param {Object} defaults - Default options.
- * @param {Object} options - User options.
- * @returns {Object} - Deeply merged object.
- */
-// export function mergeOptions(defaults, options) {
-//     const merged = deepClone(defaults);
-//     function assign(target, source) {
-//         for (const key in source) {
-//             if (
-//                 source[key] &&
-//                 typeof source[key] === 'object' &&
-//                 !Array.isArray(source[key])
-//             ) {
-//                 if (!target[key]) target[key] = {};
-//                 assign(target[key], source[key]);
-//             } else {
-//                 target[key] = deepClone(source[key]);
-//             }
-//         }
-//     }
-//     assign(merged, options);
-//     return merged;
-// }
 
 /**
  * @description Deeply clones an object or array.
@@ -360,23 +280,4 @@ export function deepClone(value) {
     }
     return cloned;
 }
-
-/**
- * Merges user options with default options for 3D object configuration
- * @param {Object} defaultConfig - Default configuration object
- * @param {Object} userConfig - User provided configuration object
- * @returns {Object} Merged configuration object
- */
-// export function mergeDefaultAndCustomOptions(defaultConfig, userConfig) {
-//     // Validate inputs
-//     if (!defaultConfig || typeof defaultConfig !== 'object') {
-//         console.warn('Invalid default configuration provided');
-//         return userConfig || {};
-//     }
-
-//     // Deep merge the configurations
-//     const mergedConfig = deepMergeOptions(defaultConfig, userConfig);
-
-//     return mergedConfig;
-// }
 

@@ -1,5 +1,3 @@
-import { createLogger } from '../utils/logger';
-
 import { SectionObserver } from './SectionObserver';
 import { ThreeDContainerController } from './ThreeDContainerController';
 
@@ -14,9 +12,6 @@ export class SectionController extends SectionObserver {
         super(containerId);
         
         this.name = `${this.constructor.name}`;
-        this.logger = createLogger(this.name);
-        this.logMessage = '';
-        this.logMessage += `${this.constructor.name} (SectionController): constructor()\n`;
 
         this.parentContainer = document.getElementById(containerId);
         this.parentZIndex = zIndex;
@@ -31,16 +26,12 @@ export class SectionController extends SectionObserver {
      * @description initialize section with 3d objects
      * @returns {Promise<void>}
      */
-    async initSection() {
-        this.logMessage += `${this.constructor.name} (SectionController): initSection()\n`;
-        
+    initSection() {
         if (this.initialized) return;
-        await this._setupControllers();
+
+        this._setupControllers();
         
         this.initialized = true;
-
-        this.logMessage += `${this.constructor.name} (SectionController): initialized: ${this.initialized} \n`;
-        this.logMessage += `${this.constructor.name} (SectionController): initSection() success\n`;
     }
 
     /**
@@ -69,14 +60,10 @@ export class SectionController extends SectionObserver {
      * @returns {HTMLElement}
      */
     getContainer(containerId) {
-        this.logMessage += `${this.constructor.name} (SectionController): getContainer()\n`;
-        
         const container = document.getElementById(containerId);
         if (!container) {
             throw new Error(`Container with id ${containerId} not found`);
         }
-
-        this.logMessage += `${this.constructor.name} (SectionController): getContainer() success\n`;
         return container;
     }
 
@@ -101,16 +88,9 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     cleanup() {
-        this.logMessage += 
-            `${this.name}: Starting cleanup (SectionController)\n` +
-            `----------------------------------------------------------\n`;
-
         this._cleanupControllers();
         this._controllersCreated = false;
 
-        this.logMessage += 
-            `_controllersCreated: ${this._controllersCreated}\n` +  
-            `cleanup success (SectionController)\n`;
         super.cleanup();
     }
 
@@ -119,14 +99,10 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     async _setupControllers() {
-        this.logMessage += `${this.constructor.name} (SectionController): setupControllers()\n`;
-
         await this._setupContainers();
         await this._createControllers();
         await this._initControllers();
-
-        this.logMessage += `${this.constructor.name} (SectionController): setupControllers() success\n`;
-    }
+    }   
 
     /**
      * @description Cleans up a specific container type
@@ -134,12 +110,8 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     _deleteContainer_3D_Object() {
-        this.logMessage += `${this.name}: _deleteContainer_3D_Object()\n`;
-
         const manager = new ThreeDContainerController(this.container);
         manager.delete();
-
-        this.logMessage += `${this.name}: _deleteContainer_3D_Object() success\n`;
     }
 
     /**
@@ -147,8 +119,6 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     async _setupContainers() {
-        this.logMessage += `${this.constructor.name} (SectionController): _setupContainers()\n`;
-
         for (const [key, params] of Object.entries(this.objects3DConfig)) {
 
             const CONTAINER_CONFIG = {
@@ -159,15 +129,17 @@ export class SectionController extends SectionObserver {
             };
 
             if (!this._3dContainers[CONTAINER_CONFIG.name_3D_Container]) {
-                this._3dContainers[CONTAINER_CONFIG.name_3D_Container] = new ThreeDContainerController(CONTAINER_CONFIG).init();
+                this._3dContainers[CONTAINER_CONFIG.name_3D_Container] = await this._createContainer(CONTAINER_CONFIG);
 
-                if (this._3dContainers[CONTAINER_CONFIG.name_3D_Container]) {
-                    this.logMessage += `${this.constructor.name} (SectionController): _setupContainers() ${CONTAINER_CONFIG.name_3D_Container} success\n`;
-                } else {
+                if (!this._3dContainers[CONTAINER_CONFIG.name_3D_Container]) {
                     throw new Error(`${this.constructor.name} (SectionController): _setupContainers() ${CONTAINER_CONFIG.name_3D_Container} failed\n`);
                 }
             }
         }
+    }
+
+    async _createContainer(params) {
+        return new ThreeDContainerController(params).init();
     }
 
     /**
@@ -178,12 +150,13 @@ export class SectionController extends SectionObserver {
         for (const [key, controller] of Object.entries(this.controllers)) {
             if (controller && typeof controller.cleanup === 'function') {
                 controller.cleanup();
-                this.logMessage += `controller ${key} cleaned up success\n`;
+            }
+            else{
+                throw new Error(`${this.constructor.name} (SectionController): _cleanupControllers() ${controller[key]} failed\n`);
             }
         }
 
         this.controllers = [];
-        this.logMessage += `cleanupControllers() controllers: ${this.controllers}\n`;
     }
 
     /**
@@ -191,24 +164,22 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     async _createControllers() {
-        this.logMessage += `${this.constructor.name} (SectionController): _createControllers()\n`;
-
         for (const [key, params] of Object.entries(this.objects3DConfig)) {
             const containerName = params.containerName || key;
             if(!this._controllersCreated) {
-                this.controllers[key] = new params.classRef(this._3dContainers[containerName], {
-                    ...params, 
-                });
+                this.controllers[key] = await this._createController(containerName, params);
             }
-            if (this.controllers[key]) {
-                this.logMessage += `${this.constructor.name} (SectionController): _createControllers() ${containerName} success\n`;
-            } else {
+            if (!this.controllers[key]) {
                 throw new Error(`${this.constructor.name} (SectionController): _createControllers() ${containerName} failed\n`);
             }
         }   
         this._controllersCreated = true;
-
-        this.logMessage += `${this.constructor.name} (SectionController): _controllersCreated: ${this._controllersCreated}\n`;
+    }
+    
+    async _createController(containerName, params) {
+        return new params.classRef(this._3dContainers[containerName], {
+            ...params, 
+        });
     }
 
     /**
@@ -216,12 +187,9 @@ export class SectionController extends SectionObserver {
      * @returns {void}
      */
     async _initControllers() {
-        this.logMessage += `${this.constructor.name} (SectionController): _initControllers()\n`;
-
         for (const controller of Object.values(this.controllers)) {
             if (controller && typeof controller.init === 'function') {
                 await controller.init();
-                this.logMessage += `${this.constructor.name} (SectionController): _initControllers() ${controller.name} success\n`;
             } else {
                 throw new Error(`${this.constructor.name} (SectionController): _initControllers() ${controller.name} failed\n`);
             }

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { createLogger } from "../../utils/logger";
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 import { ShaderController } from '../../controllers/ShaderController';
 
@@ -121,9 +120,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
     constructor(container, options = {}) {
         super(container, options, DEFAULT_OPTIONS);
 
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
-
         this.galaxyCore = null;
         this.galaxyPlane = null;
         this.shaderController = null;
@@ -181,10 +177,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @returns {Promise<void>}
      */
     cleanup() {
-        this.logMessage += 
-            `----------------------------------------------------------\n` +
-            `${this.constructor.name} starting cleanup in GalacticCloud\n` + 
-            `----------------------------------------------------------\n`;
         if (this.galaxyCore) {
             if (this.scene) this.scene.remove(this.galaxyCore);
             if (this.galaxyCore.geometry) this.galaxyCore.geometry.dispose();
@@ -214,17 +206,7 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
         }
         this.shaderController = null;
 
-        this.logMessage += 
-            `${this.constructor.name} this.galaxyCore ${this.galaxyCore}\n` + 
-            `${this.constructor.name} this.galaxyPlane ${this.galaxyPlane}\n` + 
-            `${this.constructor.name} this.shaderController ${this.shaderController}\n` + 
-            `${this.constructor.name} cleanup completed\n`;
-
         super.cleanup();
-
-        this.logMessage += 
-        `----------------------------------------------------------\n` +
-            `${this.constructor.name} cleanup completed\n`;
     }
 
     /**
@@ -270,7 +252,6 @@ export class GalacticCloud extends Object_3D_Observer_Controller {
      * @protected
      */
     async _createGalaxyPlane() {
-        // Load texture only once
         if (!this.galaxyTexture) {
             const textureLoader = new THREE.TextureLoader();
             try {

@@ -1,41 +1,34 @@
 import { animateNavItems } from './navbar.js';
 import { isMobile } from '../../utils/utils.js';
 
-// Function for correct focus on modal
+const DEFAULT_OPTIONS = {
+    selectors: {
+        modal: '.modal',
+        navbar: '.navbar',
+        hiddenItemsSelector: ['.navbar'],
+    },
+    attribute: 'data-original-display'
+}
 
 /**
- * Initializes focus management for all Bootstrap modals on the page.
- *
- * Ensures that when a modal is closed, focus returns to the element (button or link)
- * that triggered the modal. This improves accessibility and keyboard navigation.
- *
- * - Remembers the last trigger element that opened each modal.
- * - On modal close, returns focus to the trigger element.
- * - If focus is not restored, attempts to blur the close button and refocus the trigger.
- * - Logs warnings if focus cannot be restored.
- *
- * @function initModal
- * @example
- * import initModal from './modal.js';
- * // Call once after DOM is ready
- * initModal();
- *
- * // HTML example:
- * // <button data-bs-toggle="modal" data-bs-target="#contactModal">Open Modal</button>
- * // <div class="modal" id="contactModal">...</div>
+ * @description Initializes focus management for all Bootstrap modals on the page.
+ * @returns {void}
  */
-function initModal() {
+function initModal(selector = DEFAULT_OPTIONS.selectors.modal, hiddenItemsSelector = [DEFAULT_OPTIONS.selectors.navbar]) {
     let lastTriggerButton = null;
-    const modals = document.querySelectorAll('.modal');
+    const modals = document.querySelectorAll(selector);
 
-    const hiddenItemsSelector = ['.navbar'];
-
-    // Adjust navbar for modal
     modals.forEach(modal => {
       modal.addEventListener('show.bs.modal', () => adjustNavbarForModal(true, hiddenItemsSelector));
       modal.addEventListener('hidden.bs.modal', () => adjustNavbarForModal(false, hiddenItemsSelector));
     });
 
+    /**
+     * @description Adjusts the navbar for the modal
+     * @param {boolean} open - Whether the modal is open
+     * @param {Array<string>} selectors - The selectors to adjust
+     * @returns {void}
+     */
     function adjustNavbarForModal(open, selectors) {
       if (!selectors) return;
 
@@ -44,15 +37,15 @@ function initModal() {
         if (!item) return;
     
         if (open) {
-          if (!item.hasAttribute('data-original-display')) {
+          if (!item.hasAttribute(DEFAULT_OPTIONS.selectors.attribute)) {
             const computedDisplay = window.getComputedStyle(item).display;
-            item.setAttribute('data-original-display', computedDisplay);
+            item.setAttribute(DEFAULT_OPTIONS.selectors.attribute, computedDisplay);
           }
           item.style.display = 'none';
         } else {
-          const originalDisplay = item.getAttribute('data-original-display') || '';
+          const originalDisplay = item.getAttribute(DEFAULT_OPTIONS.attribute) || '';
           item.style.display = originalDisplay;
-          item.removeAttribute('data-original-display');
+          item.removeAttribute(DEFAULT_OPTIONS.attribute);
         }
     
         if (selector === '.navbar' && !isMobile(1400)) {
@@ -63,7 +56,10 @@ function initModal() {
       });
     }
     
-    // Focus management for modals
+    /**
+     * @description Focus management for modals
+     * @returns {void}
+     */
     modals.forEach(modal => {
       modal.addEventListener('show.bs.modal', (event) => {
         lastTriggerButton = event.relatedTarget;

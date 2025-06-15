@@ -1,3 +1,7 @@
+/**
+ * @description Initialize the slider
+ * @returns {void}
+ */	
 export function initSlider() {
     const carouselElement = document.getElementById('aboutCarousel');
     const totalSlides = document.querySelectorAll('.about .carousel-item').length;
@@ -13,7 +17,10 @@ export function initSlider() {
     let currentSlide = 0;
     let animationFrame = null;
 
-    // Get dimensions
+    /**
+     * @description Get the dimensions of the carousel
+     * @returns {Object} The dimensions of the carousel
+     */
     function getDimensions() {
         const handleRect = handle.getBoundingClientRect();
         const trackRect = track.getBoundingClientRect();
@@ -24,7 +31,11 @@ export function initSlider() {
         };
     }
 
-    // Function to update indicator position
+    /**
+     * @description Update the position of the indicator
+     * @param {number} slideIndex - The index of the slide
+     * @returns {void}
+     */
     function updateIndicatorPosition(slideIndex) {
         const { handleWidth, trackWidth } = getDimensions();
         const progress = (slideIndex / (totalSlides - 1)) * 100;
@@ -34,14 +45,23 @@ export function initSlider() {
         fill.style.width = `${position + handleWidth}px`;
     }
 
-    // Function to get slide index from position
+    /**
+     * @description Get the slide index from the position
+     * @param {number} position - The position of the indicator
+     * @returns {number} The index of the slide
+     */
     function getSlideIndexFromPosition(position) {
         const { handleWidth, trackWidth } = getDimensions();
         const progress = position / (trackWidth - handleWidth);
         return Math.round(progress * (totalSlides - 1));
     }
 
-    // Function to smoothly move indicator
+    /**
+     * @description Smoothly move the indicator to the target position
+     * @param {number} targetPosition - The target position of the indicator
+     * @param {number} duration - The duration of the animation
+     * @returns {void}
+     */
     function smoothMoveToPosition(targetPosition, duration = 300) {
         const { handleWidth } = getDimensions();
         const startPosition = handle.offsetLeft;
@@ -72,7 +92,11 @@ export function initSlider() {
         animationFrame = requestAnimationFrame(animate);
     }
 
-    // Drag-and-drop handlers
+    /**
+     * @description Handle the drag start event
+     * @param {Event} e - The event object
+     * @returns {void}
+     */
     function handleDragStart(e) {
         isDragging = true;
         startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
@@ -86,6 +110,11 @@ export function initSlider() {
         }
     }
 
+    /**
+     * @description Handle the drag move event
+     * @param {Event} e - The event object
+     * @returns {void}
+     */
     function handleDragMove(e) {
         if (!isDragging) return;
         e.preventDefault();
@@ -102,6 +131,11 @@ export function initSlider() {
         fill.style.width = `${newLeft + handleWidth}px`;
     }
 
+    /**
+     * @description Handle the drag end event
+     * @param {Event} e - The event object
+     * @returns {void}
+     */
     function handleDragEnd(e) {
         if (!isDragging) return;
         isDragging = false;
@@ -129,7 +163,7 @@ export function initSlider() {
         currentSlide = newSlideIndex;
     }
 
-    // Add event listeners
+    
     handle.addEventListener('mousedown', handleDragStart);
     handle.addEventListener('touchstart', handleDragStart, { passive: false });
     document.addEventListener('mousemove', handleDragMove);
@@ -137,7 +171,7 @@ export function initSlider() {
     document.addEventListener('mouseup', handleDragEnd);
     document.addEventListener('touchend', handleDragEnd);
 
-    // Initialize carousel
+    
     const carousel = new bootstrap.Carousel(carouselElement, {
         interval: 5000,
         touch: true,
@@ -145,7 +179,6 @@ export function initSlider() {
         nextWhenVisible: false,
     });
 
-    // Track visibility of section
     const aboutSection = document.getElementById('about');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -161,6 +194,7 @@ export function initSlider() {
 
     observer.observe(aboutSection);
 
+
     function updateNumbers(currentIndex) {
         currentNumber.textContent = currentIndex + 1;
         const nextIndex = (currentIndex + 1) % totalSlides;
@@ -168,12 +202,10 @@ export function initSlider() {
         updateIndicatorPosition(currentIndex);
     }
 
-    // Listen for slide change event
     carouselElement.addEventListener('slide.bs.carousel', function(e) {
         updateNumbers(e.to);
         currentSlide = e.to;
     });
 
-    // Initialize initial values
     updateNumbers(0);
 }

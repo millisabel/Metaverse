@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { createLogger } from '../../utils/logger';
 import { Object_3D_Observer_Controller } from '../../controllers/Object_3D_Observer_Controller';
 
 const defaultOptions = {
@@ -52,8 +51,6 @@ export class SocialCard extends Object_3D_Observer_Controller {
      */
     constructor(container, options = {}) {
         super(container, options, defaultOptions);
-        this.name = this.constructor.name;
-        this.logger = createLogger(this.name);
 
         this.isHovered = false;
         this.animationOffset = Math.random() * Math.PI * 2;
