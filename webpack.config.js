@@ -4,7 +4,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === 'development';   
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+
 const repoName = 'Metaverse'; // Имя вашего репозитория
 
 module.exports = {
@@ -66,6 +68,7 @@ module.exports = {
         },
         extractComments: false,
       }),
+      new CssMinimizerPlugin(),
     ],
   },
   plugins: [
