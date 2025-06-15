@@ -13,6 +13,7 @@ const DEFAULT_OPTIONS_STAR_DYNAMICS = {
         x: [0, 100],
         y: [0, 100],
         anchorElement: null,
+        align: 'center center',
         offset: { x: 0, y: 0 },
         initial: { x: 0, y: 0 }
     },
@@ -40,7 +41,7 @@ class DynamicStarEffect {
     }
 
     _setStylesParent() {
-        if (this.parentEl.style.position === 'static') {
+        if (this.parentEl.style.position === 'static' || this.parentEl.style.position === '') {
             this.parentEl.style.position = 'relative';
         }
     }
@@ -117,6 +118,7 @@ class DynamicStarEffect {
     _getPosition() {
         const { mode, x, y, anchorElement, offset, initial } = this.options.position;
         const parentRect = this.parentEl.getBoundingClientRect();
+        console.log('anchorElement', anchorElement);
         if (mode === 'fixed') {
             return {
                 x: initial.x,
@@ -124,9 +126,25 @@ class DynamicStarEffect {
             };
         } else if (mode === 'element' && anchorElement) {
             const anchorRect = anchorElement.getBoundingClientRect();
+            const align = this.options.position.align || 'center center';
+            const [vertical = 'center', horizontal = 'center'] = align.split(' ');
+
+            let x, y;
+            switch (horizontal) {
+                case 'left': x = anchorRect.left; break;
+                case 'right': x = anchorRect.right; break;
+                default: x = anchorRect.left + anchorRect.width / 2;
+            }
+            switch (vertical) {
+                case 'top': y = anchorRect.top; break;
+                case 'bottom': y = anchorRect.bottom; break;
+                default: y = anchorRect.top + anchorRect.height / 2;
+            }
+            x = x - parentRect.left + (offset?.x || 0);
+            y = y - parentRect.top + (offset?.y || 0);
             return {
-                x: anchorRect.left - parentRect.left + (anchorRect.width / 2) + (offset?.x || 0),
-                y: anchorRect.top - parentRect.top + (anchorRect.height / 2) + (offset?.y || 0)
+                x,
+                y
             };
         } else { 
             const xPercent = this._randomInRange(x);

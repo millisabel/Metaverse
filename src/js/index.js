@@ -9,6 +9,7 @@ import { VRMarketSetup } from './setup/vrMarketSetup';
 import { ExploreSetup } from './setup/exploreSetup';
 import { SocialSetup } from './setup/socialSetup';
 import { TeamSetup } from './setup/teamSetup';
+import initFAQSetup from './setup/FAQ';
 
 // Common components
 import { initNavbar } from './setup/NavbarSetup';
@@ -43,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     new ExploreSetup();
     new TeamSetup();
     new SocialSetup();
+
+    initFAQSetup();
 
     initModal('.modal', ['.navbar']);
     updateCopyrightYear('[data-year="currentYear"]');
