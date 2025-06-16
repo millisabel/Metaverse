@@ -1,14 +1,8 @@
-import { createLogger } from '../utils/logger';
-
 import { initializeNavbar } from '../components/common/navbar';
 
 
 export class NavbarSetup {
     constructor() {
-
-        this.name = 'NavbarSetup';
-        this.logger = createLogger(this.name);
-
         this.NAVBAR_SELECTORS = {
             NAVBAR_SELECTOR: '.navbar',
             NAVBAR_ITEMS_SELECTOR: '.navbar-nav .nav-item',
@@ -24,20 +18,11 @@ export class NavbarSetup {
     }
 
     init() { 
-        this.logger.log({
-            conditions: ['init'],
-            functionName: 'init'
-        });
-
         this.initNavbar();
         this.initNavbarToggler();
     }
 
     initNavbar() {
-        this.logger.log({
-            conditions: ['initNavbar'],
-            functionName: 'initNavbar'
-        });
         initializeNavbar(this.NAVBAR_SELECTORS);
     }
 
