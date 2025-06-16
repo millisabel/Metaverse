@@ -14,9 +14,9 @@ const CONFIG_STAR_DYNAMICS = {
     },
 };
 
-class FAQSetup{
+export class FAQSetup{
     constructor() {
-
+        this.init()
     }
 
     init() {
@@ -29,10 +29,4 @@ class FAQSetup{
             this.dynamicStarEffect = null;
         }
     }
-}
-
-export default function initFAQSetup() {
-    const faqSetup = new FAQSetup();
-    faqSetup.init();
-    return faqSetup;
 }

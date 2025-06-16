@@ -1,30 +1,32 @@
 import { AnimationObserverCSS } from './utils/animationObserver_CSS';
 
-// Setup
-import { HeroSetup } from './setup/heroSetup';
-import { AboutSetup } from './setup/aboutSetup';
-import { RoadmapSetup } from './setup/roadmapSetup';
-import { DynamicsSetup } from './setup/dynamicsSetup';
-import { VRMarketSetup } from './setup/vrMarketSetup';
-import { ExploreSetup } from './setup/exploreSetup';
-import { SocialSetup } from './setup/socialSetup';
-import { TeamSetup } from './setup/teamSetup';
-import initFAQSetup from './setup/FAQ';
-
 // Common components
 import { initNavbar } from './setup/NavbarSetup';
 import initModal from './components/common/modal';
 import { updateCopyrightYear } from './utils/utils';
 
+const moduleMap = {
+    HeroSetup: () => import('./setup/heroSetup'),
+    AboutSetup: () => import('./setup/aboutSetup'),
+    RoadmapSetup: () => import('./setup/roadmapSetup'),
+    DynamicsSetup: () => import('./setup/dynamicsSetup'),
+    VRMarketSetup: () => import('./setup/vrMarketSetup'),
+    ExploreSetup: () => import('./setup/exploreSetup'),
+    TeamSetup: () => import('./setup/teamSetup'),
+    FAQSetup: () => import('./setup/faqSetup'),
+    SocialSetup: () => import('./setup/socialSetup'),
+};
+
 const lazyConfigs = [
-    { selector: '#hero', Controller: HeroSetup },
-    { selector: '#about', Controller: AboutSetup },
-    { selector: '#roadmap', Controller: RoadmapSetup },
-    { selector: '#dynamics', Controller: DynamicsSetup },
-    { selector: '#vr-market', Controller: VRMarketSetup },
-    { selector: '#explore', Controller: ExploreSetup },
-    { selector: '#team', Controller: TeamSetup },
-    { selector: '#social', Controller: SocialSetup },
+    { selector: '#hero', className: 'HeroSetup' },
+    { selector: '#about', className: 'AboutSetup' },
+    { selector: '#roadmap', className: 'RoadmapSetup' },
+    { selector: '#dynamics', className: 'DynamicsSetup' },
+    { selector: '#vr-market', className: 'VRMarketSetup' },
+    { selector: '#explore', className: 'ExploreSetup' },
+    { selector: '#team', className: 'TeamSetup' },
+    { selector: '#faq', className: 'FAQSetup' },
+    { selector: '#social', className: 'SocialSetup' },
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -45,10 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
         offset: 100
     });
 
-    lazyConfigs.forEach(cfg => lazyInitController(cfg.selector, cfg.Controller));
+    lazyConfigs.forEach(cfg =>
+        lazyInitController(cfg.selector, cfg.className)
+    );
 
     initNavbar();
-    initFAQSetup();
     initModal('.modal', ['.navbar']);
     updateCopyrightYear('[data-year="currentYear"]');
 
@@ -68,17 +71,20 @@ document.addEventListener('DOMContentLoaded', () => {
     ]);
 });
 
-function lazyInitController(selector, ControllerClass, params) {
+function lazyInitController(selector, className, params) {
     let initialized = false;
     const element = document.querySelector(selector);
     if (!element) return;
 
-    const observer = new IntersectionObserver((entries, obs) => {
+    const observer = new IntersectionObserver(async (entries, obs) => {
         if (entries[0].isIntersecting && !initialized) {
+            const importFunc = moduleMap[className];
+            if (!importFunc) return;
+            const module = await importFunc();
             if (params) {
-                new ControllerClass(element, params);
+                new module[className](element, params);
             } else {
-                new ControllerClass();
+                new module[className]();
             }
             initialized = true;
             obs.disconnect();
