@@ -18,10 +18,10 @@
     }
 
     h1, .h1 {
-        font-size: var(--heading-1-size-mobile, 1.625rem);
+      font-size: 1.625rem;
 
-        @include desktop {
-          font-size: var(--heading-1-size-desktop, 3rem);
-        }
+      @include desktop {
+        font-size: 3rem;
       }
+    }
 }

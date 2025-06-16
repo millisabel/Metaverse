@@ -1,8 +1,8 @@
 .footer{
     a {
-        color: var(--bs-secondary);
+        color: #a9aaab;
         text-decoration: none;
-        transition: color 0.2s, transform 0.2s;
+        transition: color 0.2s, transform 0.5s;
 
         &:hover,
         &:focus {
@@ -12,7 +12,7 @@
     }
 
     .bi {
-        transition: color 0.2s, transform 0.2s;
+        transition: color 0.2s, transform 0.5s;
         &:hover,
         &:focus {
             color: var(--bs-white);
