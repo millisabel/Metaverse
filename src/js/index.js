@@ -16,6 +16,17 @@ import { initNavbar } from './setup/NavbarSetup';
 import initModal from './components/common/modal';
 import { updateCopyrightYear } from './utils/utils';
 
+const lazyConfigs = [
+    { selector: '#hero', Controller: HeroSetup },
+    { selector: '#about', Controller: AboutSetup },
+    { selector: '#roadmap', Controller: RoadmapSetup },
+    { selector: '#dynamics', Controller: DynamicsSetup },
+    { selector: '#vr-market', Controller: VRMarketSetup },
+    { selector: '#explore', Controller: ExploreSetup },
+    { selector: '#team', Controller: TeamSetup },
+    { selector: '#social', Controller: SocialSetup },
+];
+
 document.addEventListener('DOMContentLoaded', () => {
     const origGetError = WebGLRenderingContext.prototype.getError;
 
@@ -34,28 +45,46 @@ document.addEventListener('DOMContentLoaded', () => {
         offset: 100
     });
 
+    lazyConfigs.forEach(cfg => lazyInitController(cfg.selector, cfg.Controller));
+
     initNavbar();
-
-    new HeroSetup();
-    new AboutSetup();
-    new RoadmapSetup();
-    new DynamicsSetup();
-    new VRMarketSetup();
-    new ExploreSetup();
-    new TeamSetup();
-    new SocialSetup();
-
     initFAQSetup();
-
     initModal('.modal', ['.navbar']);
     updateCopyrightYear('[data-year="currentYear"]');
 
     new AnimationObserverCSS([
-        '.star', 
         { 
             selector: '.roadmap-quarter',
+            pseudo: 'before'
+        },
+        {
+            selector: '.star',
+            pseudo: 'after'
+        },
+        {
+            selector: '.star',
             pseudo: 'before'
         }
     ]);
 });
+
+function lazyInitController(selector, ControllerClass, params) {
+    let initialized = false;
+    const element = document.querySelector(selector);
+    if (!element) return;
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        if (entries[0].isIntersecting && !initialized) {
+            if (params) {
+                new ControllerClass(element, params);
+            } else {
+                new ControllerClass();
+            }
+            initialized = true;
+            obs.disconnect();
+        }
+    }, { threshold: 0.1, rootMargin: '50px' });
+
+    observer.observe(element);
+}
 
